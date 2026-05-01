@@ -18,6 +18,20 @@
 		geo: '/geo'
 	};
 
+	/* Plate numbers — the drawing-set ordering. URL is plate 01 (the
+	 * canonical landing); the rest follow in spec.section order so the
+	 * sequence reads like a published volume. */
+	const PLATE: Record<ContentType, string> = {
+		url: '01',
+		text: '02',
+		wifi: '03',
+		vcard: '04',
+		email: '05',
+		sms: '06',
+		phone: '07',
+		geo: '08'
+	};
+
 	const activeType = $derived.by<ContentType>(() => {
 		const path = page.url.pathname || '/';
 		if (path === '/') return 'url';
@@ -45,8 +59,9 @@
 				NO SIGNUP <span class="pill-dot">·</span> NO TRACKING <span class="pill-dot">·</span> NO UPLOAD
 			</span>
 		</div>
-		<nav class="type-nav" aria-label="QR content types">
+		<nav class="type-nav" aria-label="QR content types — plate index">
 			<div class="type-nav-inner">
+				<span class="type-nav-rubric" aria-hidden="true">PLATE INDEX</span>
 				{#each CONTENT_TYPES as t}
 					<a
 						class="type-link"
@@ -54,7 +69,8 @@
 						href={ROUTE_FOR_TYPE[t]}
 						aria-current={activeType === t ? 'page' : undefined}
 					>
-						{TYPE_LABELS[t]}
+						<span class="plate-num">PL.{PLATE[t]}</span>
+						<span class="plate-label">{TYPE_LABELS[t]}</span>
 					</a>
 				{/each}
 			</div>
@@ -67,14 +83,24 @@
 
 	<footer class="colophon">
 		<div class="colophon-inner">
-			<span>
-				A free utility from
-				<a href="https://kemek.com">KeMeK Network</a>.
-			</span>
-			<span class="dot" aria-hidden="true">·</span>
-			<span>Runs in your browser. Files never leave your device.</span>
-			<span class="dot" aria-hidden="true">·</span>
-			<span class="phase">PHASE 1 / 2026—05</span>
+			<div class="colophon-cell">
+				<span class="cell-rubric">DRAWN BY</span>
+				<span class="cell-value">
+					<a href="https://kemek.com">KEMEK NETWORK</a>
+				</span>
+			</div>
+			<div class="colophon-cell">
+				<span class="cell-rubric">PROCESS</span>
+				<span class="cell-value">CLIENT-SIDE / NO UPLOAD</span>
+			</div>
+			<div class="colophon-cell">
+				<span class="cell-rubric">EDITION</span>
+				<span class="cell-value">I — MAY 2026</span>
+			</div>
+			<div class="colophon-cell colophon-cell-stamp">
+				<span class="cell-rubric">SHEET</span>
+				<span class="cell-value">∞ / ∞</span>
+			</div>
 		</div>
 	</footer>
 </div>
@@ -177,6 +203,7 @@
 		margin: 0 auto;
 		padding: 0 var(--gutter);
 		display: flex;
+		align-items: stretch;
 		gap: 0;
 		overflow-x: auto;
 		scrollbar-width: none;
@@ -184,57 +211,119 @@
 	.type-nav-inner::-webkit-scrollbar {
 		display: none;
 	}
+	.type-nav-rubric {
+		display: inline-flex;
+		align-items: center;
+		font-family: var(--font-mono);
+		font-size: 9px;
+		letter-spacing: 0.32em;
+		text-transform: uppercase;
+		color: var(--micro);
+		padding: 0.7rem 1rem 0.7rem 0;
+		border-right: 1px dashed var(--rule);
+		margin-right: 0.5rem;
+		flex: 0 0 auto;
+		white-space: nowrap;
+	}
 	.type-link {
 		flex: 1 0 auto;
-		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.18rem;
 		font-family: var(--font-mono);
-		font-size: 10px;
-		letter-spacing: 0.18em;
+		font-size: 10.5px;
+		letter-spacing: 0.16em;
 		text-transform: uppercase;
-		padding: 0.7rem 1.1rem;
+		padding: 0.65rem 1rem 0.7rem;
 		color: var(--ghost);
+		border: none;
 		border-bottom: 2px solid transparent;
 		border-top: 2px solid transparent;
 		text-decoration: none;
 		transition:
 			color var(--duration-fast) var(--ease),
-			border-color var(--duration-fast) var(--ease);
+			border-color var(--duration-fast) var(--ease),
+			background var(--duration-fast) var(--ease);
 		white-space: nowrap;
+	}
+	.plate-num {
+		font-size: 8.5px;
+		letter-spacing: 0.24em;
+		color: var(--micro);
+		font-feature-settings: 'tnum';
+	}
+	.plate-label {
+		font-weight: 500;
 	}
 	.type-link:hover {
 		color: var(--ink);
+		background: var(--paper);
+	}
+	.type-link:hover .plate-num {
+		color: var(--accent);
 	}
 	.type-link.active {
 		color: var(--ink);
 		border-bottom-color: var(--accent);
+		background: var(--paper);
+	}
+	.type-link.active .plate-num {
+		color: var(--accent);
+	}
+	@media (max-width: 720px) {
+		.type-nav-rubric {
+			display: none;
+		}
 	}
 
 	.colophon {
 		border-top: 1px solid var(--rule);
-		padding: 1.4rem var(--gutter);
-		font-size: var(--fs-xs);
-		color: var(--ghost);
+		background: var(--paper);
 	}
 	.colophon-inner {
 		max-width: var(--max-w);
 		margin: 0 auto;
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		flex-wrap: wrap;
-		letter-spacing: 0.04em;
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		align-items: stretch;
 	}
-	.colophon a {
+	.colophon-cell {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		padding: 1.1rem 1.2rem;
+		border-right: 1px solid var(--rule);
+	}
+	.colophon-cell:first-child {
+		padding-left: var(--gutter);
+	}
+	.colophon-cell:last-child {
+		border-right: none;
+		padding-right: var(--gutter);
+	}
+	.colophon-cell-stamp {
+		background: var(--paper-warm);
+	}
+	.cell-rubric {
+		font-family: var(--font-mono);
+		font-size: 9px;
+		letter-spacing: 0.28em;
+		text-transform: uppercase;
+		color: var(--micro);
+	}
+	.cell-value {
+		font-family: var(--font-mono);
+		font-size: var(--fs-xs);
+		letter-spacing: 0.08em;
 		color: var(--ink);
 	}
-	.colophon .dot {
-		color: var(--micro);
+	.cell-value a {
+		color: var(--ink);
+		border-bottom: none;
 	}
-	.phase {
-		font-family: var(--font-mono);
-		letter-spacing: 0.18em;
-		color: var(--micro);
-		margin-left: auto;
+	.cell-value a:hover {
+		color: var(--accent);
 	}
 
 	@media (max-width: 720px) {
@@ -242,8 +331,17 @@
 			font-size: 9px;
 			letter-spacing: 0.12em;
 		}
-		.phase {
-			margin-left: 0;
+		.colophon-inner {
+			grid-template-columns: repeat(2, 1fr);
+		}
+		.colophon-cell {
+			border-bottom: 1px solid var(--rule);
+		}
+		.colophon-cell:nth-child(2n) {
+			border-right: none;
+		}
+		.colophon-cell:nth-last-child(-n + 2) {
+			border-bottom: none;
 		}
 	}
 </style>

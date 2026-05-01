@@ -554,6 +554,13 @@
 
 <section class="workshop">
 	<div class="specimen">
+		<div class="dim dim-top" aria-hidden="true">
+			<span class="tick tick-l"></span>
+			<span class="dim-line dim-line-l"></span>
+			<span class="dim-readout">{exportFormat === 'pdf' ? '2048' : exportFormat === 'svg' ? '∞' : '1024'} PX · {exportFormat.toUpperCase()}</span>
+			<span class="dim-line dim-line-r"></span>
+			<span class="tick tick-r"></span>
+		</div>
 		<div class="specimen-frame">
 			<span class="crop crop-tl" aria-hidden="true"></span>
 			<span class="crop crop-tr" aria-hidden="true"></span>
@@ -580,22 +587,22 @@
 			</div>
 		</div>
 
-		<dl class="specimen-meta">
+		<dl class="specimen-meta" aria-label="Specimen specification schedule">
 			<div>
-				<dt>FORMAT</dt>
-				<dd>PNG · 1024<span class="x">×</span>1024</dd>
+				<dt>S-01 FORMAT</dt>
+				<dd>{exportFormat.toUpperCase()}{exportFormat === 'png' ? ' · 1024 PX' : exportFormat === 'pdf' ? ' · A4 / 2048' : ' · VECTOR'}</dd>
 			</div>
 			<div>
-				<dt>DOTS</dt>
+				<dt>S-02 DOTS</dt>
 				<dd>{dotLabel}</dd>
 			</div>
 			<div>
-				<dt>EC</dt>
+				<dt>S-03 EC</dt>
 				<dd>{resolvedECC}{errorCorrection === 'auto' ? ' · auto' : ''}</dd>
 			</div>
 			<div>
-				<dt>LOGO</dt>
-				<dd>{logoName ?? 'none'}</dd>
+				<dt>S-04 LOGO</dt>
+				<dd>{logoName ?? '— none'}</dd>
 			</div>
 		</dl>
 
@@ -650,7 +657,7 @@
 	<div class="controls">
 		{#if contentType === 'url'}
 			<fieldset class="control-block">
-				<legend>DESTINATION</legend>
+				<legend><span class="p-num">P-01</span> DESTINATION</legend>
 				<label class="field">
 					<span class="field-label">URL</span>
 					<input
@@ -668,7 +675,7 @@
 			</fieldset>
 		{:else if contentType === 'text'}
 			<fieldset class="control-block">
-				<legend>TEXT</legend>
+				<legend><span class="p-num">P-01</span> TEXT</legend>
 				<label class="field">
 					<span class="field-label">CONTENT</span>
 					<textarea
@@ -682,7 +689,7 @@
 			</fieldset>
 		{:else if contentType === 'wifi'}
 			<fieldset class="control-block">
-				<legend>WIFI NETWORK</legend>
+				<legend><span class="p-num">P-01</span> WIFI NETWORK</legend>
 				<label class="field">
 					<span class="field-label">SSID</span>
 					<input
@@ -724,7 +731,7 @@
 			</fieldset>
 		{:else if contentType === 'vcard'}
 			<fieldset class="control-block">
-				<legend>CONTACT</legend>
+				<legend><span class="p-num">P-01</span> CONTACT</legend>
 				<div class="field-row" style="padding-top: 0.45rem;">
 					<label class="color-field">
 						<span class="field-label">FIRST NAME</span>
@@ -764,7 +771,7 @@
 			</fieldset>
 		{:else if contentType === 'email'}
 			<fieldset class="control-block">
-				<legend>EMAIL</legend>
+				<legend><span class="p-num">P-01</span> EMAIL</legend>
 				<label class="field">
 					<span class="field-label">TO</span>
 					<input type="email" bind:value={content.email.to} autocomplete="email" />
@@ -780,7 +787,7 @@
 			</fieldset>
 		{:else if contentType === 'sms'}
 			<fieldset class="control-block">
-				<legend>SMS</legend>
+				<legend><span class="p-num">P-01</span> SMS</legend>
 				<label class="field">
 					<span class="field-label">NUMBER</span>
 					<input type="tel" bind:value={content.sms.number} placeholder="+1 555 123 4567" />
@@ -792,7 +799,7 @@
 			</fieldset>
 		{:else if contentType === 'phone'}
 			<fieldset class="control-block">
-				<legend>PHONE</legend>
+				<legend><span class="p-num">P-01</span> PHONE</legend>
 				<label class="field">
 					<span class="field-label">NUMBER</span>
 					<input
@@ -805,7 +812,7 @@
 			</fieldset>
 		{:else if contentType === 'geo'}
 			<fieldset class="control-block">
-				<legend>GEO</legend>
+				<legend><span class="p-num">P-01</span> GEO</legend>
 				<div class="field-row" style="padding-top: 0.45rem;">
 					<label class="color-field">
 						<span class="field-label">LATITUDE</span>
@@ -824,7 +831,7 @@
 		{/if}
 
 		<fieldset class="control-block">
-			<legend>COLOR</legend>
+			<legend><span class="p-num">P-02</span> COLOR</legend>
 			<div class="field-row">
 				<label class="color-field">
 					<span class="field-label">FOREGROUND</span>
@@ -860,7 +867,7 @@
 		</fieldset>
 
 		<fieldset class="control-block">
-			<legend>GRADIENT</legend>
+			<legend><span class="p-num">P-03</span> GRADIENT</legend>
 			<label class="checkbox-field" style="padding-top: 0.55rem;">
 				<input type="checkbox" bind:checked={gradientEnabled} />
 				<span class="field-label">ENABLE LINEAR GRADIENT</span>
@@ -904,7 +911,7 @@
 		</fieldset>
 
 		<fieldset class="control-block">
-			<legend>DOT STYLE</legend>
+			<legend><span class="p-num">P-04</span> DOT STYLE</legend>
 			<div class="segmented cols-3">
 				{#each dotOptions as opt}
 					<label class="seg" class:active={dotType === opt.value}>
@@ -921,7 +928,7 @@
 		</fieldset>
 
 		<fieldset class="control-block">
-			<legend>EYE FRAME</legend>
+			<legend><span class="p-num">P-05</span> EYE FRAME</legend>
 			<div class="segmented cols-4">
 				{#each eyeFrameOptions as opt}
 					<label class="seg" class:active={eyeFrame === opt.value}>
@@ -938,7 +945,7 @@
 		</fieldset>
 
 		<fieldset class="control-block">
-			<legend>EYE BALL</legend>
+			<legend><span class="p-num">P-06</span> EYE BALL</legend>
 			<div class="segmented cols-3">
 				{#each eyeBallOptions as opt}
 					<label class="seg" class:active={eyeBall === opt.value}>
@@ -955,7 +962,7 @@
 		</fieldset>
 
 		<fieldset class="control-block">
-			<legend>LOGO</legend>
+			<legend><span class="p-num">P-07</span> LOGO</legend>
 			<div class="logo-row">
 				<label class="logo-upload">
 					<input
@@ -986,7 +993,7 @@
 		</fieldset>
 
 		<fieldset class="control-block">
-			<legend>ERROR CORRECTION</legend>
+			<legend><span class="p-num">P-08</span> ERROR CORRECTION</legend>
 			<div class="segmented cols-5">
 				{#each eccOptions as ecc}
 					<label class="seg" class:active={errorCorrection === ecc}>
@@ -1003,7 +1010,7 @@
 		</fieldset>
 
 		<fieldset class="control-block">
-			<legend>OUTER FRAME</legend>
+			<legend><span class="p-num">P-09</span> OUTER FRAME</legend>
 			<label class="checkbox-field" style="padding-top: 0.55rem;">
 				<input type="checkbox" bind:checked={frameEnabled} />
 				<span class="field-label">ADD FRAME &amp; LABEL</span>
@@ -1043,8 +1050,67 @@
 	.specimen {
 		display: flex;
 		flex-direction: column;
-		gap: 1.4rem;
+		gap: 1rem;
 		animation: fade-up var(--duration-slow) var(--ease) 120ms both;
+	}
+
+	/* Dimension line above the specimen: a thin horizontal rule with
+	 * end-cap ticks and a centered scale-readout. The whole assembly
+	 * reads like the dimension callouts on an engineering drawing. */
+	.dim {
+		display: grid;
+		grid-template-columns: auto 1fr auto 1fr auto;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0 0.4rem;
+		font-family: var(--font-mono);
+	}
+	.tick {
+		display: block;
+		width: 1px;
+		height: 9px;
+		background: var(--accent);
+	}
+	.dim-line {
+		display: block;
+		height: 1px;
+		background: var(--rule-strong);
+		position: relative;
+	}
+	.dim-line::before,
+	.dim-line::after {
+		content: '';
+		position: absolute;
+		width: 5px;
+		height: 5px;
+		border: 1px solid var(--accent);
+		background: var(--paper);
+		top: 50%;
+		transform: translateY(-50%) rotate(45deg);
+	}
+	.dim-line-l::before {
+		left: 0;
+	}
+	.dim-line-l::after {
+		right: 0;
+		opacity: 0;
+	}
+	.dim-line-r::before {
+		right: 0;
+		opacity: 0;
+	}
+	.dim-line-r::after {
+		right: 0;
+	}
+	.dim-readout {
+		font-size: 9.5px;
+		letter-spacing: 0.22em;
+		color: var(--accent);
+		text-transform: uppercase;
+		font-feature-settings: 'tnum';
+		padding: 0 0.45rem;
+		background: var(--paper);
+		white-space: nowrap;
 	}
 
 	.specimen-frame {
@@ -1205,10 +1271,12 @@
 		border-right: none;
 	}
 	.specimen-meta dt {
-		font-size: 9px;
-		letter-spacing: 0.2em;
-		color: var(--micro);
+		font-size: 8.5px;
+		letter-spacing: 0.22em;
+		color: var(--accent);
 		margin: 0;
+		font-feature-settings: 'tnum';
+		font-weight: 500;
 	}
 	.specimen-meta dd {
 		margin: 0;
@@ -1217,11 +1285,6 @@
 		letter-spacing: 0.04em;
 		word-break: break-all;
 	}
-	.specimen-meta .x {
-		color: var(--accent);
-		margin: 0 0.1em;
-	}
-
 	.download {
 		display: flex;
 		align-items: center;
@@ -1394,12 +1457,25 @@
 		font-family: var(--font-mono);
 		font-size: 10px;
 		letter-spacing: 0.22em;
-		color: var(--ghost);
-		padding: 0.18rem 0.55rem;
+		color: var(--ink);
+		padding: 0.22rem 0.6rem 0.22rem 0.45rem;
 		margin-left: -0.25rem;
 		background: var(--paper);
-		border: 1px solid var(--rule);
-		border-radius: 99px;
+		border: 1px solid var(--rule-strong);
+		border-radius: 0;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		text-transform: uppercase;
+		font-weight: 500;
+	}
+	.control-block legend .p-num {
+		font-size: 9px;
+		letter-spacing: 0.18em;
+		color: var(--accent);
+		font-feature-settings: 'tnum';
+		padding-right: 0.5rem;
+		border-right: 1px solid var(--rule);
 	}
 
 	.field {
