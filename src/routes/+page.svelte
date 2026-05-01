@@ -6,6 +6,8 @@
 	let url = $state('https://kemek.com');
 	let fgColor = $state('#1A1815');
 	let bgColor = $state('#F2EBDD');
+	let fgInput = $state('#1A1815');
+	let bgInput = $state('#F2EBDD');
 	let dotType = $state<DotType>('rounded');
 	let errorCorrection = $state<ECC>('auto');
 	let logoDataUrl = $state<string | null>(null);
@@ -157,6 +159,61 @@
 		errorCorrection === 'auto' ? (logoDataUrl ? 'H' : 'M') : errorCorrection
 	);
 	let dotLabel = $derived(dotOptions.find((d) => d.value === dotType)?.label ?? '—');
+
+	/* Soft, non-blocking URL warning. We never gate encoding — QR codes
+	 * happily encode any text, and users sometimes intentionally encode
+	 * mailto:, intent://, or arbitrary strings. We only nudge when the
+	 * input looks URL-ish (contains a dot, no spaces) but won't parse,
+	 * since that's the high-confidence "you probably meant a URL" case. */
+	let urlWarning = $derived.by(() => {
+		const v = url.trim();
+		if (!v) return null;
+		const looksUrlish = v.includes('.') && !/\s/.test(v);
+		if (!looksUrlish) return null;
+		try {
+			new URL(v.includes('://') ? v : `https://${v}`);
+			return null;
+		} catch {
+			return 'non-URL input — scanners may not auto-open this';
+		}
+	});
+
+	const HEX_RE = /^#[0-9A-F]{6}$/;
+
+	/* Sanitize → trim, strip junk, prepend #, uppercase, expand 3-digit
+	 * shorthand. Reverts to `fallback` if input can't be coerced into a
+	 * valid 6-digit hex. Called on blur of the text input only — typing
+	 * remains free-form so partial input isn't fought by the validator. */
+	function sanitizeHex(input: string, fallback: string): string {
+		let v = input.trim().toUpperCase();
+		if (v.startsWith('#')) v = v.slice(1);
+		v = v.replace(/[^0-9A-F]/g, '');
+		if (v.length === 3) v = v[0] + v[0] + v[1] + v[1] + v[2] + v[2];
+		const candidate = `#${v}`;
+		return HEX_RE.test(candidate) ? candidate : fallback;
+	}
+
+	function commitFgHex() {
+		const next = sanitizeHex(fgInput, fgColor);
+		fgColor = next;
+		fgInput = next;
+	}
+	function commitBgHex() {
+		const next = sanitizeHex(bgInput, bgColor);
+		bgColor = next;
+		bgInput = next;
+	}
+
+	/* Color picker writes directly to fgColor/bgColor; mirror into the
+	 * text input so the two views stay in sync without binding the same
+	 * variable twice (which would let typed-in-progress text fight the
+	 * picker's lowercased output). */
+	$effect(() => {
+		fgInput = fgColor;
+	});
+	$effect(() => {
+		bgInput = bgColor;
+	});
 </script>
 
 <section class="hero">
@@ -248,8 +305,12 @@
 					placeholder="https://"
 					spellcheck="false"
 					autocomplete="off"
+					aria-describedby={urlWarning ? 'url-warning' : undefined}
 				/>
 			</label>
+			{#if urlWarning}
+				<p id="url-warning" class="field-warning">{urlWarning}</p>
+			{/if}
 		</fieldset>
 
 		<fieldset class="control-block">
@@ -259,14 +320,30 @@
 					<span class="field-label">FOREGROUND</span>
 					<span class="color-input">
 						<input type="color" bind:value={fgColor} aria-label="Foreground color" />
-						<input type="text" bind:value={fgColor} class="hex" maxlength="7" />
+						<input
+							type="text"
+							bind:value={fgInput}
+							onblur={commitFgHex}
+							class="hex"
+							maxlength="7"
+							spellcheck="false"
+							aria-label="Foreground hex"
+						/>
 					</span>
 				</label>
 				<label class="color-field">
 					<span class="field-label">BACKGROUND</span>
 					<span class="color-input">
 						<input type="color" bind:value={bgColor} aria-label="Background color" />
-						<input type="text" bind:value={bgColor} class="hex" maxlength="7" />
+						<input
+							type="text"
+							bind:value={bgInput}
+							onblur={commitBgHex}
+							class="hex"
+							maxlength="7"
+							spellcheck="false"
+							aria-label="Background hex"
+						/>
 					</span>
 				</label>
 			</div>
@@ -938,6 +1015,17 @@
 		text-transform: uppercase;
 		color: var(--accent);
 		margin: 0.6rem 0 0;
+	}
+	.field-warning {
+		font-family: var(--font-mono);
+		font-size: 10px;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--ghost);
+		margin: 0.55rem 0 0;
+		padding-left: 0.7rem;
+		border-left: 2px solid var(--accent);
+		line-height: 1.5;
 	}
 
 	@keyframes fade-up {
