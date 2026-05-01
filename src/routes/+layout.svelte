@@ -34,6 +34,7 @@
 </svelte:head>
 
 <div class="page-frame">
+	<a href="#main" class="skip-link">Skip to generator</a>
 	<header class="masthead">
 		<div class="masthead-inner">
 			<a class="brand" href="/">
@@ -60,7 +61,7 @@
 		</nav>
 	</header>
 
-	<main>
+	<main id="main" tabindex="-1">
 		{@render children()}
 	</main>
 
@@ -85,6 +86,27 @@
 		min-height: 100vh;
 		display: grid;
 		grid-template-rows: auto 1fr auto;
+	}
+
+	.skip-link {
+		position: absolute;
+		left: 0;
+		top: 0;
+		transform: translateY(-200%);
+		background: var(--ink);
+		color: var(--paper);
+		padding: 0.6rem 1rem;
+		font-family: var(--font-mono);
+		font-size: 11px;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		z-index: 100;
+		border: none;
+		text-decoration: none;
+		transition: transform var(--duration-fast) var(--ease);
+	}
+	.skip-link:focus {
+		transform: translateY(0);
 	}
 
 	.masthead {

@@ -608,7 +608,13 @@
 			{/each}
 		</div>
 		<div class="action-row">
-			<button class="download" type="button" onclick={downloadActive} disabled={exporting}>
+			<button
+				class="download"
+				type="button"
+				onclick={downloadActive}
+				disabled={exporting}
+				aria-busy={exporting}
+			>
 				<span class="download-label">
 					{exporting ? 'PREPARING…' : `DOWNLOAD ${exportFormat.toUpperCase()}`}
 				</span>
@@ -1174,6 +1180,20 @@
 		overflow: hidden;
 		background: var(--paper);
 	}
+	@media (max-width: 480px) {
+		.specimen-meta {
+			grid-template-columns: repeat(2, 1fr);
+		}
+		.specimen-meta > div {
+			border-bottom: 1px solid var(--rule);
+		}
+		.specimen-meta > div:nth-child(2n) {
+			border-right: none;
+		}
+		.specimen-meta > div:nth-last-child(-n + 2) {
+			border-bottom: none;
+		}
+	}
 	.specimen-meta > div {
 		padding: 0.65rem 0.8rem 0.7rem;
 		border-right: 1px solid var(--rule);
@@ -1419,6 +1439,12 @@
 		gap: 1rem;
 		padding-top: 0.45rem;
 	}
+	@media (max-width: 380px) {
+		.field-row {
+			grid-template-columns: 1fr;
+			gap: 0.85rem;
+		}
+	}
 	.color-field {
 		display: flex;
 		flex-direction: column;
@@ -1458,6 +1484,9 @@
 		border: none;
 		outline: none;
 		letter-spacing: 0.02em;
+	}
+	.color-input:focus-within {
+		border-color: var(--accent);
 	}
 
 	.segmented {

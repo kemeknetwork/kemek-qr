@@ -15,8 +15,12 @@
 	--paper-cool: #e8dfc8;
 	--rule: rgba(26, 24, 21, 0.18);
 	--rule-strong: rgba(26, 24, 21, 0.4);
-	--ghost: rgba(26, 24, 21, 0.55);
-	--micro: rgba(26, 24, 21, 0.35);
+	/* --ghost is used for body-adjacent secondary text; tuned to ~6:1
+	 * over --paper. --micro is for very small (≤11px) labels; bumped
+	 * from 0.35 (~3:1, fails AA for normal text) to 0.55 to comfortably
+	 * pass WCAG AA on the only sizes it's used at. */
+	--ghost: rgba(26, 24, 21, 0.62);
+	--micro: rgba(26, 24, 21, 0.55);
 	--accent: #c53a1f;
 	--accent-deep: #9c2d17;
 
