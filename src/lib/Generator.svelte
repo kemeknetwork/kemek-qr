@@ -111,39 +111,59 @@
 		};
 	}
 
+	const sessionKey = $derived(`kemek-qr:session:${type}`);
+
+	function applyDecoded(decoded: ReturnType<typeof decodePermalink>) {
+		if (!decoded) return;
+		/* The route fixes contentType, so we only restore the content
+		 * payload when the source's type matches this route's type.
+		 * Mismatches keep the styling but ignore the content (which
+		 * is shaped for the wrong form). */
+		if (decoded.type === type && decoded.content) {
+			(content as Record<ContentType, unknown>)[type] = {
+				...(content[type] as Record<string, unknown>),
+				...(decoded.content as Record<string, unknown>)
+			};
+		}
+		if (decoded.fg !== undefined) fgColor = decoded.fg;
+		if (decoded.bg !== undefined) bgColor = decoded.bg;
+		if (decoded.dot !== undefined) dotType = decoded.dot;
+		if (decoded.ecc !== undefined) errorCorrection = decoded.ecc;
+		if (decoded.logoSize !== undefined) logoSize = decoded.logoSize;
+		if (decoded.logoDataUrl !== undefined) {
+			logoDataUrl = decoded.logoDataUrl;
+			logoName = 'saved logo';
+		}
+		if (decoded.eyeFrame !== undefined) eyeFrame = decoded.eyeFrame;
+		if (decoded.eyeBall !== undefined) eyeBall = decoded.eyeBall;
+		if (decoded.gradientEnabled !== undefined) gradientEnabled = decoded.gradientEnabled;
+		if (decoded.gradientFrom !== undefined) gradientFrom = decoded.gradientFrom;
+		if (decoded.gradientTo !== undefined) gradientTo = decoded.gradientTo;
+		if (decoded.gradientAngle !== undefined) gradientAngle = decoded.gradientAngle;
+		if (decoded.frameEnabled !== undefined) frameEnabled = decoded.frameEnabled;
+		if (decoded.frameLabel !== undefined) frameLabel = decoded.frameLabel;
+	}
+
+	let restored = false;
+
 	onMount(async () => {
-		if (typeof window !== 'undefined' && window.location.hash) {
-			const decoded = decodePermalink(window.location.hash);
-			if (decoded) {
-				/* The route fixes contentType, so we only restore the content
-				 * payload when the link's type matches this route's type.
-				 * Mismatched links keep the styling but ignore the content
-				 * (which is shaped for the wrong form). */
-				if (decoded.type === type && decoded.content) {
-					(content as Record<ContentType, unknown>)[type] = {
-						...(content[type] as Record<string, unknown>),
-						...(decoded.content as Record<string, unknown>)
-					};
+		/* Hash takes priority over session storage so a shared link
+		 * always overrides what's saved locally — the recipient sees
+		 * the sender's QR, not their own last edits. */
+		if (typeof window !== 'undefined') {
+			if (window.location.hash) {
+				applyDecoded(decodePermalink(window.location.hash));
+			} else {
+				try {
+					const raw = localStorage.getItem(sessionKey);
+					if (raw) applyDecoded(decodePermalink(`s=${raw}`));
+				} catch {
+					/* localStorage can throw in private mode or with
+					 * quota exhaustion — silent fallback to defaults. */
 				}
-				if (decoded.fg !== undefined) fgColor = decoded.fg;
-				if (decoded.bg !== undefined) bgColor = decoded.bg;
-				if (decoded.dot !== undefined) dotType = decoded.dot;
-				if (decoded.ecc !== undefined) errorCorrection = decoded.ecc;
-				if (decoded.logoSize !== undefined) logoSize = decoded.logoSize;
-				if (decoded.logoDataUrl !== undefined) {
-					logoDataUrl = decoded.logoDataUrl;
-					logoName = 'shared logo';
-				}
-				if (decoded.eyeFrame !== undefined) eyeFrame = decoded.eyeFrame;
-				if (decoded.eyeBall !== undefined) eyeBall = decoded.eyeBall;
-				if (decoded.gradientEnabled !== undefined) gradientEnabled = decoded.gradientEnabled;
-				if (decoded.gradientFrom !== undefined) gradientFrom = decoded.gradientFrom;
-				if (decoded.gradientTo !== undefined) gradientTo = decoded.gradientTo;
-				if (decoded.gradientAngle !== undefined) gradientAngle = decoded.gradientAngle;
-				if (decoded.frameEnabled !== undefined) frameEnabled = decoded.frameEnabled;
-				if (decoded.frameLabel !== undefined) frameLabel = decoded.frameLabel;
 			}
 		}
+		restored = true;
 
 		try {
 			const m = await import('qr-code-styling');
@@ -156,18 +176,63 @@
 		}
 	});
 
+	/* Auto-save current state to localStorage 1s after the user stops
+	 * editing, scoped to this route's content type. Reload restores
+	 * the session unless the user landed via a hash permalink. */
+	const SAVE_DEBOUNCE_MS = 1000;
+	let saveTimer: ReturnType<typeof setTimeout> | null = null;
+	$effect(() => {
+		const snapshot = {
+			type,
+			content: content[type],
+			fg: fgColor,
+			bg: bgColor,
+			dot: dotType,
+			ecc: errorCorrection,
+			logoSize,
+			logoDataUrl,
+			gradientEnabled,
+			gradientFrom,
+			gradientTo,
+			gradientAngle,
+			eyeFrame,
+			eyeBall,
+			frameEnabled,
+			frameLabel
+		};
+		if (!restored || typeof window === 'undefined') return;
+		if (saveTimer) clearTimeout(saveTimer);
+		saveTimer = setTimeout(() => {
+			try {
+				const result = encodePermalink(snapshot, '');
+				localStorage.setItem(sessionKey, result.hash.replace(/^s=/, ''));
+			} catch {
+				/* QuotaExceededError most likely (large logo + many
+				 * sibling-route sessions). The next field edit
+				 * retries after the user has presumably trimmed
+				 * something; no surfaced error. */
+			}
+		}, SAVE_DEBOUNCE_MS);
+		return () => {
+			if (saveTimer) clearTimeout(saveTimer);
+		};
+	});
+
 	/* Debounce QR re-renders so a typing burst coalesces into one update.
 	 * 80ms is long enough to swallow back-to-back keystrokes (~16 cps
-	 * average) and short enough that the preview still feels live. We
-	 * compute opts inside the effect so reactive deps are tracked here,
-	 * but the actual re-render is deferred to the timer. The cleanup
-	 * arrow clears the pending timer when deps change again or on
-	 * unmount. */
+	 * average) and short enough that the preview still feels live.
+	 *
+	 * IMPORTANT: buildOpts() must run BEFORE the qrInstance guard so
+	 * Svelte tracks every reactive read on the effect's first
+	 * invocation. Bailing out before reading state would leave the
+	 * effect with zero dependencies, and subsequent state changes
+	 * would never re-trigger it — manifesting as a dead preview while
+	 * downloads (which read buildOpts() at click time) still work. */
 	const RENDER_DEBOUNCE_MS = 80;
 	let renderTimer: ReturnType<typeof setTimeout> | null = null;
 	$effect(() => {
-		if (!qrInstance) return;
 		const opts = buildOpts();
+		if (!qrInstance) return;
 		if (renderTimer) clearTimeout(renderTimer);
 		renderTimer = setTimeout(() => {
 			qrInstance?.update(opts);
