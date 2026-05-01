@@ -41,6 +41,8 @@
 	let eyeBall = $state<EyeBallType>('square');
 	let frameEnabled = $state(false);
 	let frameLabel = $state('SCAN ME');
+	let exportFormat = $state<'png' | 'svg' | 'pdf'>('png');
+	let exporting = $state(false);
 	let engineError = $state<string | null>(null);
 	let logoError = $state<string | null>(null);
 	let copyState = $state<'idle' | 'copied' | 'dropped'>('idle');
@@ -317,24 +319,186 @@
 
 	async function downloadPNG() {
 		if (!QRCodeStylingClass) return;
-		try {
-			const exportSize = 1024;
-			const exporter = new QRCodeStylingClass({
-				...buildOpts(),
-				width: exportSize,
-				height: exportSize,
-				type: 'canvas'
+		const exportSize = 1024;
+		const exporter = new QRCodeStylingClass({
+			...buildOpts(),
+			width: exportSize,
+			height: exportSize,
+			type: 'canvas'
+		});
+		if (frameEnabled) {
+			const blob = (await exporter.getRawData('png')) as Blob | null;
+			if (!blob) throw new Error('QR rasterization returned null');
+			const framed = await composeFramedPng(blob, exportSize, frameLabel);
+			triggerDownload(framed, 'kemek-qr.png');
+		} else {
+			await exporter.download({ name: 'kemek-qr', extension: 'png' });
+		}
+	}
+
+	/* Wrap the qr-code-styling SVG output in an outer SVG that adds a
+	 * border rect and label text below. Uses DOMParser to inject the
+	 * original SVG as a nested element — browsers and most SVG viewers
+	 * render nested <svg> correctly. */
+	function composeFramedSvg(qrSvgText: string, qrSize: number, label: string): string {
+		const padding = Math.round(qrSize * 0.05);
+		const borderWidth = Math.max(2, Math.round(qrSize * 0.008));
+		const labelHeight = Math.round(qrSize * 0.14);
+		const totalW = qrSize + padding * 2;
+		const totalH = qrSize + padding * 2 + labelHeight;
+		const fontPx = Math.round(labelHeight * 0.42);
+		const half = borderWidth / 2;
+
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(qrSvgText, 'image/svg+xml');
+		const inner = doc.documentElement;
+		inner.setAttribute('x', String(padding));
+		inner.setAttribute('y', String(padding));
+		inner.setAttribute('width', String(qrSize));
+		inner.setAttribute('height', String(qrSize));
+		const innerSerialized = new XMLSerializer().serializeToString(inner);
+
+		const escapeXml = (s: string) =>
+			s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+		return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalW} ${totalH}" width="${totalW}" height="${totalH}">
+  <rect x="0" y="0" width="${totalW}" height="${totalH}" fill="${bgColor}"/>
+  <rect x="${half}" y="${half}" width="${totalW - borderWidth}" height="${totalH - borderWidth}" fill="none" stroke="${fgColor}" stroke-width="${borderWidth}"/>
+  ${innerSerialized}
+  <text x="${totalW / 2}" y="${qrSize + padding * 2 + labelHeight / 2}" text-anchor="middle" dominant-baseline="middle" font-family="JetBrains Mono, ui-monospace, monospace" font-weight="500" font-size="${fontPx}" fill="${fgColor}" letter-spacing="3">${escapeXml(label)}</text>
+</svg>`;
+	}
+
+	async function downloadSVG() {
+		if (!QRCodeStylingClass) return;
+		const exportSize = 1024;
+		const exporter = new QRCodeStylingClass({
+			...buildOpts(),
+			width: exportSize,
+			height: exportSize,
+			type: 'svg'
+		});
+		const blob = (await exporter.getRawData('svg')) as Blob | null;
+		if (!blob) throw new Error('SVG rasterization returned null');
+		const text = await blob.text();
+		const finalText = frameEnabled ? composeFramedSvg(text, exportSize, frameLabel) : text;
+		const finalBlob = new Blob([finalText], { type: 'image/svg+xml' });
+		triggerDownload(finalBlob, 'kemek-qr.svg');
+	}
+
+	/* PDF embeds the QR as a high-res PNG (2048px) onto a centered A4
+	 * page. True-vector embedding would require an SVG-to-PDF path
+	 * converter we don't carry; 2048px raster is print-quality at any
+	 * realistic size (>300 DPI for a 6-inch QR). The frame, if enabled,
+	 * is drawn natively via pdf-lib instead of being rasterized — the
+	 * label text is true PDF text, searchable and crisp. */
+	async function downloadPDF() {
+		if (!QRCodeStylingClass) return;
+		const exportSize = 2048;
+		const exporter = new QRCodeStylingClass({
+			...buildOpts(),
+			width: exportSize,
+			height: exportSize,
+			type: 'canvas'
+		});
+		const blob = (await exporter.getRawData('png')) as Blob | null;
+		if (!blob) throw new Error('QR rasterization returned null');
+		const arrayBuffer = await blob.arrayBuffer();
+
+		const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');
+		const pdf = await PDFDocument.create();
+		// A4 portrait in points (1pt = 1/72 inch).
+		const pageW = 595;
+		const pageH = 842;
+		const page = pdf.addPage([pageW, pageH]);
+		const qrEmbed = await pdf.embedPng(arrayBuffer);
+
+		const fg = hexToRgb01(fgColor);
+		const bg = hexToRgb01(bgColor);
+
+		if (frameEnabled) {
+			const qrPt = 360;
+			const padding = qrPt * 0.05;
+			const borderWidth = Math.max(1.5, qrPt * 0.008);
+			const labelBand = qrPt * 0.14;
+			const totalW = qrPt + padding * 2;
+			const totalH = qrPt + padding * 2 + labelBand;
+			const x0 = (pageW - totalW) / 2;
+			const y0 = (pageH - totalH) / 2;
+
+			page.drawRectangle({
+				x: x0,
+				y: y0,
+				width: totalW,
+				height: totalH,
+				color: rgb(bg.r, bg.g, bg.b)
 			});
-			if (frameEnabled) {
-				const blob = (await exporter.getRawData('png')) as Blob | null;
-				if (!blob) throw new Error('QR rasterization returned null');
-				const framed = await composeFramedPng(blob, exportSize, frameLabel);
-				triggerDownload(framed, 'kemek-qr.png');
-			} else {
-				await exporter.download({ name: 'kemek-qr', extension: 'png' });
-			}
+			page.drawRectangle({
+				x: x0,
+				y: y0,
+				width: totalW,
+				height: totalH,
+				borderColor: rgb(fg.r, fg.g, fg.b),
+				borderWidth
+			});
+			page.drawImage(qrEmbed, {
+				x: x0 + padding,
+				y: y0 + padding + labelBand,
+				width: qrPt,
+				height: qrPt
+			});
+
+			const font = await pdf.embedFont(StandardFonts.Courier);
+			const fontSize = labelBand * 0.42;
+			const labelWidth = font.widthOfTextAtSize(frameLabel, fontSize);
+			page.drawText(frameLabel, {
+				x: x0 + (totalW - labelWidth) / 2,
+				y: y0 + (labelBand - fontSize) / 2 + fontSize * 0.2,
+				size: fontSize,
+				font,
+				color: rgb(fg.r, fg.g, fg.b)
+			});
+		} else {
+			const qrPt = 400;
+			page.drawImage(qrEmbed, {
+				x: (pageW - qrPt) / 2,
+				y: (pageH - qrPt) / 2,
+				width: qrPt,
+				height: qrPt
+			});
+		}
+
+		const pdfBytes = await pdf.save();
+		// pdf-lib gives Uint8Array; copy into a tight ArrayBuffer for Blob
+		// compatibility across browsers (some refuse SharedArrayBuffer-typed
+		// views in Blob constructors).
+		const buffer = pdfBytes.slice().buffer;
+		triggerDownload(new Blob([buffer], { type: 'application/pdf' }), 'kemek-qr.pdf');
+	}
+
+	function hexToRgb01(hex: string): { r: number; g: number; b: number } {
+		const m = hex.match(/^#([0-9A-Fa-f]{6})$/);
+		if (!m) return { r: 0, g: 0, b: 0 };
+		const n = parseInt(m[1], 16);
+		return {
+			r: ((n >> 16) & 0xff) / 255,
+			g: ((n >> 8) & 0xff) / 255,
+			b: (n & 0xff) / 255
+		};
+	}
+
+	async function downloadActive() {
+		if (exporting) return;
+		exporting = true;
+		try {
+			if (exportFormat === 'png') await downloadPNG();
+			else if (exportFormat === 'svg') await downloadSVG();
+			else await downloadPDF();
 		} catch (err) {
 			engineError = err instanceof Error ? `Download failed: ${err.message}` : 'Download failed.';
+		} finally {
+			exporting = false;
 		}
 	}
 
@@ -459,10 +623,24 @@
 			</div>
 		</dl>
 
+		<div class="export-formats" role="radiogroup" aria-label="Export format">
+			{#each ['png', 'svg', 'pdf'] as const as fmt}
+				<label class="format-tab" class:active={exportFormat === fmt}>
+					<input type="radio" name="export-format" value={fmt} bind:group={exportFormat} />
+					{fmt.toUpperCase()}
+				</label>
+			{/each}
+		</div>
 		<div class="action-row">
-			<button class="download" type="button" onclick={downloadPNG}>
-				<span class="download-label">DOWNLOAD PNG</span>
-				<span class="download-size">1024 PX</span>
+			<button class="download" type="button" onclick={downloadActive} disabled={exporting}>
+				<span class="download-label">
+					{exporting ? 'PREPARING…' : `DOWNLOAD ${exportFormat.toUpperCase()}`}
+				</span>
+				<span class="download-size">
+					{#if exportFormat === 'png'}1024 PX
+					{:else if exportFormat === 'svg'}VECTOR
+					{:else}A4 / 2048 PX{/if}
+				</span>
 				<span class="download-arrow" aria-hidden="true">↓</span>
 			</button>
 			<button
@@ -1144,10 +1322,65 @@
 		transform: translateY(2px);
 	}
 
+	.export-formats {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		border: 1px solid var(--rule);
+		border-radius: var(--radius-sm);
+		overflow: hidden;
+		background: var(--paper);
+	}
+	.format-tab {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.55rem 0.4rem;
+		font-family: var(--font-mono);
+		font-size: 11px;
+		letter-spacing: 0.2em;
+		color: var(--ghost);
+		border-right: 1px solid var(--rule);
+		cursor: pointer;
+		transition: all var(--duration-fast) var(--ease);
+		text-transform: uppercase;
+		user-select: none;
+	}
+	.format-tab:last-child {
+		border-right: none;
+	}
+	.format-tab input[type='radio'] {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+		margin: -1px;
+		padding: 0;
+	}
+	.format-tab:has(input:focus-visible) {
+		outline: 2px solid var(--accent);
+		outline-offset: -3px;
+	}
+	.format-tab:hover {
+		color: var(--ink);
+		background: var(--paper-warm);
+	}
+	.format-tab.active {
+		color: var(--paper);
+		background: var(--ink);
+	}
+
 	.action-row {
 		display: grid;
 		grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
 		gap: 0.6rem;
+	}
+	.download:disabled {
+		opacity: 0.55;
+		cursor: progress;
 	}
 	@media (max-width: 520px) {
 		.action-row {
