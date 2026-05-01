@@ -31,6 +31,9 @@ export type DotType =
 
 export type ECC = 'auto' | 'L' | 'M' | 'Q' | 'H';
 
+export type EyeFrameType = 'square' | 'extra-rounded' | 'dot' | 'rounded';
+export type EyeBallType = 'square' | 'dot' | 'rounded';
+
 export type StylingState = {
 	fg: string;
 	bg: string;
@@ -38,6 +41,14 @@ export type StylingState = {
 	ecc: ECC;
 	logoSize: number;
 	logoDataUrl: string | null;
+	gradientEnabled: boolean;
+	gradientFrom: string;
+	gradientTo: string;
+	gradientAngle: number;
+	eyeFrame: EyeFrameType;
+	eyeBall: EyeBallType;
+	frameEnabled: boolean;
+	frameLabel: string;
 };
 
 export type PermalinkState<T extends ContentType = ContentType> = StylingState & {
@@ -58,6 +69,15 @@ const DOT_TYPES: ReadonlySet<DotType> = new Set([
 
 const ECC_VALUES: ReadonlySet<ECC> = new Set(['auto', 'L', 'M', 'Q', 'H']);
 
+const EYE_FRAME_VALUES: ReadonlySet<EyeFrameType> = new Set([
+	'square',
+	'extra-rounded',
+	'dot',
+	'rounded'
+]);
+
+const EYE_BALL_VALUES: ReadonlySet<EyeBallType> = new Set(['square', 'dot', 'rounded']);
+
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
 const TYPES_SET: ReadonlySet<string> = new Set(CONTENT_TYPES);
@@ -71,6 +91,16 @@ type WireV1 = {
 	e?: ECC;
 	ls?: number;
 	l?: string;
+	/* Gradient: g flag, gf from, gt to, ga angle in degrees */
+	g?: boolean;
+	gf?: string;
+	gt?: string;
+	ga?: number;
+	ef?: EyeFrameType;
+	eb?: EyeBallType;
+	/* Outer frame: fr flag, fl label text */
+	fr?: boolean;
+	fl?: string;
 };
 
 function toBase64Url(s: string): string {
@@ -99,9 +129,23 @@ function buildWire<T extends ContentType>(
 		b: state.bg,
 		d: state.dot,
 		e: state.ecc,
-		ls: state.logoSize
+		ls: state.logoSize,
+		ef: state.eyeFrame,
+		eb: state.eyeBall
 	};
 	if (includeLogo && state.logoDataUrl) w.l = state.logoDataUrl;
+	/* Only emit gradient/frame fields when active so default-state
+	 * permalinks stay short. */
+	if (state.gradientEnabled) {
+		w.g = true;
+		w.gf = state.gradientFrom;
+		w.gt = state.gradientTo;
+		w.ga = state.gradientAngle;
+	}
+	if (state.frameEnabled) {
+		w.fr = true;
+		w.fl = state.frameLabel;
+	}
 	return w;
 }
 
@@ -187,6 +231,20 @@ export function decodePermalink(hash: string): DecodedPermalink | null {
 	if (typeof w.e === 'string' && ECC_VALUES.has(w.e as ECC)) out.ecc = w.e as ECC;
 	if (typeof w.ls === 'number' && w.ls >= 0.05 && w.ls <= 0.5) out.logoSize = w.ls;
 	if (typeof w.l === 'string' && w.l.startsWith('data:image/')) out.logoDataUrl = w.l;
+	if (typeof w.ef === 'string' && EYE_FRAME_VALUES.has(w.ef as EyeFrameType))
+		out.eyeFrame = w.ef as EyeFrameType;
+	if (typeof w.eb === 'string' && EYE_BALL_VALUES.has(w.eb as EyeBallType))
+		out.eyeBall = w.eb as EyeBallType;
+	if (w.g === true) {
+		out.gradientEnabled = true;
+		if (typeof w.gf === 'string' && HEX_RE.test(w.gf)) out.gradientFrom = w.gf;
+		if (typeof w.gt === 'string' && HEX_RE.test(w.gt)) out.gradientTo = w.gt;
+		if (typeof w.ga === 'number' && w.ga >= 0 && w.ga <= 360) out.gradientAngle = w.ga;
+	}
+	if (w.fr === true) {
+		out.frameEnabled = true;
+		if (typeof w.fl === 'string' && w.fl.length <= 64) out.frameLabel = w.fl;
+	}
 
 	return out;
 }

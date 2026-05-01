@@ -7,7 +7,15 @@ const baseStyling = {
 	dot: 'rounded' as const,
 	ecc: 'auto' as const,
 	logoSize: 0.25,
-	logoDataUrl: null
+	logoDataUrl: null,
+	gradientEnabled: false,
+	gradientFrom: '#1A1815',
+	gradientTo: '#C53A1F',
+	gradientAngle: 45,
+	eyeFrame: 'square' as const,
+	eyeBall: 'square' as const,
+	frameEnabled: false,
+	frameLabel: 'SCAN ME'
 };
 
 describe('encode → decode round trip', () => {
@@ -70,6 +78,46 @@ describe('encode → decode round trip', () => {
 		expect(enc.logoDropped).toBe(false);
 		const dec = decodePermalink(enc.hash);
 		expect(dec?.logoDataUrl).toBe(smallDataUrl);
+	});
+});
+
+describe('styling fields', () => {
+	it('round-trips gradient + frame fields when enabled', () => {
+		const state: PermalinkState<'url'> = {
+			...baseStyling,
+			type: 'url',
+			content: { url: 'https://kemek.com' },
+			gradientEnabled: true,
+			gradientFrom: '#000000',
+			gradientTo: '#FF0000',
+			gradientAngle: 135,
+			eyeFrame: 'extra-rounded',
+			eyeBall: 'dot',
+			frameEnabled: true,
+			frameLabel: 'POINT YOUR PHONE'
+		};
+		const enc = encodePermalink(state, 'https://qr.kemek.com/');
+		const dec = decodePermalink(enc.hash);
+		expect(dec?.gradientEnabled).toBe(true);
+		expect(dec?.gradientFrom).toBe('#000000');
+		expect(dec?.gradientTo).toBe('#FF0000');
+		expect(dec?.gradientAngle).toBe(135);
+		expect(dec?.eyeFrame).toBe('extra-rounded');
+		expect(dec?.eyeBall).toBe('dot');
+		expect(dec?.frameEnabled).toBe(true);
+		expect(dec?.frameLabel).toBe('POINT YOUR PHONE');
+	});
+	it('omits gradient fields when disabled (keeps default-state links short)', () => {
+		const state: PermalinkState<'url'> = {
+			...baseStyling,
+			type: 'url',
+			content: { url: 'x' },
+			gradientEnabled: false
+		};
+		const enc = encodePermalink(state, 'https://qr.kemek.com/');
+		expect(enc.hash).not.toContain('gf');
+		const dec = decodePermalink(enc.hash);
+		expect(dec?.gradientEnabled).toBeUndefined();
 	});
 });
 

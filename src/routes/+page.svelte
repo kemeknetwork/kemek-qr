@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type QRCodeStyling from 'qr-code-styling';
-	import { decodePermalink, encodePermalink, type DotType, type ECC } from '$lib/permalink';
+	import {
+		decodePermalink,
+		encodePermalink,
+		type DotType,
+		type ECC,
+		type EyeBallType,
+		type EyeFrameType
+	} from '$lib/permalink';
 	import { encode } from '$lib/encoders';
 	import {
 		CONTENT_TYPES,
@@ -26,6 +33,14 @@
 	let logoDataUrl = $state<string | null>(null);
 	let logoName = $state<string | null>(null);
 	let logoSize = $state(0.25);
+	let gradientEnabled = $state(false);
+	let gradientFrom = $state('#1A1815');
+	let gradientTo = $state('#C53A1F');
+	let gradientAngle = $state(45);
+	let eyeFrame = $state<EyeFrameType>('square');
+	let eyeBall = $state<EyeBallType>('square');
+	let frameEnabled = $state(false);
+	let frameLabel = $state('SCAN ME');
 	let engineError = $state<string | null>(null);
 	let logoError = $state<string | null>(null);
 	let copyState = $state<'idle' | 'copied' | 'dropped'>('idle');
@@ -40,16 +55,44 @@
 		{ value: 'extra-rounded', label: 'EXTRA' }
 	];
 
+	const eyeFrameOptions: { value: EyeFrameType; label: string }[] = [
+		{ value: 'square', label: 'SQUARE' },
+		{ value: 'rounded', label: 'ROUNDED' },
+		{ value: 'extra-rounded', label: 'EXTRA' },
+		{ value: 'dot', label: 'DOT' }
+	];
+
+	const eyeBallOptions: { value: EyeBallType; label: string }[] = [
+		{ value: 'square', label: 'SQUARE' },
+		{ value: 'rounded', label: 'ROUNDED' },
+		{ value: 'dot', label: 'DOT' }
+	];
+
 	const eccOptions: ECC[] = ['auto', 'L', 'M', 'Q', 'H'];
 
 	let qrContainer: HTMLDivElement;
 	let qrInstance: InstanceType<typeof QRCodeStyling> | null = null;
 	let QRCodeStylingClass: typeof QRCodeStyling | null = null;
 
+	/* qr-code-styling expresses linear gradients as a rotation in radians
+	 * around the center; we expose degrees in the UI for ergonomics. */
+	function buildGradient() {
+		if (!gradientEnabled) return undefined;
+		return {
+			type: 'linear' as const,
+			rotation: (gradientAngle * Math.PI) / 180,
+			colorStops: [
+				{ offset: 0, color: gradientFrom },
+				{ offset: 1, color: gradientTo }
+			]
+		};
+	}
+
 	function buildOpts() {
 		const ecc: 'L' | 'M' | 'Q' | 'H' =
 			errorCorrection === 'auto' ? (logoDataUrl ? 'H' : 'M') : errorCorrection;
 		const encoded = encode(contentType, content[contentType]);
+		const gradient = buildGradient();
 		return {
 			width: 480,
 			height: 480,
@@ -60,10 +103,10 @@
 			image: logoDataUrl ?? undefined,
 			margin: 6,
 			qrOptions: { errorCorrectionLevel: ecc },
-			dotsOptions: { color: fgColor, type: dotType },
+			dotsOptions: { color: fgColor, type: dotType, gradient },
 			backgroundOptions: { color: bgColor },
-			cornersSquareOptions: { color: fgColor, type: 'square' as const },
-			cornersDotOptions: { color: fgColor, type: 'square' as const },
+			cornersSquareOptions: { color: fgColor, type: eyeFrame, gradient },
+			cornersDotOptions: { color: fgColor, type: eyeBall, gradient },
 			imageOptions: {
 				crossOrigin: 'anonymous' as const,
 				margin: 4,
@@ -100,6 +143,14 @@
 					logoDataUrl = decoded.logoDataUrl;
 					logoName = 'shared logo';
 				}
+				if (decoded.eyeFrame !== undefined) eyeFrame = decoded.eyeFrame;
+				if (decoded.eyeBall !== undefined) eyeBall = decoded.eyeBall;
+				if (decoded.gradientEnabled !== undefined) gradientEnabled = decoded.gradientEnabled;
+				if (decoded.gradientFrom !== undefined) gradientFrom = decoded.gradientFrom;
+				if (decoded.gradientTo !== undefined) gradientTo = decoded.gradientTo;
+				if (decoded.gradientAngle !== undefined) gradientAngle = decoded.gradientAngle;
+				if (decoded.frameEnabled !== undefined) frameEnabled = decoded.frameEnabled;
+				if (decoded.frameLabel !== undefined) frameLabel = decoded.frameLabel;
 			}
 		}
 
@@ -169,7 +220,15 @@
 				dot: dotType,
 				ecc: errorCorrection,
 				logoSize,
-				logoDataUrl
+				logoDataUrl,
+				gradientEnabled,
+				gradientFrom,
+				gradientTo,
+				gradientAngle,
+				eyeFrame,
+				eyeBall,
+				frameEnabled,
+				frameLabel
 			},
 			window.location.href
 		);
@@ -184,16 +243,96 @@
 		copyTimer = setTimeout(() => (copyState = 'idle'), 2400);
 	}
 
+	/* Compose the QR PNG inside an outer frame with a label band. We
+	 * draw onto a canvas larger than the QR, fill with bg, draw the
+	 * QR centered, stroke a border, then render the label centered
+	 * below in the foreground color. Returns a Blob; caller triggers
+	 * the download. */
+	async function composeFramedPng(qrBlob: Blob, qrSize: number, label: string): Promise<Blob> {
+		const img = await blobToImage(qrBlob);
+		const padding = Math.round(qrSize * 0.05);
+		const borderWidth = Math.max(2, Math.round(qrSize * 0.008));
+		const labelHeight = Math.round(qrSize * 0.14);
+		const totalW = qrSize + padding * 2;
+		const totalH = qrSize + padding * 2 + labelHeight;
+
+		const canvas = document.createElement('canvas');
+		canvas.width = totalW;
+		canvas.height = totalH;
+		const ctx = canvas.getContext('2d');
+		if (!ctx) throw new Error('canvas 2d context unavailable');
+
+		ctx.fillStyle = bgColor;
+		ctx.fillRect(0, 0, totalW, totalH);
+
+		ctx.drawImage(img, padding, padding, qrSize, qrSize);
+
+		ctx.strokeStyle = fgColor;
+		ctx.lineWidth = borderWidth;
+		const half = borderWidth / 2;
+		ctx.strokeRect(half, half, totalW - borderWidth, totalH - borderWidth);
+
+		ctx.fillStyle = fgColor;
+		const fontPx = Math.round(labelHeight * 0.42);
+		ctx.font = `500 ${fontPx}px "JetBrains Mono", ui-monospace, monospace`;
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		const labelY = qrSize + padding * 2 + labelHeight / 2;
+		ctx.fillText(label, totalW / 2, labelY);
+
+		return new Promise((resolve, reject) => {
+			canvas.toBlob((blob) => {
+				if (blob) resolve(blob);
+				else reject(new Error('canvas.toBlob returned null'));
+			}, 'image/png');
+		});
+	}
+
+	function blobToImage(blob: Blob): Promise<HTMLImageElement> {
+		return new Promise((resolve, reject) => {
+			const url = URL.createObjectURL(blob);
+			const img = new Image();
+			img.onload = () => {
+				URL.revokeObjectURL(url);
+				resolve(img);
+			};
+			img.onerror = () => {
+				URL.revokeObjectURL(url);
+				reject(new Error('image decode failed'));
+			};
+			img.src = url;
+		});
+	}
+
+	function triggerDownload(blob: Blob, filename: string) {
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = filename;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		setTimeout(() => URL.revokeObjectURL(url), 1000);
+	}
+
 	async function downloadPNG() {
 		if (!QRCodeStylingClass) return;
 		try {
+			const exportSize = 1024;
 			const exporter = new QRCodeStylingClass({
 				...buildOpts(),
-				width: 1024,
-				height: 1024,
+				width: exportSize,
+				height: exportSize,
 				type: 'canvas'
 			});
-			await exporter.download({ name: 'kemek-qr', extension: 'png' });
+			if (frameEnabled) {
+				const blob = (await exporter.getRawData('png')) as Blob | null;
+				if (!blob) throw new Error('QR rasterization returned null');
+				const framed = await composeFramedPng(blob, exportSize, frameLabel);
+				triggerDownload(framed, 'kemek-qr.png');
+			} else {
+				await exporter.download({ name: 'kemek-qr', extension: 'png' });
+			}
 		} catch (err) {
 			engineError = err instanceof Error ? `Download failed: ${err.message}` : 'Download failed.';
 		}
@@ -281,7 +420,17 @@
 			<span class="crop crop-bl" aria-hidden="true"></span>
 			<span class="crop crop-br" aria-hidden="true"></span>
 			<div class="specimen-stage">
-				<div bind:this={qrContainer} class="qr-mount" role="img" aria-label="QR code preview"></div>
+				<div
+					class="qr-frame"
+					class:qr-frame-on={frameEnabled}
+					style:--frame-fg={fgColor}
+					style:--frame-bg={bgColor}
+				>
+					<div bind:this={qrContainer} class="qr-mount" role="img" aria-label="QR code preview"></div>
+					{#if frameEnabled}
+						<div class="qr-frame-label">{frameLabel}</div>
+					{/if}
+				</div>
 				{#if engineError}
 					<div class="engine-error" role="alert">
 						<span class="engine-error-eyebrow">PROTOCOL ERROR</span>
@@ -568,6 +717,50 @@
 		</fieldset>
 
 		<fieldset class="control-block">
+			<legend>GRADIENT</legend>
+			<label class="checkbox-field" style="padding-top: 0.55rem;">
+				<input type="checkbox" bind:checked={gradientEnabled} />
+				<span class="field-label">ENABLE LINEAR GRADIENT</span>
+			</label>
+			{#if gradientEnabled}
+				<div class="field-row">
+					<label class="color-field">
+						<span class="field-label">FROM</span>
+						<span class="color-input">
+							<input type="color" bind:value={gradientFrom} aria-label="Gradient start" />
+							<input
+								type="text"
+								bind:value={gradientFrom}
+								class="hex"
+								maxlength="7"
+								spellcheck="false"
+								aria-label="Gradient start hex"
+							/>
+						</span>
+					</label>
+					<label class="color-field">
+						<span class="field-label">TO</span>
+						<span class="color-input">
+							<input type="color" bind:value={gradientTo} aria-label="Gradient end" />
+							<input
+								type="text"
+								bind:value={gradientTo}
+								class="hex"
+								maxlength="7"
+								spellcheck="false"
+								aria-label="Gradient end hex"
+							/>
+						</span>
+					</label>
+				</div>
+				<label class="slider-field">
+					<span class="field-label">ANGLE <em>{gradientAngle}°</em></span>
+					<input type="range" min="0" max="360" step="1" bind:value={gradientAngle} />
+				</label>
+			{/if}
+		</fieldset>
+
+		<fieldset class="control-block">
 			<legend>DOT STYLE</legend>
 			<div class="segmented cols-3">
 				{#each dotOptions as opt}
@@ -577,6 +770,40 @@
 							name="dot-type"
 							value={opt.value}
 							bind:group={dotType}
+						/>
+						{opt.label}
+					</label>
+				{/each}
+			</div>
+		</fieldset>
+
+		<fieldset class="control-block">
+			<legend>EYE FRAME</legend>
+			<div class="segmented cols-4">
+				{#each eyeFrameOptions as opt}
+					<label class="seg" class:active={eyeFrame === opt.value}>
+						<input
+							type="radio"
+							name="eye-frame"
+							value={opt.value}
+							bind:group={eyeFrame}
+						/>
+						{opt.label}
+					</label>
+				{/each}
+			</div>
+		</fieldset>
+
+		<fieldset class="control-block">
+			<legend>EYE BALL</legend>
+			<div class="segmented cols-3">
+				{#each eyeBallOptions as opt}
+					<label class="seg" class:active={eyeBall === opt.value}>
+						<input
+							type="radio"
+							name="eye-ball"
+							value={opt.value}
+							bind:group={eyeBall}
 						/>
 						{opt.label}
 					</label>
@@ -630,6 +857,26 @@
 					</label>
 				{/each}
 			</div>
+		</fieldset>
+
+		<fieldset class="control-block">
+			<legend>OUTER FRAME</legend>
+			<label class="checkbox-field" style="padding-top: 0.55rem;">
+				<input type="checkbox" bind:checked={frameEnabled} />
+				<span class="field-label">ADD FRAME &amp; LABEL</span>
+			</label>
+			{#if frameEnabled}
+				<label class="field" style="padding-top: 0.85rem;">
+					<span class="field-label">LABEL</span>
+					<input
+						type="text"
+						bind:value={frameLabel}
+						maxlength="64"
+						placeholder="SCAN ME"
+						spellcheck="false"
+					/>
+				</label>
+			{/if}
 		</fieldset>
 	</div>
 </section>
@@ -795,6 +1042,29 @@
 		height: auto;
 		max-width: 100%;
 		display: block;
+	}
+
+	.qr-frame {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+	}
+	.qr-frame.qr-frame-on {
+		background: var(--frame-bg);
+		border: 2px solid var(--frame-fg);
+		padding: 5%;
+		gap: 0.6rem;
+	}
+	.qr-frame-label {
+		text-align: center;
+		font-family: var(--font-mono);
+		font-weight: 500;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: var(--frame-fg);
+		font-size: clamp(11px, 2.4vw, 18px);
+		padding: 0.3rem 0;
 	}
 
 	.specimen-meta {
@@ -1049,6 +1319,9 @@
 	.segmented.cols-3 {
 		grid-template-columns: repeat(3, 1fr);
 	}
+	.segmented.cols-4 {
+		grid-template-columns: repeat(4, 1fr);
+	}
 	.segmented.cols-5 {
 		grid-template-columns: repeat(5, 1fr);
 	}
@@ -1093,6 +1366,12 @@
 	}
 	.segmented.cols-3 .seg:nth-last-child(-n + 3) {
 		border-bottom: none;
+	}
+	.segmented.cols-4 .seg {
+		border-bottom: none;
+	}
+	.segmented.cols-4 .seg:nth-child(4n) {
+		border-right: none;
 	}
 	.segmented.cols-5 .seg {
 		border-bottom: none;
