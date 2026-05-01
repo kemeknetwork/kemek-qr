@@ -1,0 +1,150 @@
+/*  kemek-qr / app.css
+    Drafting-paper aesthetic: cream + ink + a single drafting-pencil red.
+    All design tokens live here. Typography: Fraunces (display) + JetBrains Mono. */
+
+@import '@fontsource-variable/fraunces';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+
+:root {
+	/* ── Color: warm-grain paper / ink ─────────────────────── */
+	--ink: #1a1815;
+	--ink-soft: #2c2924;
+	--paper: #f2ebdd;
+	--paper-warm: #ede4ce;
+	--paper-cool: #e8dfc8;
+	--rule: rgba(26, 24, 21, 0.18);
+	--rule-strong: rgba(26, 24, 21, 0.4);
+	--ghost: rgba(26, 24, 21, 0.55);
+	--micro: rgba(26, 24, 21, 0.35);
+	--accent: #c53a1f;
+	--accent-deep: #9c2d17;
+
+	/* ── Typography ────────────────────────────────────────── */
+	--font-display: 'Fraunces Variable', 'Fraunces', Georgia, serif;
+	--font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+	--fs-micro: 10px;
+	--fs-xs: 11px;
+	--fs-sm: 13px;
+	--fs-base: 15px;
+	--fs-md: 18px;
+	--fs-lg: 24px;
+	--fs-xl: 32px;
+	--fs-display: clamp(2.5rem, 5vw + 1rem, 4.75rem);
+
+	/* ── Layout ────────────────────────────────────────────── */
+	--gutter: clamp(1.5rem, 3vw, 3rem);
+	--max-w: 1280px;
+	--radius-sm: 2px;
+	--radius-md: 4px;
+
+	/* ── Motion ────────────────────────────────────────────── */
+	--ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+	--duration-fast: 150ms;
+	--duration-base: 280ms;
+	--duration-slow: 600ms;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	background: var(--paper);
+	color: var(--ink);
+	font-family: var(--font-mono);
+	font-size: var(--fs-base);
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+
+	background-image:
+		radial-gradient(rgba(26, 24, 21, 0.04) 1px, transparent 1.5px),
+		radial-gradient(rgba(26, 24, 21, 0.025) 1px, transparent 1px);
+	background-size:
+		14px 14px,
+		7px 7px;
+	background-position:
+		0 0,
+		3px 3px;
+}
+
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 1;
+	background: radial-gradient(ellipse at top, transparent 55%, rgba(26, 24, 21, 0.07) 100%);
+}
+
+a {
+	color: var(--ink);
+	text-decoration: none;
+	border-bottom: 1px solid var(--rule);
+	transition:
+		color var(--duration-fast) var(--ease),
+		border-color var(--duration-fast) var(--ease);
+}
+a:hover {
+	color: var(--accent);
+	border-bottom-color: var(--accent);
+}
+
+button,
+input,
+select,
+fieldset {
+	font: inherit;
+	color: inherit;
+}
+fieldset {
+	border: none;
+	padding: 0;
+	margin: 0;
+}
+
+button {
+	background: transparent;
+	border: 1px solid var(--rule-strong);
+	cursor: pointer;
+	padding: 0;
+	font-family: var(--font-mono);
+}
+
+input[type='text'],
+input[type='url'] {
+	background: transparent;
+	border: none;
+	outline: none;
+	width: 100%;
+	font-family: var(--font-mono);
+}
+
+::selection {
+	background: var(--accent);
+	color: var(--paper);
+}
+
+.eyebrow {
+	font-family: var(--font-mono);
+	font-size: var(--fs-micro);
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: var(--ghost);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}

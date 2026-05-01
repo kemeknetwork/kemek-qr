@@ -1,0 +1,34 @@
+node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Workspace policy: local-only planning + design docs (never committed)
+CLAUDE.md
+STATE.md
+SPEC.md
+SPEC*.md
+spec-*.md
+exploration-*.md
+philosophy-*.md
+adrs/
+[0-9][0-9]-*.md
