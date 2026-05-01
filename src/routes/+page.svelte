@@ -13,6 +13,8 @@
 	let logoDataUrl = $state<string | null>(null);
 	let logoName = $state<string | null>(null);
 	let logoSize = $state(0.25);
+	let engineError = $state<string | null>(null);
+	let logoError = $state<string | null>(null);
 
 	const dotOptions: { value: DotType; label: string }[] = [
 		{ value: 'square', label: 'SQUARE' },
@@ -36,6 +38,8 @@
 			width: 480,
 			height: 480,
 			type: 'svg' as const,
+			// qr-code-styling throws on empty `data`; fall back to the brand URL
+			// so an empty input renders a valid placeholder QR rather than crashing.
 			data: url.trim() || 'https://kemek.com',
 			image: logoDataUrl ?? undefined,
 			margin: 6,
@@ -54,10 +58,15 @@
 	}
 
 	onMount(async () => {
-		const m = await import('qr-code-styling');
-		QRCodeStylingClass = m.default;
-		qrInstance = new QRCodeStylingClass(buildOpts());
-		qrInstance.append(qrContainer);
+		try {
+			const m = await import('qr-code-styling');
+			QRCodeStylingClass = m.default;
+			qrInstance = new QRCodeStylingClass(buildOpts());
+			qrInstance.append(qrContainer);
+		} catch (err) {
+			engineError =
+				err instanceof Error ? `QR engine failed to load: ${err.message}` : 'QR engine failed to load.';
+		}
 	});
 
 	$effect(() => {
@@ -66,12 +75,18 @@
 	});
 
 	function handleLogoUpload(e: Event) {
-		const file = (e.target as HTMLInputElement).files?.[0];
+		const input = e.target as HTMLInputElement;
+		const file = input.files?.[0];
 		if (!file) return;
+		logoError = null;
 		const reader = new FileReader();
 		reader.onload = () => {
 			logoDataUrl = reader.result as string;
 			logoName = file.name;
+		};
+		reader.onerror = reader.onabort = () => {
+			logoError = `Couldn't read ${file.name}.`;
+			input.value = '';
 		};
 		reader.readAsDataURL(file);
 	}
@@ -79,17 +94,22 @@
 	function clearLogo() {
 		logoDataUrl = null;
 		logoName = null;
+		logoError = null;
 	}
 
 	async function downloadPNG() {
 		if (!QRCodeStylingClass) return;
-		const exporter = new QRCodeStylingClass({
-			...buildOpts(),
-			width: 1024,
-			height: 1024,
-			type: 'canvas'
-		});
-		await exporter.download({ name: 'kemek-qr', extension: 'png' });
+		try {
+			const exporter = new QRCodeStylingClass({
+				...buildOpts(),
+				width: 1024,
+				height: 1024,
+				type: 'canvas'
+			});
+			await exporter.download({ name: 'kemek-qr', extension: 'png' });
+		} catch (err) {
+			engineError = err instanceof Error ? `Download failed: ${err.message}` : 'Download failed.';
+		}
 	}
 
 	let resolvedECC = $derived(
@@ -120,6 +140,12 @@
 			<span class="crop crop-br" aria-hidden="true"></span>
 			<div class="specimen-stage">
 				<div bind:this={qrContainer} class="qr-mount" role="img" aria-label="QR code preview"></div>
+				{#if engineError}
+					<div class="engine-error" role="alert">
+						<span class="engine-error-eyebrow">PROTOCOL ERROR</span>
+						<p>{engineError}</p>
+					</div>
+				{/if}
 			</div>
 		</div>
 
@@ -186,18 +212,17 @@
 
 		<fieldset class="control-block">
 			<legend>DOT STYLE</legend>
-			<div class="segmented cols-3" role="radiogroup" aria-label="Dot style">
+			<div class="segmented cols-3">
 				{#each dotOptions as opt}
-					<button
-						type="button"
-						role="radio"
-						aria-checked={dotType === opt.value}
-						class="seg"
-						class:active={dotType === opt.value}
-						onclick={() => (dotType = opt.value)}
-					>
+					<label class="seg" class:active={dotType === opt.value}>
+						<input
+							type="radio"
+							name="dot-type"
+							value={opt.value}
+							bind:group={dotType}
+						/>
 						{opt.label}
-					</button>
+					</label>
 				{/each}
 			</div>
 		</fieldset>
@@ -217,6 +242,9 @@
 					<button type="button" class="logo-clear" onclick={clearLogo}>CLEAR</button>
 				{/if}
 			</div>
+			{#if logoError}
+				<p class="logo-error" role="alert">{logoError}</p>
+			{/if}
 			<label class="slider-field">
 				<span class="field-label">SIZE <em>{(logoSize * 100).toFixed(0)}%</em></span>
 				<input
@@ -232,18 +260,17 @@
 
 		<fieldset class="control-block">
 			<legend>ERROR CORRECTION</legend>
-			<div class="segmented cols-5" role="radiogroup" aria-label="Error correction level">
+			<div class="segmented cols-5">
 				{#each eccOptions as ecc}
-					<button
-						type="button"
-						role="radio"
-						aria-checked={errorCorrection === ecc}
-						class="seg"
-						class:active={errorCorrection === ecc}
-						onclick={() => (errorCorrection = ecc)}
-					>
+					<label class="seg" class:active={errorCorrection === ecc}>
+						<input
+							type="radio"
+							name="ecc"
+							value={ecc}
+							bind:group={errorCorrection}
+						/>
 						{ecc.toUpperCase()}
-					</button>
+					</label>
 				{/each}
 			</div>
 		</fieldset>
@@ -610,6 +637,10 @@
 		grid-template-columns: repeat(5, 1fr);
 	}
 	.seg {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		padding: 0.65rem 0.4rem;
 		font-family: var(--font-mono);
 		font-size: 10px;
@@ -622,6 +653,24 @@
 		cursor: pointer;
 		transition: all var(--duration-fast) var(--ease);
 		text-transform: uppercase;
+		user-select: none;
+	}
+	/* Visually hide the radio but keep it focusable so native arrow-key
+	   navigation across the radiogroup works. The <label> is the click target. */
+	.seg input[type='radio'] {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+		margin: -1px;
+		padding: 0;
+	}
+	.seg:has(input:focus-visible) {
+		outline: 2px solid var(--accent);
+		outline-offset: -3px;
 	}
 	.segmented.cols-3 .seg:nth-child(3n) {
 		border-right: none;
@@ -734,6 +783,40 @@
 	.slider-field input[type='range']:hover::-webkit-slider-thumb {
 		transform: scale(1.15);
 		background: var(--accent);
+	}
+
+	/* ─── Error states ───────────────────────────────────── */
+	.engine-error {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		gap: 0.4rem;
+		padding: 1.5rem;
+		text-align: center;
+		background: rgba(242, 235, 221, 0.94);
+		color: var(--accent-deep);
+	}
+	.engine-error-eyebrow {
+		font-family: var(--font-mono);
+		font-size: 10px;
+		letter-spacing: 0.22em;
+		color: var(--accent);
+	}
+	.engine-error p {
+		font-family: var(--font-mono);
+		font-size: var(--fs-sm);
+		margin: 0;
+		line-height: 1.5;
+		max-width: 32ch;
+	}
+	.logo-error {
+		font-family: var(--font-mono);
+		font-size: 10px;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--accent);
+		margin: 0.6rem 0 0;
 	}
 
 	@keyframes fade-up {
