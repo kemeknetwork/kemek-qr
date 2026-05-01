@@ -45,6 +45,14 @@
 <svelte:head>
 	<meta name="color-scheme" content="light" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+	<link rel="alternate icon" href="/favicon-32.png" type="image/png" />
+	<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+	<meta property="og:image" content="https://qr.kemek.com/og.png" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta name="twitter:image" content="https://qr.kemek.com/og.png" />
+	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
 <div class="page-frame">
@@ -55,9 +63,10 @@
 				<span class="brand-mark" aria-hidden="true"></span>
 				<span class="brand-name">kemek<span class="brand-slash">/</span>qr</span>
 			</a>
-			<span class="pill" aria-label="Privacy posture">
+			<a class="pill" href="/about" aria-label="About — privacy posture and license">
 				NO SIGNUP <span class="pill-dot">·</span> NO TRACKING <span class="pill-dot">·</span> NO UPLOAD
-			</span>
+				<span class="pill-arrow" aria-hidden="true">→</span>
+			</a>
 		</div>
 		<nav class="type-nav" aria-label="QR content types — plate index">
 			<div class="type-nav-inner">
@@ -186,12 +195,28 @@
 		text-transform: uppercase;
 		color: var(--ghost);
 		border: 1px solid var(--rule);
-		padding: 0.32rem 0.7rem;
+		padding: 0.32rem 0.7rem 0.32rem 0.7rem;
 		border-radius: 99px;
 		letter-spacing: 0.16em;
+		text-decoration: none;
+		transition:
+			color var(--duration-fast) var(--ease),
+			border-color var(--duration-fast) var(--ease);
+	}
+	.pill:hover {
+		color: var(--ink);
+		border-color: var(--accent);
+	}
+	.pill:hover .pill-arrow {
+		transform: translateX(2px);
 	}
 	.pill-dot {
 		color: var(--accent);
+	}
+	.pill-arrow {
+		color: var(--accent);
+		margin-left: 0.4rem;
+		transition: transform var(--duration-fast) var(--ease);
 	}
 
 	.type-nav {

@@ -61,7 +61,6 @@
 	<meta property="og:description" content={copy.metaDesc} />
 	<meta property="og:url" content={canonicalUrl} />
 	<meta property="og:site_name" content="KeMeK QR" />
-	<meta name="twitter:card" content="summary" />
 	<meta name="twitter:title" content={copy.metaTitle} />
 	<meta name="twitter:description" content={copy.metaDesc} />
 	{@html `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`}
