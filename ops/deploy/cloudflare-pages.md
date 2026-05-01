@@ -1,0 +1,94 @@
+# Deploy: Cloudflare Pages + GoDaddy DNS (interim)
+
+The kemek.com domain stays at GoDaddy for now (umbrella for ~95% of
+kVadrum's hosted sites and client work; will migrate later as part of
+the composable-stack rebuild). For the time being only `qr.kemek.com`
+is delegated outward via a single CNAME — the rest of the domain
+keeps working unchanged.
+
+This document covers the one-time setup. Re-deployment is automatic
+after step 5: every push to `main` triggers a Pages build.
+
+## Steps
+
+### 1. Cloudflare account
+Sign up at cloudflare.com (free). **Do not** add `kemek.com` as a
+"site" — that path moves DNS to Cloudflare, which is the
+end-state but not now.
+
+### 2. Connect the repo to Pages
+- Dashboard → **Workers & Pages** → Create → Pages → **Connect to Git**
+- Authorize the `KeMeK-Network` GitHub org (or just the
+  `kemek-QR` repo if scoping access narrowly).
+- Pick `KeMeK-Network/kemek-QR`. Production branch: **`main`**.
+- Framework preset: **SvelteKit**.
+- Build command: `npm run build`
+- Build output directory: `build`
+- Node version: **20** or **22** (set via env var `NODE_VERSION` if Pages doesn't auto-detect).
+- Root directory: leave blank (project is at repo root).
+- Save and deploy. First build takes ~60s.
+
+A temporary URL is issued — `kemek-qr.pages.dev` or similar.
+
+### 3. Smoke-test the temporary URL
+Before pointing the real domain at it, verify on the `*.pages.dev` URL:
+- `/`, `/text`, `/wifi`, `/vcard`, `/email`, `/sms`, `/phone`, `/geo`, `/about` all render.
+- Any field edit updates the QR preview live (~80ms debounce).
+- Downloads work for PNG, SVG, PDF — with frame on and off.
+- Permalinks (`COPY LINK` button) round-trip on the same URL.
+- localStorage auto-save survives a page reload on each route.
+- DevTools network tab on a generator page shows **zero** outbound requests during QR generation (the privacy claim).
+
+### 4. Add the custom domain in Pages
+- Pages project → **Custom domains** → Set up a custom domain → enter `qr.kemek.com`.
+- Cloudflare detects that the parent domain isn't on its DNS and prompts you to add the record manually. Copy the **CNAME target** it shows — looks like `kemek-qr.pages.dev` or a project-specific subdomain.
+- Leave this tab open; status will sit at "Pending DNS" until step 5 lands.
+
+### 5. Add the CNAME at GoDaddy
+- GoDaddy → My Products → DNS for `kemek.com`.
+- Add a record:
+  - **Type:** CNAME
+  - **Name / Host:** `qr`
+  - **Value / Points to:** the Pages target from step 4 (e.g. `kemek-qr.pages.dev`).
+  - **TTL:** 600 seconds (10 min). Don't accept GoDaddy's 1-hour default — keep it short so future migrations are quick.
+- Save.
+
+Propagation typically lands in 5–15 minutes.
+
+### 6. Wait for SSL
+Back on the Pages custom-domain tab, status should flip from
+"Pending DNS" → "Active" once propagation completes. Cloudflare
+auto-issues a Let's Encrypt cert; no action needed. If it stalls
+beyond ~30 min:
+- Verify the CNAME resolves: `dig qr.kemek.com CNAME +short`.
+- Check there's no conflicting A record for `qr` at GoDaddy.
+
+### 7. Verify
+- `https://qr.kemek.com/` resolves with valid SSL (no browser warnings).
+- All 9 routes work.
+- `https://qr.kemek.com/og.png` returns 200 (OG scrapers fetch it directly).
+- `https://qr.kemek.com/sitemap.xml` and `/robots.txt` return 200.
+- A scrape preview against an OG validator (e.g. opengraph.xyz, Twitter card validator) shows the drafting-paper card.
+
+### 8. Submit to search engines
+- **Google Search Console** (search.google.com/search-console): Add property, verify via DNS TXT (add at GoDaddy) or HTML meta. Submit `https://qr.kemek.com/sitemap.xml`.
+- **Bing Webmaster Tools** (bing.com/webmasters): same flow.
+
+## Operational notes
+
+- **No Cloudflare proxy / orange-cloud / WAF / page rules for this subdomain**, because DNS is at GoDaddy. Pages still serves from Cloudflare's global edge — the CDN benefit is intact. The proxy-layer features (rate limiting, bot management, cache rules) require DNS at Cloudflare; deferred.
+- **Atomic deploys** are built in: every `git push` to `main` triggers a build; the new build replaces the old one only on success. Pages keeps every prior build accessible at a unique URL — one click to roll back from the dashboard.
+- **PR previews** auto-deploy any branch (including `dev`) at `<branch>.kemek-qr.pages.dev`. Useful for sharing pre-promote work.
+- **No environment variables** needed — kemek-qr is fully static, no API keys, no runtime config.
+- **Build budget:** Pages free tier allows 500 builds/month. Far more than this project will produce.
+
+## What to do later (not now)
+
+- **Migrate kemek.com nameservers to Cloudflare.** Mostly painless: Cloudflare's "scan existing records" wizard catches almost everything; you confirm and switch nameservers at GoDaddy. The `qr.kemek.com` CNAME survives unchanged. Once migrated, you can orange-cloud the subdomain to gain proxy + WAF + page rules without touching the Pages project. Hold this until the broader composable-stack migration is ready.
+- **Add Cloudflare Web Analytics.** Privacy-respecting, no-cookie page-view counter. Per CLAUDE.md the generator pages must stay clean (zero outbound during generation), but `/about` and the per-type landing-page hero/explainer fold are fine. Add later if SEO performance benchmarking matters.
+
+## Rollback
+
+- Bad deploy: Pages dashboard → Deployments → pick a known-good build → "Rollback to this deployment".
+- Bad CNAME: remove the GoDaddy record. `qr.kemek.com` resolves to nothing within TTL (10 min). Re-add with corrected target.
+- Want to leave Cloudflare entirely: delete the GoDaddy CNAME, delete the Pages project. The build artifact is plain HTML/JS/CSS — drop it on any static host.
