@@ -2,8 +2,21 @@
 	import { onMount } from 'svelte';
 	import type QRCodeStyling from 'qr-code-styling';
 	import { decodePermalink, encodePermalink, type DotType, type ECC } from '$lib/permalink';
+	import { encode } from '$lib/encoders';
+	import {
+		CONTENT_TYPES,
+		DEFAULT_CONTENT,
+		TYPE_LABELS,
+		type ContentMap,
+		type ContentType,
+		type WifiAuth
+	} from '$lib/types';
 
-	let url = $state('https://kemek.com');
+	let contentType = $state<ContentType>('url');
+	/* Each type owns an independent record so switching tabs preserves
+	 * what the user typed in the previous form. The encoder for the
+	 * currently-active type runs against `content[contentType]`. */
+	let content = $state<ContentMap>(structuredClone(DEFAULT_CONTENT));
 	let fgColor = $state('#1A1815');
 	let bgColor = $state('#F2EBDD');
 	let fgInput = $state('#1A1815');
@@ -36,13 +49,14 @@
 	function buildOpts() {
 		const ecc: 'L' | 'M' | 'Q' | 'H' =
 			errorCorrection === 'auto' ? (logoDataUrl ? 'H' : 'M') : errorCorrection;
+		const encoded = encode(contentType, content[contentType]);
 		return {
 			width: 480,
 			height: 480,
 			type: 'svg' as const,
 			// qr-code-styling throws on empty `data`; fall back to the brand URL
 			// so an empty input renders a valid placeholder QR rather than crashing.
-			data: url.trim() || 'https://kemek.com',
+			data: encoded.trim() || 'https://kemek.com',
 			image: logoDataUrl ?? undefined,
 			margin: 6,
 			qrOptions: { errorCorrectionLevel: ecc },
@@ -63,7 +77,20 @@
 		if (typeof window !== 'undefined' && window.location.hash) {
 			const decoded = decodePermalink(window.location.hash);
 			if (decoded) {
-				if (decoded.url !== undefined) url = decoded.url;
+				if (decoded.type) {
+					contentType = decoded.type;
+					if (decoded.content) {
+						/* Merge over the type's defaults so missing keys stay
+						 * sensible rather than undefined. The cast is safe
+						 * because validateContent in permalink.ts has already
+						 * filtered keys to the type's allowed set. */
+						const t = decoded.type;
+						(content as Record<ContentType, unknown>)[t] = {
+							...(content[t] as Record<string, unknown>),
+							...(decoded.content as Record<string, unknown>)
+						};
+					}
+				}
 				if (decoded.fg !== undefined) fgColor = decoded.fg;
 				if (decoded.bg !== undefined) bgColor = decoded.bg;
 				if (decoded.dot !== undefined) dotType = decoded.dot;
@@ -135,7 +162,8 @@
 		if (typeof window === 'undefined') return;
 		const result = encodePermalink(
 			{
-				url,
+				type: contentType,
+				content: content[contentType],
 				fg: fgColor,
 				bg: bgColor,
 				dot: dotType,
@@ -176,13 +204,13 @@
 	);
 	let dotLabel = $derived(dotOptions.find((d) => d.value === dotType)?.label ?? '—');
 
-	/* Soft, non-blocking URL warning. We never gate encoding — QR codes
-	 * happily encode any text, and users sometimes intentionally encode
-	 * mailto:, intent://, or arbitrary strings. We only nudge when the
-	 * input looks URL-ish (contains a dot, no spaces) but won't parse,
-	 * since that's the high-confidence "you probably meant a URL" case. */
+	/* Soft, non-blocking URL warning. Only fires on the URL type; other
+	 * types have their own shape and shouldn't be told they "don't look
+	 * like a URL" — that's by design. We never gate encoding either way:
+	 * QR codes happily encode any text. */
 	let urlWarning = $derived.by(() => {
-		const v = url.trim();
+		if (contentType !== 'url') return null;
+		const v = content.url.url.trim();
 		if (!v) return null;
 		const looksUrlish = v.includes('.') && !/\s/.test(v);
 		if (!looksUrlish) return null;
@@ -233,7 +261,7 @@
 </script>
 
 <section class="hero">
-	<span class="eyebrow">FIG. 01 — KEMEK / QR · URL ENCODE</span>
+	<span class="eyebrow">FIG. 01 — KEMEK / QR · {TYPE_LABELS[contentType]} ENCODE</span>
 	<h1 class="hero-title">
 		A QR code that <em>doesn't&nbsp;want</em> anything from you.
 	</h1>
@@ -311,23 +339,197 @@
 	</div>
 
 	<div class="controls">
-		<fieldset class="control-block">
-			<legend>DESTINATION</legend>
-			<label class="field">
-				<span class="field-label">URL</span>
-				<input
-					type="url"
-					bind:value={url}
-					placeholder="https://"
-					spellcheck="false"
-					autocomplete="off"
-					aria-describedby={urlWarning ? 'url-warning' : undefined}
-				/>
-			</label>
-			{#if urlWarning}
-				<p id="url-warning" class="field-warning">{urlWarning}</p>
-			{/if}
+		<fieldset class="control-block type-block">
+			<legend>CONTENT TYPE</legend>
+			<div class="type-tabs" role="radiogroup" aria-label="Content type">
+				{#each CONTENT_TYPES as t}
+					<label class="type-tab" class:active={contentType === t}>
+						<input
+							type="radio"
+							name="content-type"
+							value={t}
+							bind:group={contentType}
+						/>
+						{TYPE_LABELS[t]}
+					</label>
+				{/each}
+			</div>
 		</fieldset>
+
+		{#if contentType === 'url'}
+			<fieldset class="control-block">
+				<legend>DESTINATION</legend>
+				<label class="field">
+					<span class="field-label">URL</span>
+					<input
+						type="url"
+						bind:value={content.url.url}
+						placeholder="https://"
+						spellcheck="false"
+						autocomplete="off"
+						aria-describedby={urlWarning ? 'url-warning' : undefined}
+					/>
+				</label>
+				{#if urlWarning}
+					<p id="url-warning" class="field-warning">{urlWarning}</p>
+				{/if}
+			</fieldset>
+		{:else if contentType === 'text'}
+			<fieldset class="control-block">
+				<legend>TEXT</legend>
+				<label class="field">
+					<span class="field-label">CONTENT</span>
+					<textarea
+						class="textarea"
+						bind:value={content.text.text}
+						placeholder="Anything — a note, a poem, an offline message"
+						rows="4"
+						spellcheck="false"
+					></textarea>
+				</label>
+			</fieldset>
+		{:else if contentType === 'wifi'}
+			<fieldset class="control-block">
+				<legend>WIFI NETWORK</legend>
+				<label class="field">
+					<span class="field-label">SSID</span>
+					<input
+						type="text"
+						bind:value={content.wifi.ssid}
+						placeholder="Network name"
+						spellcheck="false"
+						autocomplete="off"
+					/>
+				</label>
+				<label class="field">
+					<span class="field-label">PASSWORD</span>
+					<input
+						type="text"
+						bind:value={content.wifi.password}
+						placeholder={content.wifi.auth === 'nopass' ? 'not used' : ''}
+						disabled={content.wifi.auth === 'nopass'}
+						spellcheck="false"
+						autocomplete="off"
+					/>
+				</label>
+				<div class="field-row" style="padding-top: 0.85rem;">
+					<label class="color-field">
+						<span class="field-label">SECURITY</span>
+						<select
+							class="select"
+							bind:value={content.wifi.auth as WifiAuth}
+						>
+							<option value="WPA">WPA / WPA2 / WPA3</option>
+							<option value="WEP">WEP</option>
+							<option value="nopass">None (open)</option>
+						</select>
+					</label>
+					<label class="checkbox-field">
+						<input type="checkbox" bind:checked={content.wifi.hidden} />
+						<span class="field-label">HIDDEN NETWORK</span>
+					</label>
+				</div>
+			</fieldset>
+		{:else if contentType === 'vcard'}
+			<fieldset class="control-block">
+				<legend>CONTACT</legend>
+				<div class="field-row" style="padding-top: 0.45rem;">
+					<label class="color-field">
+						<span class="field-label">FIRST NAME</span>
+						<input type="text" bind:value={content.vcard.firstName} autocomplete="given-name" />
+					</label>
+					<label class="color-field">
+						<span class="field-label">LAST NAME</span>
+						<input type="text" bind:value={content.vcard.lastName} autocomplete="family-name" />
+					</label>
+				</div>
+				<div class="field-row" style="padding-top: 0.85rem;">
+					<label class="color-field">
+						<span class="field-label">ORG</span>
+						<input type="text" bind:value={content.vcard.org} autocomplete="organization" />
+					</label>
+					<label class="color-field">
+						<span class="field-label">TITLE</span>
+						<input type="text" bind:value={content.vcard.title} autocomplete="organization-title" />
+					</label>
+				</div>
+				<label class="field" style="padding-top: 0.85rem;">
+					<span class="field-label">PHONE</span>
+					<input type="tel" bind:value={content.vcard.phone} autocomplete="tel" />
+				</label>
+				<label class="field">
+					<span class="field-label">EMAIL</span>
+					<input type="email" bind:value={content.vcard.email} autocomplete="email" />
+				</label>
+				<label class="field">
+					<span class="field-label">URL</span>
+					<input type="url" bind:value={content.vcard.url} autocomplete="url" />
+				</label>
+				<label class="field">
+					<span class="field-label">ADDRESS</span>
+					<input type="text" bind:value={content.vcard.address} autocomplete="street-address" />
+				</label>
+			</fieldset>
+		{:else if contentType === 'email'}
+			<fieldset class="control-block">
+				<legend>EMAIL</legend>
+				<label class="field">
+					<span class="field-label">TO</span>
+					<input type="email" bind:value={content.email.to} autocomplete="email" />
+				</label>
+				<label class="field">
+					<span class="field-label">SUBJECT</span>
+					<input type="text" bind:value={content.email.subject} />
+				</label>
+				<label class="field">
+					<span class="field-label">BODY</span>
+					<textarea class="textarea" bind:value={content.email.body} rows="3"></textarea>
+				</label>
+			</fieldset>
+		{:else if contentType === 'sms'}
+			<fieldset class="control-block">
+				<legend>SMS</legend>
+				<label class="field">
+					<span class="field-label">NUMBER</span>
+					<input type="tel" bind:value={content.sms.number} placeholder="+1 555 123 4567" />
+				</label>
+				<label class="field">
+					<span class="field-label">MESSAGE</span>
+					<textarea class="textarea" bind:value={content.sms.body} rows="3"></textarea>
+				</label>
+			</fieldset>
+		{:else if contentType === 'phone'}
+			<fieldset class="control-block">
+				<legend>PHONE</legend>
+				<label class="field">
+					<span class="field-label">NUMBER</span>
+					<input
+						type="tel"
+						bind:value={content.phone.number}
+						placeholder="+1 555 123 4567"
+						autocomplete="tel"
+					/>
+				</label>
+			</fieldset>
+		{:else if contentType === 'geo'}
+			<fieldset class="control-block">
+				<legend>GEO</legend>
+				<div class="field-row" style="padding-top: 0.45rem;">
+					<label class="color-field">
+						<span class="field-label">LATITUDE</span>
+						<input type="text" bind:value={content.geo.lat} placeholder="40.7128" />
+					</label>
+					<label class="color-field">
+						<span class="field-label">LONGITUDE</span>
+						<input type="text" bind:value={content.geo.lon} placeholder="-74.0060" />
+					</label>
+				</div>
+				<label class="field" style="padding-top: 0.85rem;">
+					<span class="field-label">LABEL (OPTIONAL)</span>
+					<input type="text" bind:value={content.geo.query} placeholder="Statue of Liberty" />
+				</label>
+			</fieldset>
+		{/if}
 
 		<fieldset class="control-block">
 			<legend>COLOR</legend>
@@ -1032,6 +1234,127 @@
 		color: var(--accent);
 		margin: 0.6rem 0 0;
 	}
+	.type-block {
+		padding-bottom: 0.85rem;
+	}
+	.type-tabs {
+		display: grid;
+		grid-template-columns: repeat(8, 1fr);
+		gap: 0;
+		border: 1px solid var(--rule);
+		border-radius: var(--radius-sm);
+		overflow: hidden;
+		margin-top: 0.5rem;
+		background: var(--paper);
+	}
+	@media (max-width: 720px) {
+		.type-tabs {
+			grid-template-columns: repeat(4, 1fr);
+		}
+	}
+	.type-tab {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.55rem 0.3rem;
+		font-family: var(--font-mono);
+		font-size: 10px;
+		letter-spacing: 0.14em;
+		color: var(--ghost);
+		border-right: 1px solid var(--rule);
+		background: transparent;
+		cursor: pointer;
+		transition: all var(--duration-fast) var(--ease);
+		text-transform: uppercase;
+		user-select: none;
+	}
+	.type-tab input[type='radio'] {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+		margin: -1px;
+		padding: 0;
+	}
+	.type-tab:has(input:focus-visible) {
+		outline: 2px solid var(--accent);
+		outline-offset: -3px;
+	}
+	.type-tabs .type-tab:nth-child(8n) {
+		border-right: none;
+	}
+	@media (max-width: 720px) {
+		.type-tabs .type-tab:nth-child(8n) {
+			border-right: 1px solid var(--rule);
+		}
+		.type-tabs .type-tab:nth-child(4n) {
+			border-right: none;
+		}
+		.type-tabs .type-tab:nth-child(n + 5) {
+			border-top: 1px solid var(--rule);
+		}
+	}
+	.type-tab:hover {
+		color: var(--ink);
+		background: var(--paper-warm);
+	}
+	.type-tab.active {
+		color: var(--paper);
+		background: var(--ink);
+	}
+
+	.textarea {
+		font-family: var(--font-mono);
+		font-size: var(--fs-sm);
+		background: var(--paper);
+		border: 1px solid var(--rule);
+		border-radius: var(--radius-sm);
+		padding: 0.55rem 0.7rem;
+		width: 100%;
+		resize: vertical;
+		outline: none;
+		color: var(--ink);
+		line-height: 1.45;
+		transition: border-color var(--duration-fast);
+	}
+	.textarea:focus {
+		border-color: var(--accent);
+	}
+	.select {
+		font-family: var(--font-mono);
+		font-size: var(--fs-sm);
+		background: var(--paper);
+		border: 1px solid var(--rule);
+		border-radius: var(--radius-sm);
+		padding: 0.4rem 0.55rem;
+		color: var(--ink);
+		outline: none;
+		cursor: pointer;
+		width: 100%;
+		transition: border-color var(--duration-fast);
+	}
+	.select:focus {
+		border-color: var(--accent);
+	}
+	.checkbox-field {
+		display: flex;
+		align-items: center;
+		gap: 0.55rem;
+		padding-top: 1.55rem;
+		font-family: var(--font-mono);
+		cursor: pointer;
+	}
+	.checkbox-field input[type='checkbox'] {
+		width: 14px;
+		height: 14px;
+		accent-color: var(--accent);
+		cursor: pointer;
+	}
+
 	.field-warning {
 		font-family: var(--font-mono);
 		font-size: 10px;

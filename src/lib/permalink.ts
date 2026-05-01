@@ -12,7 +12,14 @@
  * dropped from the encoded payload and surfaced via { logoDropped: true }
  * on the encode side so the UI can warn the sender. A receiver getting a
  * link without a logo just renders without one.
+ *
+ * Per-type content rides in `c` as the type's payload object. The `t`
+ * field names the type ('url', 'wifi', ...). Both are optional — a hash
+ * with neither restores nothing type-related, which is the original
+ * 0.1.0 shape.
  */
+
+import { CONTENT_TYPES, type ContentMap, type ContentType } from './types';
 
 export type DotType =
 	| 'square'
@@ -24,8 +31,7 @@ export type DotType =
 
 export type ECC = 'auto' | 'L' | 'M' | 'Q' | 'H';
 
-export type PermalinkState = {
-	url: string;
+export type StylingState = {
 	fg: string;
 	bg: string;
 	dot: DotType;
@@ -34,9 +40,11 @@ export type PermalinkState = {
 	logoDataUrl: string | null;
 };
 
-/* Soft cap — many chat clients linkify cleanly at <2 KB but tolerate up
- * to ~6 KB. Beyond that, paste reliability degrades. The logo is the only
- * field that can blow this up; everything else is bounded. */
+export type PermalinkState<T extends ContentType = ContentType> = StylingState & {
+	type: T;
+	content: ContentMap[T];
+};
+
 const MAX_URL_LEN = 6000;
 
 const DOT_TYPES: ReadonlySet<DotType> = new Set([
@@ -52,8 +60,11 @@ const ECC_VALUES: ReadonlySet<ECC> = new Set(['auto', 'L', 'M', 'Q', 'H']);
 
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
+const TYPES_SET: ReadonlySet<string> = new Set(CONTENT_TYPES);
+
 type WireV1 = {
-	u?: string;
+	t?: ContentType;
+	c?: Record<string, unknown>;
 	f?: string;
 	b?: string;
 	d?: DotType;
@@ -77,9 +88,13 @@ function fromBase64Url(s: string): string {
 	return new TextDecoder().decode(bytes);
 }
 
-function buildWire(state: PermalinkState, includeLogo: boolean): WireV1 {
+function buildWire<T extends ContentType>(
+	state: PermalinkState<T>,
+	includeLogo: boolean
+): WireV1 {
 	const w: WireV1 = {
-		u: state.url,
+		t: state.type,
+		c: state.content as unknown as Record<string, unknown>,
 		f: state.fg,
 		b: state.bg,
 		d: state.dot,
@@ -100,10 +115,10 @@ export type EncodeResult = {
 	logoDropped: boolean;
 };
 
-/* Encode state into a sharable permalink hash. `baseUrl` is the page
- * URL the recipient will land on; we only return `url` so the caller
- * can copy it directly. */
-export function encodePermalink(state: PermalinkState, baseUrl: string): EncodeResult {
+export function encodePermalink<T extends ContentType>(
+	state: PermalinkState<T>,
+	baseUrl: string
+): EncodeResult {
 	const stripped = baseUrl.split('#')[0];
 	const withLogo = `${stripped}#s=${encodeWire(buildWire(state, true))}`;
 
@@ -115,11 +130,37 @@ export function encodePermalink(state: PermalinkState, baseUrl: string): EncodeR
 	return { hash: withLogo.split('#')[1], url: withLogo, logoDropped: false };
 }
 
-/* Decode a hash fragment (with or without leading `#`) into a partial
- * state. Returns null when the input is malformed or version-incompatible.
- * Each field is validated independently — a bad single field is dropped,
- * not the whole payload. */
-export function decodePermalink(hash: string): Partial<PermalinkState> | null {
+export type DecodedPermalink = Partial<StylingState> & {
+	type?: ContentType;
+	content?: Record<string, unknown>;
+};
+
+/* Validate per-type content shape: drop any unknown keys but trust
+ * scalar values to be strings/booleans where the form expects them.
+ * Form components call .toString()/coerce defensively, so a bad value
+ * surfaces as an empty field rather than a crash. */
+function validateContent(type: ContentType, c: unknown): Record<string, unknown> | null {
+	if (!c || typeof c !== 'object') return null;
+	const obj = c as Record<string, unknown>;
+	const allowedKeys: Record<ContentType, readonly string[]> = {
+		url: ['url'],
+		text: ['text'],
+		wifi: ['ssid', 'password', 'auth', 'hidden'],
+		vcard: ['firstName', 'lastName', 'org', 'title', 'phone', 'email', 'url', 'address'],
+		email: ['to', 'subject', 'body'],
+		sms: ['number', 'body'],
+		phone: ['number'],
+		geo: ['lat', 'lon', 'query']
+	};
+	const allowed = allowedKeys[type];
+	const out: Record<string, unknown> = {};
+	for (const k of allowed) {
+		if (k in obj) out[k] = obj[k];
+	}
+	return out;
+}
+
+export function decodePermalink(hash: string): DecodedPermalink | null {
 	const raw = hash.startsWith('#') ? hash.slice(1) : hash;
 	const m = raw.match(/^s=v1\.(.+)$/);
 	if (!m) return null;
@@ -133,9 +174,13 @@ export function decodePermalink(hash: string): Partial<PermalinkState> | null {
 	if (!parsed || typeof parsed !== 'object') return null;
 
 	const w = parsed as WireV1;
-	const out: Partial<PermalinkState> = {};
+	const out: DecodedPermalink = {};
 
-	if (typeof w.u === 'string') out.url = w.u;
+	if (typeof w.t === 'string' && TYPES_SET.has(w.t)) out.type = w.t;
+	if (out.type && w.c) {
+		const v = validateContent(out.type, w.c);
+		if (v) out.content = v;
+	}
 	if (typeof w.f === 'string' && HEX_RE.test(w.f)) out.fg = w.f;
 	if (typeof w.b === 'string' && HEX_RE.test(w.b)) out.bg = w.b;
 	if (typeof w.d === 'string' && DOT_TYPES.has(w.d as DotType)) out.dot = w.d as DotType;
