@@ -17,7 +17,7 @@ Part of the [KeMeK Network](https://kemek.com) family of free utilities. Generat
 
 ```sh
 npm install
-npm run dev    # http://localhost:5179
+npm run dev    # http://localhost:5184
 ```
 
 ## Build
