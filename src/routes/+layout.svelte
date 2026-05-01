@@ -1,14 +1,34 @@
 <script lang="ts">
 	import '../app.css';
+	import { page } from '$app/state';
+	import { CONTENT_TYPES, TYPE_LABELS, type ContentType } from '$lib/types';
+
 	let { children } = $props();
+
+	/* Map a route pathname to its ContentType. `/` is the URL generator
+	 * (canonical landing); each /<type> is a per-type landing page. */
+	const ROUTE_FOR_TYPE: Record<ContentType, string> = {
+		url: '/',
+		text: '/text',
+		wifi: '/wifi',
+		vcard: '/vcard',
+		email: '/email',
+		sms: '/sms',
+		phone: '/phone',
+		geo: '/geo'
+	};
+
+	const activeType = $derived.by<ContentType>(() => {
+		const path = page.url.pathname || '/';
+		if (path === '/') return 'url';
+		const match = (CONTENT_TYPES as readonly ContentType[]).find(
+			(t) => t !== 'url' && (path === ROUTE_FOR_TYPE[t] || path.startsWith(`${ROUTE_FOR_TYPE[t]}/`))
+		);
+		return match ?? 'url';
+	});
 </script>
 
 <svelte:head>
-	<title>kemek/qr · the QR generator that doesn't want anything from you</title>
-	<meta
-		name="description"
-		content="A free, fast, beautiful QR code generator that runs entirely in your browser. No signup, no email, no tracking, no upsell. Made by KeMeK Network."
-	/>
 	<meta name="color-scheme" content="light" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 </svelte:head>
@@ -24,6 +44,20 @@
 				NO SIGNUP <span class="pill-dot">·</span> NO TRACKING <span class="pill-dot">·</span> NO UPLOAD
 			</span>
 		</div>
+		<nav class="type-nav" aria-label="QR content types">
+			<div class="type-nav-inner">
+				{#each CONTENT_TYPES as t}
+					<a
+						class="type-link"
+						class:active={activeType === t}
+						href={ROUTE_FOR_TYPE[t]}
+						aria-current={activeType === t ? 'page' : undefined}
+					>
+						{TYPE_LABELS[t]}
+					</a>
+				{/each}
+			</div>
+		</nav>
 	</header>
 
 	<main>
@@ -39,7 +73,7 @@
 			<span class="dot" aria-hidden="true">·</span>
 			<span>Runs in your browser. Files never leave your device.</span>
 			<span class="dot" aria-hidden="true">·</span>
-			<span class="phase">PHASE 0 / 2026—05</span>
+			<span class="phase">PHASE 1 / 2026—05</span>
 		</div>
 	</footer>
 </div>
@@ -55,12 +89,12 @@
 
 	.masthead {
 		border-bottom: 1px solid var(--rule);
-		padding: 1.1rem var(--gutter);
 		background: var(--paper);
 	}
 	.masthead-inner {
 		max-width: var(--max-w);
 		margin: 0 auto;
+		padding: 1.1rem var(--gutter);
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -110,6 +144,47 @@
 	}
 	.pill-dot {
 		color: var(--accent);
+	}
+
+	.type-nav {
+		border-top: 1px solid var(--rule);
+		background: var(--paper-warm);
+	}
+	.type-nav-inner {
+		max-width: var(--max-w);
+		margin: 0 auto;
+		padding: 0 var(--gutter);
+		display: flex;
+		gap: 0;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+	.type-nav-inner::-webkit-scrollbar {
+		display: none;
+	}
+	.type-link {
+		flex: 1 0 auto;
+		text-align: center;
+		font-family: var(--font-mono);
+		font-size: 10px;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		padding: 0.7rem 1.1rem;
+		color: var(--ghost);
+		border-bottom: 2px solid transparent;
+		border-top: 2px solid transparent;
+		text-decoration: none;
+		transition:
+			color var(--duration-fast) var(--ease),
+			border-color var(--duration-fast) var(--ease);
+		white-space: nowrap;
+	}
+	.type-link:hover {
+		color: var(--ink);
+	}
+	.type-link.active {
+		color: var(--ink);
+		border-bottom-color: var(--accent);
 	}
 
 	.colophon {
