@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type QRCodeStyling from 'qr-code-styling';
-
-	type DotType = 'square' | 'rounded' | 'dots' | 'classy' | 'classy-rounded' | 'extra-rounded';
-	type ECC = 'auto' | 'L' | 'M' | 'Q' | 'H';
+	import { decodePermalink, encodePermalink, type DotType, type ECC } from '$lib/permalink';
 
 	let url = $state('https://kemek.com');
 	let fgColor = $state('#1A1815');
@@ -15,6 +13,8 @@
 	let logoSize = $state(0.25);
 	let engineError = $state<string | null>(null);
 	let logoError = $state<string | null>(null);
+	let copyState = $state<'idle' | 'copied' | 'dropped'>('idle');
+	let copyTimer: ReturnType<typeof setTimeout> | null = null;
 
 	const dotOptions: { value: DotType; label: string }[] = [
 		{ value: 'square', label: 'SQUARE' },
@@ -58,6 +58,22 @@
 	}
 
 	onMount(async () => {
+		if (typeof window !== 'undefined' && window.location.hash) {
+			const decoded = decodePermalink(window.location.hash);
+			if (decoded) {
+				if (decoded.url !== undefined) url = decoded.url;
+				if (decoded.fg !== undefined) fgColor = decoded.fg;
+				if (decoded.bg !== undefined) bgColor = decoded.bg;
+				if (decoded.dot !== undefined) dotType = decoded.dot;
+				if (decoded.ecc !== undefined) errorCorrection = decoded.ecc;
+				if (decoded.logoSize !== undefined) logoSize = decoded.logoSize;
+				if (decoded.logoDataUrl !== undefined) {
+					logoDataUrl = decoded.logoDataUrl;
+					logoName = 'shared logo';
+				}
+			}
+		}
+
 		try {
 			const m = await import('qr-code-styling');
 			QRCodeStylingClass = m.default;
@@ -95,6 +111,31 @@
 		logoDataUrl = null;
 		logoName = null;
 		logoError = null;
+	}
+
+	async function copyPermalink() {
+		if (typeof window === 'undefined') return;
+		const result = encodePermalink(
+			{
+				url,
+				fg: fgColor,
+				bg: bgColor,
+				dot: dotType,
+				ecc: errorCorrection,
+				logoSize,
+				logoDataUrl
+			},
+			window.location.href
+		);
+		try {
+			await navigator.clipboard.writeText(result.url);
+			copyState = result.logoDropped ? 'dropped' : 'copied';
+		} catch {
+			window.history.replaceState(null, '', `#${result.hash}`);
+			copyState = result.logoDropped ? 'dropped' : 'copied';
+		}
+		if (copyTimer) clearTimeout(copyTimer);
+		copyTimer = setTimeout(() => (copyState = 'idle'), 2400);
 	}
 
 	async function downloadPNG() {
@@ -168,11 +209,32 @@
 			</div>
 		</dl>
 
-		<button class="download" type="button" onclick={downloadPNG}>
-			<span class="download-label">DOWNLOAD PNG</span>
-			<span class="download-size">1024 PX</span>
-			<span class="download-arrow" aria-hidden="true">↓</span>
-		</button>
+		<div class="action-row">
+			<button class="download" type="button" onclick={downloadPNG}>
+				<span class="download-label">DOWNLOAD PNG</span>
+				<span class="download-size">1024 PX</span>
+				<span class="download-arrow" aria-hidden="true">↓</span>
+			</button>
+			<button
+				class="permalink"
+				type="button"
+				onclick={copyPermalink}
+				aria-live="polite"
+			>
+				<span class="permalink-label">
+					{#if copyState === 'copied'}LINK COPIED
+					{:else if copyState === 'dropped'}COPIED — LOGO NOT IN LINK
+					{:else}COPY LINK{/if}
+				</span>
+				<span class="permalink-glyph" aria-hidden="true">⌁</span>
+			</button>
+		</div>
+		{#if copyState === 'dropped'}
+			<p class="permalink-note">
+				Logo is too large to include in the link — recipient will see the QR
+				without it. Re-attaching the logo on their end recreates the design.
+			</p>
+		{/if}
 	</div>
 
 	<div class="controls">
@@ -515,6 +577,65 @@
 	}
 	.download:hover .download-arrow {
 		transform: translateY(2px);
+	}
+
+	.action-row {
+		display: grid;
+		grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+		gap: 0.6rem;
+	}
+	@media (max-width: 520px) {
+		.action-row {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.permalink {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		padding: 1.1rem 1rem;
+		background: var(--paper);
+		color: var(--ink);
+		border: 1px solid var(--rule-strong);
+		border-radius: var(--radius-sm);
+		font-family: var(--font-mono);
+		font-weight: 500;
+		letter-spacing: 0.16em;
+		font-size: 10px;
+		text-transform: uppercase;
+		transition:
+			color var(--duration-fast) var(--ease),
+			border-color var(--duration-fast) var(--ease),
+			background var(--duration-fast) var(--ease),
+			transform var(--duration-fast) var(--ease);
+	}
+	.permalink:hover {
+		color: var(--accent);
+		border-color: var(--accent);
+	}
+	.permalink:active {
+		transform: translateY(1px);
+	}
+	.permalink-label {
+		text-align: left;
+		line-height: 1.2;
+	}
+	.permalink-glyph {
+		font-size: var(--fs-md);
+		color: var(--accent);
+	}
+	.permalink-note {
+		font-family: var(--font-mono);
+		font-size: 11px;
+		color: var(--ghost);
+		line-height: 1.5;
+		margin: 0;
+		padding: 0.7rem 0.85rem;
+		background: var(--paper);
+		border: 1px dashed var(--rule);
+		border-radius: var(--radius-sm);
 	}
 
 	.controls {
