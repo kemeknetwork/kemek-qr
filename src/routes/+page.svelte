@@ -87,9 +87,25 @@
 		}
 	});
 
+	/* Debounce QR re-renders so a typing burst coalesces into one update.
+	 * 80ms is long enough to swallow back-to-back keystrokes (~16 cps
+	 * average) and short enough that the preview still feels live. We
+	 * compute opts inside the effect so reactive deps are tracked here,
+	 * but the actual re-render is deferred to the timer. The cleanup
+	 * arrow clears the pending timer when deps change again or on
+	 * unmount. */
+	const RENDER_DEBOUNCE_MS = 80;
+	let renderTimer: ReturnType<typeof setTimeout> | null = null;
 	$effect(() => {
 		if (!qrInstance) return;
-		qrInstance.update(buildOpts());
+		const opts = buildOpts();
+		if (renderTimer) clearTimeout(renderTimer);
+		renderTimer = setTimeout(() => {
+			qrInstance?.update(opts);
+		}, RENDER_DEBOUNCE_MS);
+		return () => {
+			if (renderTimer) clearTimeout(renderTimer);
+		};
 	});
 
 	function handleLogoUpload(e: Event) {
