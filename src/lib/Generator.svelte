@@ -1077,8 +1077,11 @@
 		background: var(--rule-strong);
 		position: relative;
 	}
-	.dim-line::before,
-	.dim-line::after {
+	/* Diamond stops sit at the outer end of each segment, just inside
+	 * the tick. Inner ends (next to the readout) butt directly into the
+	 * readout's paper background, so no marker is needed there. */
+	.dim-line-l::before,
+	.dim-line-r::after {
 		content: '';
 		position: absolute;
 		width: 5px;
@@ -1090,14 +1093,6 @@
 	}
 	.dim-line-l::before {
 		left: 0;
-	}
-	.dim-line-l::after {
-		right: 0;
-		opacity: 0;
-	}
-	.dim-line-r::before {
-		right: 0;
-		opacity: 0;
 	}
 	.dim-line-r::after {
 		right: 0;

@@ -19,16 +19,6 @@
 		phone: '07',
 		geo: '08'
 	};
-	const PLATE_FOR: Record<string, ContentType> = {
-		'01': 'url',
-		'02': 'text',
-		'03': 'wifi',
-		'04': 'vcard',
-		'05': 'email',
-		'06': 'sms',
-		'07': 'phone',
-		'08': 'geo'
-	};
 	const plate = $derived(PLATE[type]);
 
 	const SITE = 'https://qr.kemek.com';
