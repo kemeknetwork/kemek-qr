@@ -1108,7 +1108,7 @@
 	}
 	@media (max-width: 880px) {
 		.workshop {
-			grid-template-columns: 1fr;
+			grid-template-columns: minmax(0, 1fr);
 		}
 	}
 
@@ -1117,6 +1117,7 @@
 		flex-direction: column;
 		gap: 1rem;
 		animation: fade-up var(--duration-slow) var(--ease) 120ms both;
+		min-width: 0;
 	}
 
 	/* Dimension line above the specimen: a thin horizontal rule with
@@ -1278,18 +1279,27 @@
 		height: 100%;
 		display: grid;
 		place-items: center;
+		min-width: 0;
 	}
 	.qr-mount {
 		width: 100%;
 		height: 100%;
 		display: grid;
 		place-items: center;
+		min-width: 0;
 	}
+	/* qr-code-styling generates an <svg> with intrinsic width/height
+	 * attributes (width: 480 in our buildOpts). Without min-width:0 on
+	 * the SVG and its grid ancestors, that 480 px intrinsic acts as a
+	 * floor that pushes the workshop track wider than the viewport on
+	 * narrow screens — root cause of the right-edge clipping at every
+	 * sub-880 px viewport. */
 	.qr-mount :global(svg),
 	.qr-mount :global(canvas) {
 		width: 100%;
 		height: auto;
 		max-width: 100%;
+		min-width: 0;
 		display: block;
 	}
 
@@ -1298,6 +1308,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: stretch;
+		min-width: 0;
 	}
 	.qr-frame.qr-frame-on {
 		background: var(--frame-bg);
@@ -1318,16 +1329,17 @@
 
 	.specimen-meta {
 		display: grid;
-		grid-template-columns: repeat(4, 1fr);
+		grid-template-columns: repeat(4, minmax(0, 1fr));
 		margin: 0;
 		border: 1px solid var(--rule);
 		border-radius: var(--radius-sm);
 		overflow: hidden;
 		background: var(--paper);
 	}
+	.specimen-meta > div { min-width: 0; }
 	@media (max-width: 640px) {
 		.specimen-meta {
-			grid-template-columns: repeat(2, 1fr);
+			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 		.specimen-meta > div {
 			border-bottom: 1px solid var(--rule);
@@ -1406,7 +1418,7 @@
 
 	.export-formats {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 		border: 1px solid var(--rule);
 		border-radius: var(--radius-sm);
 		overflow: hidden;
@@ -1539,6 +1551,7 @@
 		flex-direction: column;
 		gap: 1.1rem;
 		animation: fade-up var(--duration-slow) var(--ease) 240ms both;
+		min-width: 0;
 	}
 
 	.control-block {
@@ -1606,13 +1619,13 @@
 
 	.field-row {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 		gap: 1rem;
 		padding-top: 0.45rem;
 	}
 	@media (max-width: 480px) {
 		.field-row {
-			grid-template-columns: 1fr;
+			grid-template-columns: minmax(0, 1fr);
 			gap: 0.85rem;
 		}
 	}
@@ -1681,13 +1694,13 @@
 		background: var(--paper);
 	}
 	.segmented.cols-3 {
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 	.segmented.cols-4 {
-		grid-template-columns: repeat(4, 1fr);
+		grid-template-columns: repeat(4, minmax(0, 1fr));
 	}
 	.segmented.cols-5 {
-		grid-template-columns: repeat(5, 1fr);
+		grid-template-columns: repeat(5, minmax(0, 1fr));
 	}
 	.seg {
 		position: relative;

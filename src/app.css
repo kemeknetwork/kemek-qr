@@ -181,11 +181,6 @@ select {
 	color: var(--ghost);
 }
 
-@media (max-width: 480px) {
-	:root {
-		--gutter: clamp(0.7rem, 3.5vw, 1.1rem);
-	}
-}
 
 @media (prefers-reduced-motion: reduce) {
 	*,

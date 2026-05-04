@@ -178,10 +178,11 @@
 		background: var(--paper);
 		padding: clamp(1.25rem, 4vw, 2rem);
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 		grid-template-rows: auto 1fr auto;
 		gap: 0;
 	}
+	.title-block-corner { min-width: 0; }
 	.title-block::before,
 	.title-block::after {
 		content: '';
@@ -276,34 +277,14 @@
 			margin-top: 0.05rem;
 		}
 	}
-	/* At ≤480 px the four-corner schedule competes with the body for
-	 * horizontal real estate; collapse to TL+BL only (plate + edition).
-	 * SCALE and FILE are decorative redundancy at this size — the
-	 * filename appears in the URL and 1:1 is implicit on a phone.
-	 * Title-block + body paddings trim hard so 280 px viewports get
-	 * back ~40 px of horizontal real estate. */
-	@media (max-width: 480px) {
-		.hero {
-			padding-left: var(--gutter);
-			padding-right: var(--gutter);
-		}
-		.title-block {
-			padding: clamp(0.85rem, 3vw, 1.2rem);
-		}
-		.title-block-body {
-			padding: 1.2rem 0;
-		}
-		.title-block-tr,
-		.title-block-br {
-			display: none;
-		}
-		.title-block-tl,
-		.title-block-bl {
-			grid-column: 1 / -1;
-		}
+	/* Engineering-spec four-corner schedule preserved at every size.
+	 * Cells shrink with the body but stay present — the metaphor is
+	 * load-bearing for the brand. The minmax(0, 1fr) tracks above
+	 * keep them honest no matter how long their tnum values are. */
+	@media (max-width: 380px) {
 		.title-block-corner .value:not(.plate-large) {
-			font-size: 9.5px;
-			letter-spacing: 0.06em;
+			font-size: 9px;
+			letter-spacing: 0.04em;
 		}
 	}
 
@@ -428,7 +409,7 @@
 
 	.section-head {
 		display: grid;
-		grid-template-columns: auto auto 1fr;
+		grid-template-columns: auto auto minmax(0, 1fr);
 		align-items: baseline;
 		gap: 0.8rem;
 		margin: clamp(2.2rem, 4vw, 3.2rem) 0 1.2rem;
@@ -498,7 +479,7 @@
 	}
 	.faq-entry {
 		display: grid;
-		grid-template-columns: auto 1fr;
+		grid-template-columns: auto minmax(0, 1fr);
 		column-gap: 1.1rem;
 		row-gap: 0.4rem;
 	}
@@ -550,7 +531,7 @@
 	}
 	.plate-index a {
 		display: grid;
-		grid-template-columns: auto 1fr auto;
+		grid-template-columns: auto minmax(0, 1fr) auto;
 		align-items: center;
 		gap: 1rem;
 		padding: 0.85rem 1.1rem;

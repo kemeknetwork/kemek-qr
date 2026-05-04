@@ -121,6 +121,11 @@
 		min-height: 100vh;
 		display: grid;
 		grid-template-rows: auto 1fr auto;
+		/* Defense-in-depth: prevent any descendant from forcing the layout
+		 * box wider than the viewport. min-width:0 keeps the implicit grid
+		 * track from picking up content's min-content as a floor. */
+		max-width: 100%;
+		min-width: 0;
 	}
 
 	.skip-link {
@@ -359,9 +364,10 @@
 		max-width: var(--max-w);
 		margin: 0 auto;
 		display: grid;
-		grid-template-columns: repeat(4, 1fr);
+		grid-template-columns: repeat(4, minmax(0, 1fr));
 		align-items: stretch;
 	}
+	.colophon-cell { min-width: 0; }
 	.colophon-cell {
 		display: flex;
 		flex-direction: column;
@@ -407,7 +413,7 @@
 			padding: 0.36rem 0.6rem;
 		}
 		.colophon-inner {
-			grid-template-columns: repeat(2, 1fr);
+			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 		.colophon-cell {
 			border-bottom: 1px solid var(--rule);
