@@ -72,6 +72,11 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 	-webkit-text-size-adjust: 100%;
 	text-size-adjust: 100%;
+	/* Horizontal-scroll firewall. Any single rogue element wider than
+	 * the viewport is clipped at the page edge instead of forcing the
+	 * whole page to scroll sideways — fixed-position children still
+	 * paint correctly under `clip` (unlike `hidden`). */
+	overflow-x: clip;
 
 	background-image:
 		radial-gradient(rgba(26, 24, 21, 0.04) 1px, transparent 1.5px),

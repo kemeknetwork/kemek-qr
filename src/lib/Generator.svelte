@@ -1475,6 +1475,15 @@
 		.action-row {
 			grid-template-columns: 1fr;
 		}
+		.download {
+			padding: 1rem 1rem;
+			gap: 0.7rem;
+			letter-spacing: 0.12em;
+		}
+		.permalink {
+			padding: 1rem 0.85rem;
+			letter-spacing: 0.1em;
+		}
 	}
 
 	.permalink {
