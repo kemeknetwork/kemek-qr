@@ -1187,6 +1187,14 @@
 	@media (max-width: 540px) {
 		.specimen-frame {
 			padding: clamp(1.1rem, 4.5vw, 1.6rem);
+			/* Desktop drop shadow has horizontal extent of ~28 px (blur
+			 * 60 − |spread 32|), which overflows past the viewport on
+			 * a 17.6 px gutter and gets clipped by body overflow-x —
+			 * reading as a tiny horizontal cutoff on the QR preview.
+			 * Tighten to ~4 px horizontal extent on mobile. */
+			box-shadow:
+				inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+				0 8px 16px -12px rgba(26, 24, 21, 0.22);
 		}
 		.crop {
 			width: 14px;
