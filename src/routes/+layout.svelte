@@ -147,6 +147,9 @@
 	.masthead {
 		border-bottom: 1px solid var(--rule);
 		background: var(--paper);
+		/* Honor iPhone safe-area inset on the top in landscape so the
+		 * notch never overlaps the brand. No-op in portrait. */
+		padding-top: env(safe-area-inset-top);
 	}
 	.masthead-inner {
 		max-width: var(--max-w);
@@ -155,7 +158,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 1rem;
+		gap: 0.7rem 1rem;
 		flex-wrap: wrap;
 	}
 
@@ -222,6 +225,36 @@
 	.type-nav {
 		border-top: 1px solid var(--rule);
 		background: var(--paper-warm);
+		position: relative;
+	}
+	/* Edge fades that hint horizontal scroll on narrow viewports. The
+	 * gradient sits on top of the scroll container as a non-interactive
+	 * pseudo, hidden when the nav fits without overflow. */
+	.type-nav::before,
+	.type-nav::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		width: 1.6rem;
+		pointer-events: none;
+		z-index: 1;
+		opacity: 0;
+		transition: opacity var(--duration-fast) var(--ease);
+	}
+	.type-nav::before {
+		left: 0;
+		background: linear-gradient(to right, var(--paper-warm), rgba(237, 228, 206, 0));
+	}
+	.type-nav::after {
+		right: 0;
+		background: linear-gradient(to left, var(--paper-warm), rgba(237, 228, 206, 0));
+	}
+	@media (max-width: 720px) {
+		.type-nav::before,
+		.type-nav::after {
+			opacity: 1;
+		}
 	}
 	.type-nav-inner {
 		max-width: var(--max-w);
@@ -232,6 +265,9 @@
 		gap: 0;
 		overflow-x: auto;
 		scrollbar-width: none;
+		-webkit-overflow-scrolling: touch;
+		scroll-snap-type: x proximity;
+		scroll-padding-inline: var(--gutter);
 	}
 	.type-nav-inner::-webkit-scrollbar {
 		display: none;
@@ -271,6 +307,9 @@
 			border-color var(--duration-fast) var(--ease),
 			background var(--duration-fast) var(--ease);
 		white-space: nowrap;
+		scroll-snap-align: center;
+		min-height: var(--touch);
+		justify-content: center;
 	}
 	.plate-num {
 		font-size: 8.5px;
@@ -300,11 +339,18 @@
 		.type-nav-rubric {
 			display: none;
 		}
+		.type-link {
+			padding: 0.7rem 0.85rem 0.75rem;
+		}
+		.type-nav-inner {
+			padding: 0 calc(var(--gutter) * 0.8);
+		}
 	}
 
 	.colophon {
 		border-top: 1px solid var(--rule);
 		background: var(--paper);
+		padding-bottom: env(safe-area-inset-bottom);
 	}
 	.colophon-inner {
 		max-width: var(--max-w);
@@ -355,18 +401,59 @@
 		.pill {
 			font-size: 9px;
 			letter-spacing: 0.12em;
+			padding: 0.36rem 0.6rem;
 		}
 		.colophon-inner {
 			grid-template-columns: repeat(2, 1fr);
 		}
 		.colophon-cell {
 			border-bottom: 1px solid var(--rule);
+			padding: 0.95rem 1rem;
+		}
+		.colophon-cell:first-child {
+			padding-left: var(--gutter);
+		}
+		.colophon-cell:last-child {
+			padding-right: var(--gutter);
 		}
 		.colophon-cell:nth-child(2n) {
 			border-right: none;
 		}
 		.colophon-cell:nth-last-child(-n + 2) {
 			border-bottom: none;
+		}
+	}
+	@media (max-width: 460px) {
+		.brand {
+			font-size: 19px;
+		}
+		.brand-mark {
+			width: 9px;
+			height: 9px;
+		}
+		.masthead-inner {
+			padding: 0.95rem var(--gutter);
+		}
+		.pill .pill-arrow {
+			display: none;
+		}
+		.pill {
+			letter-spacing: 0.08em;
+			padding: 0.32rem 0.55rem;
+			gap: 0.25rem;
+		}
+		.colophon-inner {
+			grid-template-columns: 1fr;
+		}
+		.colophon-cell {
+			border-right: none;
+			padding: 0.85rem var(--gutter);
+		}
+		.colophon-cell:last-child {
+			border-bottom: none;
+		}
+		.colophon-cell:nth-last-child(-n + 2):not(:last-child) {
+			border-bottom: 1px solid var(--rule);
 		}
 	}
 </style>

@@ -1178,10 +1178,29 @@
 		aspect-ratio: 1;
 		background: var(--paper-warm);
 		border: 1px solid var(--rule);
-		padding: clamp(2rem, 5vw, 3.25rem);
+		padding: clamp(1.4rem, 5vw, 3.25rem);
 		box-shadow:
 			inset 0 0 0 1px rgba(255, 255, 255, 0.4),
 			0 24px 60px -32px rgba(26, 24, 21, 0.25);
+	}
+	@media (max-width: 540px) {
+		.specimen-frame {
+			padding: clamp(1.1rem, 4.5vw, 1.6rem);
+		}
+		.crop {
+			width: 14px;
+			height: 14px;
+		}
+		.crop-tl,
+		.crop-tr,
+		.crop-bl,
+		.crop-br {
+			--crop-inset: 9px;
+		}
+		.crop-tl { top: var(--crop-inset); left: var(--crop-inset); }
+		.crop-tr { top: var(--crop-inset); right: var(--crop-inset); }
+		.crop-bl { bottom: var(--crop-inset); left: var(--crop-inset); }
+		.crop-br { bottom: var(--crop-inset); right: var(--crop-inset); }
 	}
 
 	.crop {
@@ -1306,7 +1325,7 @@
 		overflow: hidden;
 		background: var(--paper);
 	}
-	@media (max-width: 480px) {
+	@media (max-width: 640px) {
 		.specimen-meta {
 			grid-template-columns: repeat(2, 1fr);
 		}
@@ -1399,6 +1418,7 @@
 		align-items: center;
 		justify-content: center;
 		padding: 0.55rem 0.4rem;
+		min-height: 36px;
 		font-family: var(--font-mono);
 		font-size: 11px;
 		letter-spacing: 0.2em;
@@ -1408,6 +1428,12 @@
 		transition: all var(--duration-fast) var(--ease);
 		text-transform: uppercase;
 		user-select: none;
+	}
+	@media (max-width: 720px) {
+		.format-tab {
+			padding: 0.85rem 0.4rem;
+			min-height: var(--touch);
+		}
 	}
 	.format-tab:last-child {
 		border-right: none;
@@ -1575,7 +1601,7 @@
 		gap: 1rem;
 		padding-top: 0.45rem;
 	}
-	@media (max-width: 380px) {
+	@media (max-width: 480px) {
 		.field-row {
 			grid-template-columns: 1fr;
 			gap: 0.85rem;
@@ -1594,6 +1620,17 @@
 		border-radius: var(--radius-sm);
 		background: var(--paper);
 		padding: 0.3rem 0.5rem;
+		min-height: 40px;
+	}
+	@media (max-width: 720px) {
+		.color-input {
+			min-height: var(--touch);
+			padding: 0.4rem 0.55rem;
+		}
+		.color-input input[type='color'] {
+			width: 32px;
+			height: 32px;
+		}
 	}
 	.color-input input[type='color'] {
 		-webkit-appearance: none;
@@ -1649,6 +1686,7 @@
 		align-items: center;
 		justify-content: center;
 		padding: 0.65rem 0.4rem;
+		min-height: 36px;
 		font-family: var(--font-mono);
 		font-size: 10px;
 		letter-spacing: 0.14em;
@@ -1661,6 +1699,12 @@
 		transition: all var(--duration-fast) var(--ease);
 		text-transform: uppercase;
 		user-select: none;
+	}
+	@media (max-width: 720px) {
+		.seg {
+			padding: 0.85rem 0.4rem;
+			min-height: var(--touch);
+		}
 	}
 	/* Visually hide the radio but keep it focusable so native arrow-key
 	   navigation across the radiogroup works. The <label> is the click target. */
@@ -1719,6 +1763,7 @@
 		align-items: center;
 		justify-content: center;
 		padding: 0.7rem 0.75rem;
+		min-height: 40px;
 		border: 1px dashed var(--rule-strong);
 		border-radius: var(--radius-sm);
 		font-size: 10px;
@@ -1726,6 +1771,15 @@
 		color: var(--ghost);
 		background: var(--paper);
 		transition: all var(--duration-fast);
+	}
+	@media (max-width: 720px) {
+		.logo-upload {
+			min-height: var(--touch);
+			padding: 0.85rem 0.75rem;
+		}
+		.logo-clear {
+			min-height: var(--touch);
+		}
 	}
 	.logo-upload:hover {
 		color: var(--accent);
@@ -1792,6 +1846,19 @@
 		border: none;
 		border-radius: 50%;
 		cursor: pointer;
+	}
+	@media (max-width: 720px) {
+		.slider-field input[type='range'] {
+			height: 4px;
+		}
+		.slider-field input[type='range']::-webkit-slider-thumb {
+			width: 22px;
+			height: 22px;
+		}
+		.slider-field input[type='range']::-moz-range-thumb {
+			width: 22px;
+			height: 22px;
+		}
 	}
 	.slider-field input[type='range']:hover::-webkit-slider-thumb {
 		transform: scale(1.15);

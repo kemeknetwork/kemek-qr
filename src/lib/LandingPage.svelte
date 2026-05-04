@@ -262,11 +262,31 @@
 		line-height: 1;
 		margin-top: 0.1rem;
 	}
+	@media (max-width: 540px) {
+		.title-block-corner .rubric {
+			font-size: 8px;
+			letter-spacing: 0.26em;
+		}
+		.title-block-corner .value {
+			font-size: 10px;
+			letter-spacing: 0.1em;
+		}
+		.plate-large {
+			font-size: clamp(1.25rem, 6vw, 1.75rem);
+			margin-top: 0.05rem;
+		}
+	}
+	@media (max-width: 380px) {
+		.title-block-corner .value:not(.plate-large) {
+			font-size: 9.5px;
+			letter-spacing: 0.06em;
+		}
+	}
 
 	.title-block-body {
 		grid-row: 2;
 		grid-column: 1 / -1;
-		padding: clamp(1.5rem, 4vw, 2.5rem) clamp(0.5rem, 3vw, 2rem);
+		padding: clamp(1.4rem, 4vw, 2.5rem) clamp(0.25rem, 2vw, 2rem);
 		text-align: center;
 		position: relative;
 	}
@@ -300,13 +320,22 @@
 	.hero-title {
 		font-family: var(--font-display);
 		font-weight: 400;
-		font-size: clamp(2rem, 5vw + 0.5rem, 3.75rem);
-		line-height: 1.02;
+		font-size: clamp(1.9rem, 5vw + 0.5rem, 3.75rem);
+		line-height: 1.06;
 		letter-spacing: -0.025em;
 		margin: 0 auto 1.2rem;
 		color: var(--ink);
 		max-width: 22ch;
 		font-variation-settings: 'opsz' 144;
+		text-wrap: balance;
+	}
+	@media (max-width: 540px) {
+		.title-rubric {
+			font-size: 9.5px;
+			letter-spacing: 0.24em;
+			padding: 0.3rem 0.55rem;
+			margin-bottom: 0.85rem;
+		}
 	}
 	.hero-sub {
 		font-family: var(--font-mono);

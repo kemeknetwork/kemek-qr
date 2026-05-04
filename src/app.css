@@ -37,10 +37,14 @@
 	--fs-display: clamp(2.5rem, 5vw + 1rem, 4.75rem);
 
 	/* ── Layout ────────────────────────────────────────────── */
-	--gutter: clamp(1.5rem, 3vw, 3rem);
+	/* Tighter floor on narrow phones (was 1.5rem) so a 360 px viewport
+	 * doesn't burn 48 px to symmetric gutters. */
+	--gutter: clamp(1.1rem, 4vw, 3rem);
 	--max-w: 1280px;
 	--radius-sm: 2px;
 	--radius-md: 4px;
+	/* Touch-target floor — fingers, not pointers, at narrow viewports */
+	--touch: 44px;
 
 	/* ── Motion ────────────────────────────────────────────── */
 	--ease: cubic-bezier(0.2, 0.6, 0.2, 1);
@@ -66,6 +70,8 @@ body {
 	line-height: 1.5;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+	-webkit-text-size-adjust: 100%;
+	text-size-adjust: 100%;
 
 	background-image:
 		radial-gradient(rgba(26, 24, 21, 0.04) 1px, transparent 1.5px),
@@ -122,12 +128,38 @@ button {
 }
 
 input[type='text'],
-input[type='url'] {
+input[type='url'],
+input[type='tel'],
+input[type='email'],
+input[type='number'],
+input[type='search'],
+input[type='password'],
+textarea,
+select {
 	background: transparent;
 	border: none;
 	outline: none;
 	width: 100%;
 	font-family: var(--font-mono);
+}
+
+/* iOS Safari auto-zooms when a focused form control's font-size is below
+ * 16 px. Bumping all editable inputs/textareas/selects to 16 px on touch
+ * viewports keeps the typing experience zoom-free without disturbing the
+ * desktop scale. The .hex helper resists this because its compact size is
+ * load-bearing for layout — it sits inline with the color swatch. */
+@media (max-width: 720px) {
+	input[type='text'],
+	input[type='url'],
+	input[type='tel'],
+	input[type='email'],
+	input[type='number'],
+	input[type='search'],
+	input[type='password'],
+	textarea,
+	select {
+		font-size: 16px;
+	}
 }
 
 ::selection {
