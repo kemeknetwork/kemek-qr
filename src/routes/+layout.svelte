@@ -354,6 +354,45 @@
 			padding: 0 calc(var(--gutter) * 0.8);
 		}
 	}
+	/* At ≤480 px the horizontal-scroll plate-nav consistently read as
+	 * "an item got cut off" rather than "scroll for more". Switch to a
+	 * static 2 × 4 grid: every plate visible, no scroll affordance to
+	 * misread. Keeps the engineering-spec lettering and the active
+	 * underline; the PLATE INDEX rubric is already hidden at this
+	 * size so the column structure stands on its own. */
+	@media (max-width: 480px) {
+		.type-nav::before,
+		.type-nav::after {
+			display: none;
+		}
+		.type-nav-inner {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			overflow-x: visible;
+			padding: 0;
+		}
+		.type-link {
+			padding: 0.6rem 0.3rem 0.65rem;
+			gap: 0.1rem;
+			border-right: 1px dashed var(--rule);
+		}
+		.type-link:nth-child(4n) {
+			border-right: none;
+		}
+		/* Row 2 (links 5–8) gets a top dashed rule to separate it
+		 * from row 1 — same dashed-rule language used for vertical
+		 * separators on the row. */
+		.type-link:nth-child(n + 5) {
+			border-top: 1px dashed var(--rule);
+		}
+		.plate-num {
+			font-size: 8px;
+			letter-spacing: 0.2em;
+		}
+		.plate-label {
+			font-size: 10px;
+		}
+	}
 
 	.colophon {
 		border-top: 1px solid var(--rule);

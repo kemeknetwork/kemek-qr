@@ -331,7 +331,7 @@
 	.hero-title {
 		font-family: var(--font-display);
 		font-weight: 400;
-		font-size: clamp(1.9rem, 5vw + 0.5rem, 3.75rem);
+		font-size: clamp(1.7rem, 5vw + 0.5rem, 3.75rem);
 		line-height: 1.06;
 		letter-spacing: -0.025em;
 		margin: 0 auto 1.2rem;
@@ -339,6 +339,7 @@
 		max-width: 22ch;
 		font-variation-settings: 'opsz' 144;
 		text-wrap: balance;
+		overflow-wrap: anywhere;
 	}
 	@media (max-width: 540px) {
 		.title-rubric { font-size: 9.5px; letter-spacing: 0.24em; padding: 0.3rem 0.55rem; margin-bottom: 0.85rem; }
