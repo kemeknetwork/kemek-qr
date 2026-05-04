@@ -1183,10 +1183,18 @@
 		box-shadow:
 			inset 0 0 0 1px rgba(255, 255, 255, 0.4),
 			0 24px 60px -32px rgba(26, 24, 21, 0.25);
+		/* Containment perimeter: any internal subpixel overrun (notably
+		 * iOS Safari's QR <svg> rendering at fractional widths) is
+		 * clipped at the frame edge instead of bleeding into the gutter
+		 * and looking like overflow. Drop shadow renders outside the
+		 * box and is unaffected by this. */
+		max-width: 100%;
+		min-width: 0;
+		overflow: hidden;
 	}
 	@media (max-width: 540px) {
 		.specimen-frame {
-			padding: clamp(1.1rem, 4.5vw, 1.6rem);
+			padding: clamp(0.85rem, 4vw, 1.4rem);
 			/* Desktop drop shadow has horizontal extent of ~28 px (blur
 			 * 60 − |spread 32|), which overflows past the viewport on
 			 * a 17.6 px gutter and gets clipped by body overflow-x —
