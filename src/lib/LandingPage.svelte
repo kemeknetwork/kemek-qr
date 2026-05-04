@@ -276,11 +276,23 @@
 			margin-top: 0.05rem;
 		}
 	}
-	/* At ≤420 px the four-corner schedule competes with the body for
+	/* At ≤480 px the four-corner schedule competes with the body for
 	 * horizontal real estate; collapse to TL+BL only (plate + edition).
 	 * SCALE and FILE are decorative redundancy at this size — the
-	 * filename appears in the URL and 1:1 is implicit on a phone. */
-	@media (max-width: 420px) {
+	 * filename appears in the URL and 1:1 is implicit on a phone.
+	 * Title-block + body paddings trim hard so 280 px viewports get
+	 * back ~40 px of horizontal real estate. */
+	@media (max-width: 480px) {
+		.hero {
+			padding-left: var(--gutter);
+			padding-right: var(--gutter);
+		}
+		.title-block {
+			padding: clamp(0.85rem, 3vw, 1.2rem);
+		}
+		.title-block-body {
+			padding: 1.2rem 0;
+		}
 		.title-block-tr,
 		.title-block-br {
 			display: none;

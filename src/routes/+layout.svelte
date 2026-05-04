@@ -193,6 +193,9 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.35rem;
+		flex-wrap: wrap;
+		justify-content: center;
+		max-width: 100%;
 		font-family: var(--font-mono);
 		font-size: 10px;
 		text-transform: uppercase;

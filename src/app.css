@@ -38,7 +38,8 @@
 
 	/* ── Layout ────────────────────────────────────────────── */
 	/* Tighter floor on narrow phones (was 1.5rem) so a 360 px viewport
-	 * doesn't burn 48 px to symmetric gutters. */
+	 * doesn't burn 48 px to symmetric gutters. Floor steps down again
+	 * inside `@media (max-width: 480px)` below for sub-360 px devices. */
 	--gutter: clamp(1.1rem, 4vw, 3rem);
 	--max-w: 1280px;
 	--radius-sm: 2px;
@@ -178,6 +179,12 @@ select {
 	letter-spacing: 0.18em;
 	text-transform: uppercase;
 	color: var(--ghost);
+}
+
+@media (max-width: 480px) {
+	:root {
+		--gutter: clamp(0.7rem, 3.5vw, 1.1rem);
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {

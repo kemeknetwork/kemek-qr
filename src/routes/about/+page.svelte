@@ -291,7 +291,9 @@
 		.title-block-corner .value { font-size: 10px; letter-spacing: 0.1em; }
 		.plate-large { font-size: clamp(1.25rem, 6vw, 1.75rem); margin-top: 0.05rem; }
 	}
-	@media (max-width: 420px) {
+	@media (max-width: 480px) {
+		.title-block { padding: clamp(0.85rem, 3vw, 1.2rem); }
+		.title-block-body { padding: 1.2rem 0; }
 		.title-block-tr, .title-block-br { display: none; }
 		.title-block-tl, .title-block-bl { grid-column: 1 / -1; }
 		.title-block-corner .value:not(.plate-large) { font-size: 9.5px; letter-spacing: 0.06em; }
