@@ -117,7 +117,22 @@
 	<header class="masthead">
 		<div class="masthead-inner">
 			<a class="brand" href="/">
-				<span class="brand-mark" aria-hidden="true"></span>
+				<span class="brand-mark" aria-hidden="true">
+					<svg viewBox="0 0 7 7" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+						<!-- TL finder pattern: 3×3 hollow square -->
+						<path d="M0 0h3v1H0zM0 2h3v1H0zM0 1h1v1H0zM2 1h1v1H2z" />
+						<!-- TR finder pattern -->
+						<path d="M4 0h3v1H4zM4 2h3v1H4zM4 1h1v1H4zM6 1h1v1H6z" />
+						<!-- BL finder pattern -->
+						<path d="M0 4h3v1H0zM0 6h3v1H0zM0 5h1v1H0zM2 5h1v1H2z" />
+						<!-- Data cells in BR quadrant — read as QR "modules" -->
+						<rect x="4" y="4" width="1" height="1" />
+						<rect x="6" y="4" width="1" height="1" />
+						<rect x="5" y="5" width="1" height="1" />
+						<rect x="4" y="6" width="1" height="1" />
+						<rect x="6" y="6" width="1" height="1" />
+					</svg>
+				</span>
 				<span class="brand-name">kemek<span class="brand-slash">/</span>qr</span>
 			</a>
 			<a class="pill" href="/about" aria-label="About — privacy posture and license">
@@ -246,11 +261,20 @@
 		font-variation-settings: 'opsz' 36;
 	}
 	.brand-mark {
-		display: inline-block;
-		width: 11px;
-		height: 11px;
-		background: var(--accent);
-		transform: translateY(-1px) rotate(45deg);
+		display: inline-flex;
+		width: 22px;
+		height: 22px;
+		color: var(--accent);
+		flex: 0 0 auto;
+		/* Tiny vertical lift so the QR mark's optical center sits on
+		 * the typographic baseline of "kemek/qr" instead of below it. */
+		transform: translateY(-1px);
+	}
+	.brand-mark svg {
+		display: block;
+		width: 100%;
+		height: 100%;
+		shape-rendering: crispEdges;
 	}
 	.brand-name {
 		font-feature-settings: 'ss01';
@@ -587,8 +611,8 @@
 			font-size: 19px;
 		}
 		.brand-mark {
-			width: 9px;
-			height: 9px;
+			width: 18px;
+			height: 18px;
 		}
 		.masthead-inner {
 			padding: 0.95rem var(--gutter);
