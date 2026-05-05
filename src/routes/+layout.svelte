@@ -161,7 +161,7 @@
 			</div>
 			<div class="colophon-cell">
 				<span class="cell-rubric">EDITION</span>
-				<span class="cell-value">I — MAY 2026</span>
+				<span class="cell-value">v{__APP_VERSION__}</span>
 			</div>
 			<div class="colophon-cell colophon-cell-stamp">
 				<span class="cell-rubric">TONE</span>
