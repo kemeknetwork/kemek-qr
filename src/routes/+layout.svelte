@@ -1,9 +1,56 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import '../app.css';
 	import { page } from '$app/state';
 	import { CONTENT_TYPES, TYPE_LABELS, type ContentType } from '$lib/types';
 
 	let { children } = $props();
+
+	/* Theme handling. Initial render is `undefined` so the toggle's
+	 * active-state is inert until onMount syncs it with what the
+	 * inline FOUC script set in app.html (or the system preference
+	 * if no override is saved). After mount, the toggle writes the
+	 * explicit override to localStorage and reflects on <html>. */
+	type Mode = 'light' | 'dark';
+	const THEME_KEY = 'kemek-qr:theme';
+	let mode = $state<Mode | undefined>(undefined);
+
+	function readMode(): Mode {
+		const attr = document.documentElement.getAttribute('data-theme');
+		if (attr === 'dark' || attr === 'light') return attr;
+		return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+	}
+
+	function toggleTone() {
+		const next: Mode = mode === 'dark' ? 'light' : 'dark';
+		mode = next;
+		document.documentElement.setAttribute('data-theme', next);
+		try {
+			localStorage.setItem(THEME_KEY, next);
+		} catch {
+			/* private mode / quota — explicit override won't persist
+			 * across reloads but works for the current session. */
+		}
+	}
+
+	onMount(() => {
+		mode = readMode();
+		const mq = window.matchMedia('(prefers-color-scheme: dark)');
+		const onSystemChange = () => {
+			let saved: string | null = null;
+			try {
+				saved = localStorage.getItem(THEME_KEY);
+			} catch {
+				/* localStorage may throw in private mode — treat as no
+				 * override; the system preference takes effect. */
+			}
+			if (saved !== 'dark' && saved !== 'light') {
+				mode = mq.matches ? 'dark' : 'light';
+			}
+		};
+		mq.addEventListener('change', onSystemChange);
+		return () => mq.removeEventListener('change', onSystemChange);
+	});
 
 	/* Map a route pathname to its ContentType. `/` is the URL generator
 	 * (canonical landing); each /<type> is a per-type landing page. */
@@ -43,7 +90,6 @@
 </script>
 
 <svelte:head>
-	<meta name="color-scheme" content="light" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 	<link rel="alternate icon" href="/favicon-32.png" type="image/png" />
@@ -107,8 +153,18 @@
 				<span class="cell-value">I — MAY 2026</span>
 			</div>
 			<div class="colophon-cell colophon-cell-stamp">
-				<span class="cell-rubric">SHEET</span>
-				<span class="cell-value">∞ / ∞</span>
+				<span class="cell-rubric">TONE</span>
+				<button
+					class="tone-toggle"
+					type="button"
+					onclick={toggleTone}
+					aria-label="Toggle color theme"
+					aria-pressed={mode === 'dark'}
+				>
+					<span class="tone-seg" class:active={mode === 'light'}>DAY</span>
+					<span class="tone-sep" aria-hidden="true">·</span>
+					<span class="tone-seg" class:active={mode === 'dark'}>NIGHT</span>
+				</button>
 			</div>
 		</div>
 	</footer>
@@ -442,6 +498,50 @@
 		border-bottom: none;
 	}
 	.cell-value a:hover {
+		color: var(--accent);
+	}
+
+	/* TONE selector — replaces the decorative SHEET ∞/∞ stamp.
+	 * Two-segment text toggle styled in the same monospace rubric
+	 * language as the rest of the colophon, no button chrome. The
+	 * inactive segment dims to --micro; the active one inherits
+	 * --ink and gets an accent under-rule, mirroring the plate-nav
+	 * active state. The dot separator stays accent-red so the
+	 * toggle reads as a single composed element, not two. */
+	.tone-toggle {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 0.45rem;
+		padding: 0;
+		margin: 0;
+		background: transparent;
+		border: none;
+		cursor: pointer;
+		font-family: var(--font-mono);
+		font-size: var(--fs-xs);
+		letter-spacing: 0.08em;
+		color: var(--ink);
+	}
+	.tone-seg {
+		color: var(--micro);
+		padding-bottom: 1px;
+		border-bottom: 1px solid transparent;
+		transition:
+			color var(--duration-fast) var(--ease),
+			border-color var(--duration-fast) var(--ease);
+	}
+	.tone-seg.active {
+		color: var(--ink);
+		border-bottom-color: var(--accent);
+	}
+	.tone-toggle:hover .tone-seg:not(.active) {
+		color: var(--ink);
+	}
+	.tone-toggle:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 3px;
+	}
+	.tone-sep {
 		color: var(--accent);
 	}
 

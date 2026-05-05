@@ -4,6 +4,20 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
+		<meta name="color-scheme" content="light dark" />
+		<script>
+			/* FOUC firewall: apply the explicit theme override (if any) on
+			 * <html> before first paint so the dark-mode token block is
+			 * already in effect when the page renders. No saved override
+			 * means the system preference takes over via @media. */
+			(function () {
+				try {
+					var t = localStorage.getItem('kemek-qr:theme');
+					if (t === 'dark' || t === 'light')
+						document.documentElement.setAttribute('data-theme', t);
+				} catch (e) {}
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

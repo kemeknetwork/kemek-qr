@@ -1181,8 +1181,8 @@
 		border: 1px solid var(--rule);
 		padding: clamp(1.4rem, 5vw, 3.25rem);
 		box-shadow:
-			inset 0 0 0 1px rgba(255, 255, 255, 0.4),
-			0 24px 60px -32px rgba(26, 24, 21, 0.25);
+			inset 0 0 0 1px var(--specimen-highlight),
+			0 24px 60px -32px rgba(0, 0, 0, 0.35);
 		/* Containment perimeter: any internal subpixel overrun (notably
 		 * iOS Safari's QR <svg> rendering at fractional widths) is
 		 * clipped at the frame edge instead of bleeding into the gutter
@@ -1201,8 +1201,8 @@
 			 * reading as a tiny horizontal cutoff on the QR preview.
 			 * Tighten to ~4 px horizontal extent on mobile. */
 			box-shadow:
-				inset 0 0 0 1px rgba(255, 255, 255, 0.4),
-				0 8px 16px -12px rgba(26, 24, 21, 0.22);
+				inset 0 0 0 1px var(--specimen-highlight),
+				0 8px 16px -12px rgba(0, 0, 0, 0.3);
 		}
 		.crop {
 			width: 14px;
@@ -1409,7 +1409,7 @@
 			transform var(--duration-fast) var(--ease),
 			background var(--duration-fast) var(--ease),
 			border-color var(--duration-fast) var(--ease);
-		box-shadow: 0 12px 24px -16px rgba(26, 24, 21, 0.5);
+		box-shadow: 0 12px 24px -16px rgba(0, 0, 0, 0.5);
 	}
 	.download:hover {
 		background: var(--accent);
@@ -1420,7 +1420,11 @@
 	}
 	.download-size {
 		font-size: 10px;
-		color: rgba(242, 235, 221, 0.55);
+		/* Muted variant of the button's text color (--paper) — uses
+		 * color-mix so dark mode reads as near-black-faded over the
+		 * cream button bg, light mode reads as cream-faded over the
+		 * ink-dark button bg. Hardcoding cream-alpha would invert. */
+		color: color-mix(in srgb, var(--paper), transparent 45%);
 		margin-left: auto;
 	}
 	.download-arrow {
@@ -1912,7 +1916,11 @@
 		gap: 0.4rem;
 		padding: 1.5rem;
 		text-align: center;
-		background: rgba(242, 235, 221, 0.94);
+		/* Translucent paper overlay — color-mix lets the same rule
+		 * read as cream-94 over the QR in light mode and ink-94 in
+		 * dark mode. Hardcoded cream would stay cream in dark and
+		 * fight the surface. */
+		background: color-mix(in srgb, var(--paper), transparent 6%);
 		color: var(--accent-deep);
 	}
 	.engine-error-eyebrow {

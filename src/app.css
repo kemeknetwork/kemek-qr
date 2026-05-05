@@ -7,7 +7,17 @@
 @import '@fontsource/jetbrains-mono/500.css';
 
 :root {
-	/* ── Color: warm-grain paper / ink ─────────────────────── */
+	color-scheme: light;
+
+	/* ── Color: warm-grain paper / ink (light mode = drafting paper)
+	 * Dark mode is overridden in two places below: (1) the
+	 * @media (prefers-color-scheme: dark) block honors the user's
+	 * system preference automatically, and (2) the [data-theme]
+	 * selectors honor an explicit toggle override saved to
+	 * localStorage. The :not([data-theme="light"]) guard on the
+	 * media query lets a user override the system preference back
+	 * to light without `light dark` from the system pulling them
+	 * into dark again. */
 	--ink: #1a1815;
 	--ink-soft: #2c2924;
 	--paper: #f2ebdd;
@@ -23,6 +33,13 @@
 	--micro: rgba(26, 24, 21, 0.55);
 	--accent: #c53a1f;
 	--accent-deep: #9c2d17;
+	/* Texture tokens — paper grain dots + page-edge vignette. Pulled
+	 * out as variables so the dark-mode block can flip them to cream-
+	 * on-graphite without re-declaring the body backgrounds. */
+	--grain-1: rgba(26, 24, 21, 0.04);
+	--grain-2: rgba(26, 24, 21, 0.025);
+	--vignette: rgba(26, 24, 21, 0.07);
+	--specimen-highlight: rgba(255, 255, 255, 0.4);
 
 	/* ── Typography ────────────────────────────────────────── */
 	--font-display: 'Fraunces Variable', 'Fraunces', Georgia, serif;
@@ -54,6 +71,50 @@
 	--duration-slow: 600ms;
 }
 
+/* Dark mode tokens — drafting board at night. Warm graphite paper,
+ * cream ink, slightly hotter accent so the red survives over the
+ * darker surface. Inverted grain (cream dots) and a softer warm
+ * vignette suggesting a single desk lamp at the top of the page. */
+:root[data-theme='dark'],
+:root.dark {
+	color-scheme: dark;
+	--ink: #ebe2cb;
+	--ink-soft: #d4ccb6;
+	--paper: #16140f;
+	--paper-warm: #1c1914;
+	--paper-cool: #110f0b;
+	--rule: rgba(235, 226, 203, 0.16);
+	--rule-strong: rgba(235, 226, 203, 0.36);
+	--ghost: rgba(235, 226, 203, 0.62);
+	--micro: rgba(235, 226, 203, 0.55);
+	--accent: #e0492c;
+	--accent-deep: #b13a23;
+	--grain-1: rgba(235, 226, 203, 0.045);
+	--grain-2: rgba(235, 226, 203, 0.03);
+	--vignette: rgba(235, 226, 203, 0.05);
+	--specimen-highlight: rgba(235, 226, 203, 0.07);
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		color-scheme: dark;
+		--ink: #ebe2cb;
+		--ink-soft: #d4ccb6;
+		--paper: #16140f;
+		--paper-warm: #1c1914;
+		--paper-cool: #110f0b;
+		--rule: rgba(235, 226, 203, 0.16);
+		--rule-strong: rgba(235, 226, 203, 0.36);
+		--ghost: rgba(235, 226, 203, 0.62);
+		--micro: rgba(235, 226, 203, 0.55);
+		--accent: #e0492c;
+		--accent-deep: #b13a23;
+		--grain-1: rgba(235, 226, 203, 0.045);
+		--grain-2: rgba(235, 226, 203, 0.03);
+		--vignette: rgba(235, 226, 203, 0.05);
+		--specimen-highlight: rgba(235, 226, 203, 0.07);
+	}
+}
+
 *,
 *::before,
 *::after {
@@ -78,10 +139,16 @@ body {
 	 * whole page to scroll sideways — fixed-position children still
 	 * paint correctly under `clip` (unlike `hidden`). */
 	overflow-x: clip;
+	/* Soften the surface flip when the user toggles modes — paper
+	 * doesn't snap, it fades. Limited to the body so child elements
+	 * with their own transitions aren't double-animated. */
+	transition:
+		background-color var(--duration-base) var(--ease),
+		color var(--duration-base) var(--ease);
 
 	background-image:
-		radial-gradient(rgba(26, 24, 21, 0.04) 1px, transparent 1.5px),
-		radial-gradient(rgba(26, 24, 21, 0.025) 1px, transparent 1px);
+		radial-gradient(var(--grain-1) 1px, transparent 1.5px),
+		radial-gradient(var(--grain-2) 1px, transparent 1px);
 	background-size:
 		14px 14px,
 		7px 7px;
@@ -96,7 +163,7 @@ body::before {
 	inset: 0;
 	pointer-events: none;
 	z-index: 1;
-	background: radial-gradient(ellipse at top, transparent 55%, rgba(26, 24, 21, 0.07) 100%);
+	background: radial-gradient(ellipse at top, transparent 55%, var(--vignette) 100%);
 }
 
 a {
@@ -169,8 +236,11 @@ select {
 }
 
 ::selection {
+	/* Cream foreground reads well over both accent reds (light + dark
+	 * mode); using --paper would invert to near-black on bright red
+	 * in dark mode and lose contrast. */
 	background: var(--accent);
-	color: var(--paper);
+	color: #f2ebdd;
 }
 
 .eyebrow {
