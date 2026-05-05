@@ -1227,7 +1227,7 @@
 		right: 0;
 	}
 	.dim-readout {
-		font-size: 9.5px;
+		font-size: 12px;
 		letter-spacing: 0.22em;
 		color: var(--accent);
 		text-transform: uppercase;
@@ -1468,7 +1468,7 @@
 		border-right: none;
 	}
 	.specimen-meta dt {
-		font-size: 10px;
+		font-size: 11px;
 		letter-spacing: 0.22em;
 		color: var(--accent);
 		margin: 0;
@@ -1477,7 +1477,7 @@
 	}
 	.specimen-meta dd {
 		margin: 0;
-		font-size: var(--fs-xs);
+		font-size: 13px;
 		color: var(--ink);
 		letter-spacing: 0.04em;
 		word-break: break-all;
@@ -1509,7 +1509,7 @@
 		transform: translateY(1px);
 	}
 	.download-size {
-		font-size: 10px;
+		font-size: 12px;
 		/* Muted variant of the button's text color (--paper) — uses
 		 * color-mix so dark mode reads as near-black-faded over the
 		 * cream button bg, light mode reads as cream-faded over the
@@ -1542,7 +1542,7 @@
 		padding: 0.55rem 0.4rem;
 		min-height: 36px;
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: 14px;
 		letter-spacing: 0.2em;
 		color: var(--ghost);
 		border-right: 1px solid var(--rule);
@@ -1621,7 +1621,7 @@
 		font-family: var(--font-mono);
 		font-weight: 500;
 		letter-spacing: 0.16em;
-		font-size: 11px;
+		font-size: 12px;
 		text-transform: uppercase;
 		transition:
 			color var(--duration-fast) var(--ease),
@@ -1673,7 +1673,7 @@
 	}
 	.control-block legend {
 		font-family: var(--font-mono);
-		font-size: 10px;
+		font-size: 13px;
 		letter-spacing: 0.22em;
 		color: var(--ink);
 		padding: 0.22rem 0.6rem 0.22rem 0.45rem;
@@ -1688,7 +1688,7 @@
 		font-weight: 500;
 	}
 	.control-block legend .p-num {
-		font-size: 9px;
+		font-size: 12px;
 		letter-spacing: 0.18em;
 		color: var(--accent);
 		font-feature-settings: 'tnum';
@@ -1703,7 +1703,7 @@
 		padding-top: 0.4rem;
 	}
 	.field-label {
-		font-size: 10px;
+		font-size: 13px;
 		letter-spacing: 0.16em;
 		color: var(--micro);
 		text-transform: uppercase;
@@ -1820,7 +1820,7 @@
 		padding: 0.65rem 0.4rem;
 		min-height: 36px;
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: 12px;
 		letter-spacing: 0.14em;
 		color: var(--ghost);
 		border: none;
@@ -1898,7 +1898,7 @@
 		min-height: 40px;
 		border: 1px dashed var(--rule-strong);
 		border-radius: var(--radius-sm);
-		font-size: 10px;
+		font-size: 12px;
 		letter-spacing: 0.18em;
 		color: var(--ghost);
 		background: var(--paper);
@@ -1926,7 +1926,7 @@
 	}
 	.logo-clear {
 		padding: 0.7rem 0.9rem;
-		font-size: 10px;
+		font-size: 12px;
 		letter-spacing: 0.18em;
 		color: var(--ghost);
 		background: var(--paper);
@@ -2015,7 +2015,7 @@
 	}
 	.engine-error-eyebrow {
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: 12px;
 		letter-spacing: 0.22em;
 		color: var(--accent);
 	}

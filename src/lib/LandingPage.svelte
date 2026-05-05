@@ -79,7 +79,7 @@
 		</div>
 		<div class="title-block-corner title-block-bl">
 			<span class="rubric">EDITION</span>
-			<span class="value">I — V·MMXXVI</span>
+			<span class="value">v{__APP_VERSION__}</span>
 		</div>
 		<div class="title-block-corner title-block-br">
 			<span class="rubric">FILE</span>
@@ -240,13 +240,13 @@
 		padding-right: 0;
 	}
 	.title-block-corner .rubric {
-		font-size: 9px;
+		font-size: 11px;
 		letter-spacing: 0.32em;
 		color: var(--micro);
 		text-transform: uppercase;
 	}
 	.title-block-corner .value {
-		font-size: 11px;
+		font-size: 13px;
 		letter-spacing: 0.14em;
 		color: var(--ink);
 		text-transform: uppercase;
@@ -265,11 +265,11 @@
 	}
 	@media (max-width: 540px) {
 		.title-block-corner .rubric {
-			font-size: 9px;
+			font-size: 10px;
 			letter-spacing: 0.26em;
 		}
 		.title-block-corner .value {
-			font-size: 11px;
+			font-size: 12px;
 			letter-spacing: 0.1em;
 		}
 		.plate-large {
@@ -283,7 +283,7 @@
 	 * keep them honest no matter how long their tnum values are. */
 	@media (max-width: 380px) {
 		.title-block-corner .value:not(.plate-large) {
-			font-size: 9px;
+			font-size: 10px;
 			letter-spacing: 0.04em;
 		}
 	}
@@ -315,7 +315,7 @@
 		display: inline-block;
 		max-width: 100%;
 		font-family: var(--font-mono);
-		font-size: 10.5px;
+		font-size: 12.5px;
 		letter-spacing: 0.32em;
 		text-transform: uppercase;
 		color: var(--accent);
@@ -339,7 +339,7 @@
 	}
 	@media (max-width: 540px) {
 		.title-rubric {
-			font-size: 9.5px;
+			font-size: 11px;
 			letter-spacing: 0.24em;
 			padding: 0.3rem 0.55rem;
 			margin-bottom: 0.85rem;
@@ -347,7 +347,7 @@
 	}
 	@media (max-width: 380px) {
 		.title-rubric {
-			font-size: 8.5px;
+			font-size: 10px;
 			letter-spacing: 0.18em;
 			padding: 0.28rem 0.45rem;
 		}
@@ -378,14 +378,14 @@
 		gap: 0.2rem;
 	}
 	.title-meta dt {
-		font-size: 9px;
+		font-size: 11px;
 		letter-spacing: 0.28em;
 		color: var(--micro);
 		text-transform: uppercase;
 	}
 	.title-meta dd {
 		margin: 0;
-		font-size: 11px;
+		font-size: 13px;
 		letter-spacing: 0.06em;
 		color: var(--ink);
 	}
@@ -417,7 +417,7 @@
 	}
 	.section-marker {
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: 12px;
 		letter-spacing: 0.18em;
 		color: var(--accent);
 		font-feature-settings: 'tnum';
@@ -456,7 +456,7 @@
 		left: 0;
 		top: 0.55em;
 		font-family: var(--font-mono);
-		font-size: 9px;
+		font-size: 10px;
 		letter-spacing: 0.2em;
 		color: var(--accent);
 		font-feature-settings: 'tnum';
@@ -488,7 +488,7 @@
 		grid-row: 1 / span 2;
 		grid-column: 1;
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: 12px;
 		letter-spacing: 0.06em;
 		color: var(--accent);
 		padding-top: 0.3rem;
@@ -499,7 +499,7 @@
 		font-family: var(--font-display);
 		font-style: italic;
 		font-weight: 500;
-		font-size: var(--fs-md);
+		font-size: 18px;
 		color: var(--ink);
 		line-height: 1.32;
 		font-variation-settings: 'opsz' 36;
@@ -508,7 +508,7 @@
 		grid-column: 2;
 		margin: 0;
 		font-family: var(--font-display);
-		font-size: var(--fs-base);
+		font-size: 15px;
 		line-height: 1.6;
 		color: var(--ink-soft);
 		font-variation-settings: 'opsz' 14;
@@ -551,7 +551,7 @@
 	}
 	.plate-index-num {
 		font-family: var(--font-mono);
-		font-size: 10px;
+		font-size: 12px;
 		letter-spacing: 0.2em;
 		color: var(--micro);
 		font-feature-settings: 'tnum';
@@ -565,7 +565,7 @@
 	}
 	.plate-index-label {
 		font-family: var(--font-mono);
-		font-size: 10px;
+		font-size: 12px;
 		letter-spacing: 0.18em;
 		color: var(--ink);
 		text-transform: uppercase;

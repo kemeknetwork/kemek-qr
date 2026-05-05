@@ -44,18 +44,18 @@
 	/* ── Typography ────────────────────────────────────────── */
 	--font-display: 'Fraunces Variable', 'Fraunces', Georgia, serif;
 	--font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-	--fs-micro: 10px;
-	--fs-xs: 11px;
+	--fs-micro: 11px;
+	--fs-xs: 12px;
 	/* --fs-help: body-shaped help/error/note text (warnings, error
-	 * messages, inline explanations). 12 px is the floor for prose
-	 * we expect users to read, not glance at — distinct from the
-	 * 10–11 px rubric/caps language that surrounds it. */
-	--fs-help: 12px;
-	--fs-sm: 13px;
-	--fs-base: 15px;
-	--fs-md: 18px;
-	--fs-lg: 24px;
-	--fs-xl: 32px;
+	 * messages, inline explanations). The floor for prose we expect
+	 * users to read, not glance at — distinct from the rubric/caps
+	 * language that surrounds it. */
+	--fs-help: 13px;
+	--fs-sm: 14px;
+	--fs-base: 16px;
+	--fs-md: 19px;
+	--fs-lg: 25px;
+	--fs-xl: 33px;
 	--fs-display: clamp(2.5rem, 5vw + 1rem, 4.75rem);
 
 	/* ── Layout ────────────────────────────────────────────── */

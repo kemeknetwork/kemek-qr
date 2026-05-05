@@ -226,7 +226,7 @@
 		color: var(--paper);
 		padding: 0.6rem 1rem;
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: 12px;
 		letter-spacing: 0.18em;
 		text-transform: uppercase;
 		z-index: 100;
@@ -262,7 +262,7 @@
 		gap: 0.55rem;
 		font-family: var(--font-display);
 		font-weight: 500;
-		font-size: 22px;
+		font-size: 23px;
 		letter-spacing: -0.015em;
 		border-bottom: none;
 		font-variation-settings: 'opsz' 36;
@@ -382,7 +382,7 @@
 		display: inline-flex;
 		align-items: center;
 		font-family: var(--font-mono);
-		font-size: 9px;
+		font-size: 11px;
 		letter-spacing: 0.32em;
 		text-transform: uppercase;
 		color: var(--micro);
@@ -399,7 +399,7 @@
 		align-items: center;
 		gap: 0.18rem;
 		font-family: var(--font-mono);
-		font-size: 10.5px;
+		font-size: 12.5px;
 		letter-spacing: 0.16em;
 		text-transform: uppercase;
 		padding: 0.65rem 1rem 0.7rem;
@@ -418,7 +418,7 @@
 		justify-content: center;
 	}
 	.plate-num {
-		font-size: 8.5px;
+		font-size: 10px;
 		letter-spacing: 0.24em;
 		color: var(--micro);
 		font-feature-settings: 'tnum';
@@ -484,11 +484,11 @@
 			border-top: 1px dashed var(--rule);
 		}
 		.plate-num {
-			font-size: 9px;
+			font-size: 10px;
 			letter-spacing: 0.2em;
 		}
 		.plate-label {
-			font-size: 12px;
+			font-size: 13px;
 		}
 	}
 
@@ -524,14 +524,14 @@
 	}
 	.cell-rubric {
 		font-family: var(--font-mono);
-		font-size: 10px;
+		font-size: 11px;
 		letter-spacing: 0.28em;
 		text-transform: uppercase;
 		color: var(--micro);
 	}
 	.cell-value {
 		font-family: var(--font-mono);
-		font-size: var(--fs-xs);
+		font-size: 13px;
 		letter-spacing: 0.08em;
 		color: var(--ink);
 	}
@@ -560,7 +560,7 @@
 		border: none;
 		cursor: pointer;
 		font-family: var(--font-mono);
-		font-size: var(--fs-xs);
+		font-size: 13px;
 		letter-spacing: 0.08em;
 		color: var(--ink);
 	}
@@ -615,7 +615,7 @@
 	}
 	@media (max-width: 460px) {
 		.brand {
-			font-size: 19px;
+			font-size: 20px;
 		}
 		.brand-mark {
 			width: 18px;
