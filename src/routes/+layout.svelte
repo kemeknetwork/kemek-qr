@@ -229,7 +229,7 @@
 			<div class="colophon-cell">
 				<span class="cell-rubric">DRAWN BY</span>
 				<span class="cell-value">
-					<a href="https://kemek.com" rel="publisher">KEMEK NETWORK</a>
+					<a href="https://kemek.com" target="_blank" rel="publisher noopener">KEMEK NETWORK</a>
 				</span>
 			</div>
 			<div class="colophon-cell">
@@ -256,7 +256,7 @@
 			</div>
 		</div>
 		<p class="colophon-rights">
-			<a href="https://kemek.com" rel="publisher">KEMEK NETWORK</a> © <span class="rights-year">MMXXVI</span>
+			<a href="https://kemek.com" target="_blank" rel="publisher noopener">KEMEK NETWORK</a> © <span class="rights-year">MMXXVI</span>
 		</p>
 	</footer>
 </div>
