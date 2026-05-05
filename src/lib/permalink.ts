@@ -33,6 +33,7 @@ export type ECC = 'auto' | 'L' | 'M' | 'Q' | 'H';
 
 export type EyeFrameType = 'square' | 'extra-rounded' | 'dot' | 'rounded';
 export type EyeBallType = 'square' | 'dot' | 'rounded';
+export type FrameLabelSize = 'S' | 'M' | 'L' | 'XL';
 
 export type StylingState = {
 	fg: string;
@@ -49,6 +50,7 @@ export type StylingState = {
 	eyeBall: EyeBallType;
 	frameEnabled: boolean;
 	frameLabel: string;
+	frameLabelSize: FrameLabelSize;
 };
 
 export type PermalinkState<T extends ContentType = ContentType> = StylingState & {
@@ -78,6 +80,8 @@ const EYE_FRAME_VALUES: ReadonlySet<EyeFrameType> = new Set([
 
 const EYE_BALL_VALUES: ReadonlySet<EyeBallType> = new Set(['square', 'dot', 'rounded']);
 
+const FRAME_LABEL_SIZE_VALUES: ReadonlySet<FrameLabelSize> = new Set(['S', 'M', 'L', 'XL']);
+
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
 const TYPES_SET: ReadonlySet<string> = new Set(CONTENT_TYPES);
@@ -98,9 +102,10 @@ type WireV1 = {
 	ga?: number;
 	ef?: EyeFrameType;
 	eb?: EyeBallType;
-	/* Outer frame: fr flag, fl label text */
+	/* Outer frame: fr flag, fl label text, fls label size (S|M|L|XL) */
 	fr?: boolean;
 	fl?: string;
+	fls?: FrameLabelSize;
 };
 
 function toBase64Url(s: string): string {
@@ -145,6 +150,9 @@ function buildWire<T extends ContentType>(
 	if (state.frameEnabled) {
 		w.fr = true;
 		w.fl = state.frameLabel;
+		/* Skip emitting the size when it matches the default 'M' so
+		 * permalinks for plain frame-label users stay short. */
+		if (state.frameLabelSize !== 'M') w.fls = state.frameLabelSize;
 	}
 	return w;
 }
@@ -244,6 +252,8 @@ export function decodePermalink(hash: string): DecodedPermalink | null {
 	if (w.fr === true) {
 		out.frameEnabled = true;
 		if (typeof w.fl === 'string' && w.fl.length <= 64) out.frameLabel = w.fl;
+		if (typeof w.fls === 'string' && FRAME_LABEL_SIZE_VALUES.has(w.fls as FrameLabelSize))
+			out.frameLabelSize = w.fls as FrameLabelSize;
 	}
 
 	return out;

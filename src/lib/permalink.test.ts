@@ -15,7 +15,8 @@ const baseStyling = {
 	eyeFrame: 'square' as const,
 	eyeBall: 'square' as const,
 	frameEnabled: false,
-	frameLabel: 'SCAN ME'
+	frameLabel: 'SCAN ME',
+	frameLabelSize: 'M' as const
 };
 
 describe('encode → decode round trip', () => {
@@ -106,6 +107,33 @@ describe('styling fields', () => {
 		expect(dec?.eyeBall).toBe('dot');
 		expect(dec?.frameEnabled).toBe(true);
 		expect(dec?.frameLabel).toBe('POINT YOUR PHONE');
+	});
+	it('round-trips frameLabelSize when frame is enabled and size != M', () => {
+		const state: PermalinkState<'url'> = {
+			...baseStyling,
+			type: 'url',
+			content: { url: 'https://kemek.com' },
+			frameEnabled: true,
+			frameLabel: 'SCAN ME',
+			frameLabelSize: 'XL'
+		};
+		const enc = encodePermalink(state, 'https://qr.kemek.com/');
+		const dec = decodePermalink(enc.hash);
+		expect(dec?.frameLabelSize).toBe('XL');
+	});
+	it('omits frameLabelSize when default (M) to keep links short', () => {
+		const state: PermalinkState<'url'> = {
+			...baseStyling,
+			type: 'url',
+			content: { url: 'x' },
+			frameEnabled: true,
+			frameLabel: 'SCAN ME',
+			frameLabelSize: 'M'
+		};
+		const enc = encodePermalink(state, 'https://qr.kemek.com/');
+		expect(enc.hash).not.toContain('fls');
+		const dec = decodePermalink(enc.hash);
+		expect(dec?.frameLabelSize).toBeUndefined();
 	});
 	it('omits gradient fields when disabled (keeps default-state links short)', () => {
 		const state: PermalinkState<'url'> = {

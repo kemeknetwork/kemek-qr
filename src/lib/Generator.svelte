@@ -7,7 +7,8 @@
 		type DotType,
 		type ECC,
 		type EyeBallType,
-		type EyeFrameType
+		type EyeFrameType,
+		type FrameLabelSize
 	} from '$lib/permalink';
 	import { encode } from '$lib/encoders';
 	import { DEFAULT_CONTENT, type ContentMap, type ContentType, type WifiAuth } from '$lib/types';
@@ -34,6 +35,7 @@
 	let eyeBall = $state<EyeBallType>('square');
 	let frameEnabled = $state(false);
 	let frameLabel = $state('SCAN ME');
+	let frameLabelSize = $state<FrameLabelSize>('M');
 	let exportFormat = $state<'png' | 'svg' | 'pdf'>('png');
 	let exporting = $state(false);
 	let engineError = $state<string | null>(null);
@@ -142,6 +144,7 @@
 		if (decoded.gradientAngle !== undefined) gradientAngle = decoded.gradientAngle;
 		if (decoded.frameEnabled !== undefined) frameEnabled = decoded.frameEnabled;
 		if (decoded.frameLabel !== undefined) frameLabel = decoded.frameLabel;
+		if (decoded.frameLabelSize !== undefined) frameLabelSize = decoded.frameLabelSize;
 	}
 
 	let restored = false;
@@ -198,7 +201,8 @@
 			eyeFrame,
 			eyeBall,
 			frameEnabled,
-			frameLabel
+			frameLabel,
+			frameLabelSize
 		};
 		if (!restored || typeof window === 'undefined') return;
 		if (saveTimer) clearTimeout(saveTimer);
@@ -284,7 +288,8 @@
 				eyeFrame,
 				eyeBall,
 				frameEnabled,
-				frameLabel
+				frameLabel,
+				frameLabelSize
 			},
 			window.location.href
 		);
@@ -299,6 +304,41 @@
 		copyTimer = setTimeout(() => (copyState = 'idle'), 2400);
 	}
 
+	/* Compute label font size + reserved label-band height for the
+	 * given size. For S/M/L the font is a fixed fraction of the QR
+	 * width. For XL the font is measured (via canvas measureText) to
+	 * fill 88 % of the framed image's total width regardless of
+	 * label length — short labels get a huge font, long ones get a
+	 * smaller font. The band grows proportionally so the layout
+	 * stays balanced. */
+	function frameLabelMetrics(
+		qrSize: number,
+		label: string,
+		size: FrameLabelSize
+	): { fontPx: number; labelBand: number } {
+		const totalW = qrSize + Math.round(qrSize * 0.05) * 2;
+		if (size === 'XL') {
+			let fontPx = Math.round(qrSize * 0.06);
+			const tempCanvas = document.createElement('canvas');
+			const tempCtx = tempCanvas.getContext('2d');
+			if (tempCtx && label.trim().length > 0) {
+				const baseFontPx = 100;
+				tempCtx.font = `500 ${baseFontPx}px "JetBrains Mono", ui-monospace, monospace`;
+				const baseWidth = tempCtx.measureText(label).width;
+				const targetWidth = totalW * 0.88;
+				fontPx = Math.max(8, Math.round(baseFontPx * (targetWidth / Math.max(baseWidth, 1))));
+				/* Cap: a single-char label otherwise produces a font
+				 * taller than the QR itself. 28 % of qrSize keeps the
+				 * label dramatic but subordinate to the code. */
+				fontPx = Math.min(fontPx, Math.round(qrSize * 0.28));
+			}
+			return { fontPx, labelBand: Math.round(fontPx * 1.7) };
+		}
+		const ratios = { S: 0.045, M: 0.06, L: 0.085 } as const;
+		const fontPx = Math.round(qrSize * ratios[size]);
+		return { fontPx, labelBand: Math.round(fontPx * 2.38) };
+	}
+
 	/* Compose the QR PNG inside an outer frame with a label band. We
 	 * draw onto a canvas larger than the QR, fill with bg, draw the
 	 * QR centered, stroke a border, then render the label centered
@@ -308,7 +348,7 @@
 		const img = await blobToImage(qrBlob);
 		const padding = Math.round(qrSize * 0.05);
 		const borderWidth = Math.max(2, Math.round(qrSize * 0.008));
-		const labelHeight = Math.round(qrSize * 0.14);
+		const { fontPx, labelBand: labelHeight } = frameLabelMetrics(qrSize, label, frameLabelSize);
 		const totalW = qrSize + padding * 2;
 		const totalH = qrSize + padding * 2 + labelHeight;
 
@@ -329,7 +369,6 @@
 		ctx.strokeRect(half, half, totalW - borderWidth, totalH - borderWidth);
 
 		ctx.fillStyle = fgColor;
-		const fontPx = Math.round(labelHeight * 0.42);
 		ctx.font = `500 ${fontPx}px "JetBrains Mono", ui-monospace, monospace`;
 		ctx.textAlign = 'center';
 		ctx.textBaseline = 'middle';
@@ -397,10 +436,9 @@
 	function composeFramedSvg(qrSvgText: string, qrSize: number, label: string): string {
 		const padding = Math.round(qrSize * 0.05);
 		const borderWidth = Math.max(2, Math.round(qrSize * 0.008));
-		const labelHeight = Math.round(qrSize * 0.14);
+		const { fontPx, labelBand: labelHeight } = frameLabelMetrics(qrSize, label, frameLabelSize);
 		const totalW = qrSize + padding * 2;
 		const totalH = qrSize + padding * 2 + labelHeight;
-		const fontPx = Math.round(labelHeight * 0.42);
 		const half = borderWidth / 2;
 
 		const parser = new DOMParser();
@@ -475,7 +513,11 @@
 			const qrPt = 360;
 			const padding = qrPt * 0.05;
 			const borderWidth = Math.max(1.5, qrPt * 0.008);
-			const labelBand = qrPt * 0.14;
+			const { fontPx: pdfFontSize, labelBand } = frameLabelMetrics(
+				qrPt,
+				frameLabel,
+				frameLabelSize
+			);
 			const totalW = qrPt + padding * 2;
 			const totalH = qrPt + padding * 2 + labelBand;
 			const x0 = (pageW - totalW) / 2;
@@ -504,7 +546,7 @@
 			});
 
 			const font = await pdf.embedFont(StandardFonts.Courier);
-			const fontSize = labelBand * 0.42;
+			const fontSize = pdfFontSize;
 			const labelWidth = font.widthOfTextAtSize(frameLabel, fontSize);
 			page.drawText(frameLabel, {
 				x: x0 + (totalW - labelWidth) / 2,
@@ -640,7 +682,12 @@
 				>
 					<div bind:this={qrContainer} class="qr-mount" role="img" aria-label="QR code preview"></div>
 					{#if frameEnabled}
-						<div class="qr-frame-label">{frameLabel}</div>
+						<div
+							class="qr-frame-label qr-frame-label-{frameLabelSize}"
+							style:--label-len={Math.max(1, frameLabel.length)}
+						>
+							{frameLabel}
+						</div>
 					{/if}
 				</div>
 				{#if engineError}
@@ -1091,6 +1138,22 @@
 						spellcheck="false"
 					/>
 				</label>
+				<div class="field" style="padding-top: 0.85rem;">
+					<span class="field-label">SIZE</span>
+					<div class="segmented cols-4" role="radiogroup" aria-label="Frame label size">
+						{#each ['S', 'M', 'L', 'XL'] as const as sz}
+							<label class="seg" class:active={frameLabelSize === sz}>
+								<input
+									type="radio"
+									name="frame-label-size"
+									value={sz}
+									bind:group={frameLabelSize}
+								/>
+								{sz}
+							</label>
+						{/each}
+					</div>
+				</div>
 			{/if}
 		</fieldset>
 	</div>
@@ -1325,6 +1388,10 @@
 		flex-direction: column;
 		align-items: stretch;
 		min-width: 0;
+		/* Container query context — label sizes are expressed in cqw
+		 * so the preview tracks the frame's actual rendered width
+		 * regardless of viewport. */
+		container-type: inline-size;
 	}
 	.qr-frame.qr-frame-on {
 		background: var(--frame-bg);
@@ -1339,8 +1406,27 @@
 		letter-spacing: 0.18em;
 		text-transform: uppercase;
 		color: var(--frame-fg);
-		font-size: clamp(11px, 2.4vw, 18px);
 		padding: 0.3rem 0;
+		line-height: 1.05;
+		overflow-wrap: anywhere;
+	}
+	/* S/M/L map to fixed fractions of the container width; M matches
+	 * the previous default. XL is dynamic — the formula divides 88 %
+	 * of frame width by `--label-len * 0.78` (mono char-width factor
+	 * × letter-spacing) so the rendered text fills 88 % regardless
+	 * of label length. clamp() floors very long labels at a readable
+	 * size and ceils single-char labels so they don't dwarf the QR. */
+	.qr-frame-label-S {
+		font-size: 3.5cqw;
+	}
+	.qr-frame-label-M {
+		font-size: 5.5cqw;
+	}
+	.qr-frame-label-L {
+		font-size: 8cqw;
+	}
+	.qr-frame-label-XL {
+		font-size: clamp(12px, calc(112cqw / max(var(--label-len, 7), 1)), 28cqw);
 	}
 
 	.specimen-meta {
