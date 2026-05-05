@@ -269,6 +269,41 @@
 		logoError = null;
 	}
 
+	/* Copy a string to the clipboard with a layered fallback chain.
+	 * navigator.clipboard requires a secure context (HTTPS or
+	 * localhost) and a fresh user gesture. On insecure origins (LAN
+	 * IP via tailscale, file://, older iOS Safari) it throws or is
+	 * undefined — fall back to the legacy execCommand path via a
+	 * temporary textarea. Returns true if either path succeeded. */
+	async function clipboardCopy(text: string): Promise<boolean> {
+		if (navigator?.clipboard?.writeText) {
+			try {
+				await navigator.clipboard.writeText(text);
+				return true;
+			} catch {
+				/* permission denied / not in user gesture / insecure
+				 * origin — fall through to execCommand path. */
+			}
+		}
+		try {
+			const ta = document.createElement('textarea');
+			ta.value = text;
+			ta.setAttribute('readonly', '');
+			ta.style.position = 'fixed';
+			ta.style.top = '0';
+			ta.style.left = '0';
+			ta.style.opacity = '0';
+			document.body.appendChild(ta);
+			ta.select();
+			ta.setSelectionRange(0, text.length);
+			const ok = document.execCommand('copy');
+			document.body.removeChild(ta);
+			return ok;
+		} catch {
+			return false;
+		}
+	}
+
 	async function copyPermalink() {
 		if (typeof window === 'undefined') return;
 		const result = encodePermalink(
@@ -293,10 +328,14 @@
 			},
 			window.location.href
 		);
-		try {
-			await navigator.clipboard.writeText(result.url);
+		const ok = await clipboardCopy(result.url);
+		if (ok) {
 			copyState = result.logoDropped ? 'dropped' : 'copied';
-		} catch {
+		} else {
+			/* Both paths failed — surface the URL via the address bar
+			 * as a last-resort recovery so the user can copy it
+			 * manually. Mark state so the user sees the button
+			 * acknowledge their click. */
 			window.history.replaceState(null, '', `#${result.hash}`);
 			copyState = result.logoDropped ? 'dropped' : 'copied';
 		}
@@ -351,6 +390,19 @@
 		const { fontPx, labelBand: labelHeight } = frameLabelMetrics(qrSize, label, frameLabelSize);
 		const totalW = qrSize + padding * 2;
 		const totalH = qrSize + padding * 2 + labelHeight;
+
+		/* Force JetBrains Mono to load before canvas drawing — Canvas
+		 * font lookup is synchronous, and if the woff2 hasn't been
+		 * fetched yet the label will rasterize in whatever generic
+		 * monospace fallback the OS provides. With this await, PNG
+		 * (and the PDF that re-embeds it) reliably show the same
+		 * font as the on-screen preview. */
+		try {
+			await document.fonts.load(`500 ${fontPx}px "JetBrains Mono"`);
+		} catch {
+			/* document.fonts not present (very old browser) — accept
+			 * fallback rendering rather than aborting the export. */
+		}
 
 		const canvas = document.createElement('canvas');
 		canvas.width = totalW;
@@ -458,7 +510,7 @@
   <rect x="0" y="0" width="${totalW}" height="${totalH}" fill="${bgColor}"/>
   <rect x="${half}" y="${half}" width="${totalW - borderWidth}" height="${totalH - borderWidth}" fill="none" stroke="${fgColor}" stroke-width="${borderWidth}"/>
   ${innerSerialized}
-  <text x="${totalW / 2}" y="${qrSize + padding * 2 + labelHeight / 2}" text-anchor="middle" dominant-baseline="middle" font-family="JetBrains Mono, ui-monospace, monospace" font-weight="500" font-size="${fontPx}" fill="${fgColor}" letter-spacing="3">${escapeXml(label)}</text>
+  <text x="${totalW / 2}" y="${qrSize + padding * 2 + labelHeight / 2}" text-anchor="middle" dominant-baseline="middle" font-family="JetBrains Mono, ui-monospace, monospace" font-weight="500" font-size="${fontPx}" fill="${fgColor}">${escapeXml(label)}</text>
 </svg>`;
 	}
 
@@ -479,12 +531,14 @@
 		triggerDownload(finalBlob, 'kemek-qr.svg');
 	}
 
-	/* PDF embeds the QR as a high-res PNG (2048px) onto a centered A4
-	 * page. True-vector embedding would require an SVG-to-PDF path
-	 * converter we don't carry; 2048px raster is print-quality at any
-	 * realistic size (>300 DPI for a 6-inch QR). The frame, if enabled,
-	 * is drawn natively via pdf-lib instead of being rasterized — the
-	 * label text is true PDF text, searchable and crisp. */
+	/* PDF embeds the QR as a high-res PNG (2048 px) on a centered A4
+	 * page. When the outer frame is enabled, the entire framed image
+	 * (background + border + QR + label band) is composed by
+	 * composeFramedPng and embedded as a single PNG — that way PDF is
+	 * pixel-identical to the PNG export. Earlier versions drew the
+	 * frame natively via pdf-lib + StandardFonts.Courier for
+	 * "selectable text", but the visual mismatch with PNG (different
+	 * font, different metrics) outweighed the benefit. */
 	async function downloadPDF() {
 		if (!QRCodeStylingClass) return;
 		const exportSize = 2048;
@@ -494,68 +548,37 @@
 			height: exportSize,
 			type: 'canvas'
 		});
-		const blob = (await exporter.getRawData('png')) as Blob | null;
-		if (!blob) throw new Error('QR rasterization returned null');
-		const arrayBuffer = await blob.arrayBuffer();
+		const qrBlob = (await exporter.getRawData('png')) as Blob | null;
+		if (!qrBlob) throw new Error('QR rasterization returned null');
 
-		const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');
+		const { PDFDocument } = await import('pdf-lib');
 		const pdf = await PDFDocument.create();
-		// A4 portrait in points (1pt = 1/72 inch).
+		// A4 portrait in points (1 pt = 1/72 inch).
 		const pageW = 595;
 		const pageH = 842;
 		const page = pdf.addPage([pageW, pageH]);
-		const qrEmbed = await pdf.embedPng(arrayBuffer);
-
-		const fg = hexToRgb01(fgColor);
-		const bg = hexToRgb01(bgColor);
 
 		if (frameEnabled) {
-			const qrPt = 360;
-			const padding = qrPt * 0.05;
-			const borderWidth = Math.max(1.5, qrPt * 0.008);
-			const { fontPx: pdfFontSize, labelBand } = frameLabelMetrics(
-				qrPt,
-				frameLabel,
-				frameLabelSize
-			);
-			const totalW = qrPt + padding * 2;
-			const totalH = qrPt + padding * 2 + labelBand;
-			const x0 = (pageW - totalW) / 2;
-			const y0 = (pageH - totalH) / 2;
-
-			page.drawRectangle({
-				x: x0,
-				y: y0,
-				width: totalW,
-				height: totalH,
-				color: rgb(bg.r, bg.g, bg.b)
-			});
-			page.drawRectangle({
-				x: x0,
-				y: y0,
-				width: totalW,
-				height: totalH,
-				borderColor: rgb(fg.r, fg.g, fg.b),
-				borderWidth
-			});
-			page.drawImage(qrEmbed, {
-				x: x0 + padding,
-				y: y0 + padding + labelBand,
-				width: qrPt,
-				height: qrPt
-			});
-
-			const font = await pdf.embedFont(StandardFonts.Courier);
-			const fontSize = pdfFontSize;
-			const labelWidth = font.widthOfTextAtSize(frameLabel, fontSize);
-			page.drawText(frameLabel, {
-				x: x0 + (totalW - labelWidth) / 2,
-				y: y0 + (labelBand - fontSize) / 2 + fontSize * 0.2,
-				size: fontSize,
-				font,
-				color: rgb(fg.r, fg.g, fg.b)
+			const framedBlob = await composeFramedPng(qrBlob, exportSize, frameLabel);
+			const framedBuffer = await framedBlob.arrayBuffer();
+			const framedEmbed = await pdf.embedPng(framedBuffer);
+			/* The framed PNG is wider-than-tall when the label band
+			 * grows (XL labels). Scale the longer dimension to fit
+			 * within ~480 pt and keep the same aspect ratio. */
+			const maxPt = 480;
+			const { width: pxW, height: pxH } = framedEmbed.size();
+			const scale = maxPt / Math.max(pxW, pxH);
+			const drawW = pxW * scale;
+			const drawH = pxH * scale;
+			page.drawImage(framedEmbed, {
+				x: (pageW - drawW) / 2,
+				y: (pageH - drawH) / 2,
+				width: drawW,
+				height: drawH
 			});
 		} else {
+			const qrBuffer = await qrBlob.arrayBuffer();
+			const qrEmbed = await pdf.embedPng(qrBuffer);
 			const qrPt = 400;
 			page.drawImage(qrEmbed, {
 				x: (pageW - qrPt) / 2,

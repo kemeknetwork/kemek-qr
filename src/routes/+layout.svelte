@@ -102,9 +102,16 @@
 
 <svelte:head>
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<!-- Modern browsers prefer SVG for theme/dpi-independent rendering;
+	     legacy browsers and platforms (iOS home screen, Windows pinned
+	     tiles, RSS readers) fall through to the rasters. -->
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-	<link rel="alternate icon" href="/favicon-32.png" type="image/png" />
-	<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+	<link rel="icon" href="/favicon.ico" sizes="any" />
+	<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+	<link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16" />
+	<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+	<link rel="manifest" href="/site.webmanifest" />
+	<meta name="theme-color" content="#c53a1f" />
 	<meta property="og:image" content="https://qr.kemek.com/og.png" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
