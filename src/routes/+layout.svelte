@@ -6,24 +6,26 @@
 
 	let { children } = $props();
 
-	/* Theme handling. Initial render is `undefined` so the toggle's
-	 * active-state is inert until onMount syncs it with what the
-	 * inline FOUC script set in app.html (or the system preference
-	 * if no override is saved). After mount, the toggle writes the
-	 * explicit override to localStorage and reflects on <html>. */
+	/* Theme handling. mode is initialized synchronously at script-eval
+	 * time on the client so the toggle's active-state is correct on
+	 * first paint instead of waiting for onMount. SSR returns 'light'
+	 * (no document available); hydration corrects it on the first
+	 * client render. */
 	type Mode = 'light' | 'dark';
 	const THEME_KEY = 'kemek-qr:theme';
-	let mode = $state<Mode | undefined>(undefined);
 
-	function readMode(): Mode {
+	function readInitialMode(): Mode {
+		if (typeof document === 'undefined') return 'light';
 		const attr = document.documentElement.getAttribute('data-theme');
 		if (attr === 'dark' || attr === 'light') return attr;
 		return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 	}
 
-	function toggleTone() {
-		const next: Mode = mode === 'dark' ? 'light' : 'dark';
+	let mode = $state<Mode>(readInitialMode());
+
+	function applyTheme(next: Mode) {
 		mode = next;
+		if (typeof document === 'undefined') return;
 		document.documentElement.setAttribute('data-theme', next);
 		try {
 			localStorage.setItem(THEME_KEY, next);
@@ -33,8 +35,17 @@
 		}
 	}
 
+	function toggleTone() {
+		applyTheme(mode === 'dark' ? 'light' : 'dark');
+	}
+
 	onMount(() => {
-		mode = readMode();
+		/* If hydration finished on a different mode than the inline
+		 * FOUC script applied (rare — only when matchMedia disagrees
+		 * with the saved attribute), re-sync. */
+		const live = readInitialMode();
+		if (live !== mode) mode = live;
+
 		const mq = window.matchMedia('(prefers-color-scheme: dark)');
 		const onSystemChange = () => {
 			let saved: string | null = null;
