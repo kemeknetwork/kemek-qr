@@ -1239,7 +1239,6 @@
 
 	.specimen-frame {
 		position: relative;
-		aspect-ratio: 1;
 		background: var(--paper-warm);
 		border: 1px solid var(--rule);
 		padding: clamp(1.4rem, 5vw, 3.25rem);
@@ -1254,6 +1253,13 @@
 		max-width: 100%;
 		min-width: 0;
 		overflow: hidden;
+		/* No aspect-ratio lock. Height is content-driven: when the
+		 * outer-frame label is enabled (especially at L/XL) the
+		 * specimen grows vertically so the QR stays square and the
+		 * label band sits below it without compressing either. The
+		 * QR SVG has a 1:1 viewBox + width:100%; height:auto, so the
+		 * code always renders square — this just lets the wrapper
+		 * accommodate whatever sits beneath it. */
 	}
 	@media (max-width: 540px) {
 		.specimen-frame {
@@ -1355,14 +1361,12 @@
 	.specimen-stage {
 		position: relative;
 		width: 100%;
-		height: 100%;
 		display: grid;
 		place-items: center;
 		min-width: 0;
 	}
 	.qr-mount {
 		width: 100%;
-		height: 100%;
 		display: grid;
 		place-items: center;
 		min-width: 0;
