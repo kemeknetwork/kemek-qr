@@ -46,6 +46,11 @@
 	--font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 	--fs-micro: 10px;
 	--fs-xs: 11px;
+	/* --fs-help: body-shaped help/error/note text (warnings, error
+	 * messages, inline explanations). 12 px is the floor for prose
+	 * we expect users to read, not glance at — distinct from the
+	 * 10–11 px rubric/caps language that surrounds it. */
+	--fs-help: 12px;
 	--fs-sm: 13px;
 	--fs-base: 15px;
 	--fs-md: 18px;

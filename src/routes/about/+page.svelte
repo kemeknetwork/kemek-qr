@@ -288,12 +288,12 @@
 		margin-top: 0.1rem;
 	}
 	@media (max-width: 540px) {
-		.title-block-corner .rubric { font-size: 8px; letter-spacing: 0.26em; }
-		.title-block-corner .value { font-size: 10px; letter-spacing: 0.1em; }
+		.title-block-corner .rubric { font-size: 9px; letter-spacing: 0.26em; }
+		.title-block-corner .value { font-size: 11px; letter-spacing: 0.1em; }
 		.plate-large { font-size: clamp(1.25rem, 6vw, 1.75rem); margin-top: 0.05rem; }
 	}
 	@media (max-width: 380px) {
-		.title-block-corner .value:not(.plate-large) { font-size: 9px; letter-spacing: 0.04em; }
+		.title-block-corner .value:not(.plate-large) { font-size: 10px; letter-spacing: 0.04em; }
 	}
 
 	.title-block-body {

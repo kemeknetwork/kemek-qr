@@ -1468,7 +1468,7 @@
 		border-right: none;
 	}
 	.specimen-meta dt {
-		font-size: 8.5px;
+		font-size: 10px;
 		letter-spacing: 0.22em;
 		color: var(--accent);
 		margin: 0;
@@ -1621,7 +1621,7 @@
 		font-family: var(--font-mono);
 		font-weight: 500;
 		letter-spacing: 0.16em;
-		font-size: 10px;
+		font-size: 11px;
 		text-transform: uppercase;
 		transition:
 			color var(--duration-fast) var(--ease),
@@ -1646,7 +1646,7 @@
 	}
 	.permalink-note {
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: var(--fs-help);
 		color: var(--ghost);
 		line-height: 1.5;
 		margin: 0;
@@ -1820,7 +1820,7 @@
 		padding: 0.65rem 0.4rem;
 		min-height: 36px;
 		font-family: var(--font-mono);
-		font-size: 10px;
+		font-size: 11px;
 		letter-spacing: 0.14em;
 		color: var(--ghost);
 		border: none;
@@ -2015,7 +2015,7 @@
 	}
 	.engine-error-eyebrow {
 		font-family: var(--font-mono);
-		font-size: 10px;
+		font-size: 11px;
 		letter-spacing: 0.22em;
 		color: var(--accent);
 	}
@@ -2028,9 +2028,8 @@
 	}
 	.logo-error {
 		font-family: var(--font-mono);
-		font-size: 10px;
-		letter-spacing: 0.14em;
-		text-transform: uppercase;
+		font-size: var(--fs-help);
+		letter-spacing: 0.04em;
 		color: var(--accent);
 		margin: 0.6rem 0 0;
 	}
@@ -2084,9 +2083,8 @@
 
 	.field-warning {
 		font-family: var(--font-mono);
-		font-size: 10px;
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
+		font-size: var(--fs-help);
+		letter-spacing: 0.02em;
 		color: var(--ghost);
 		margin: 0.55rem 0 0;
 		padding-left: 0.7rem;

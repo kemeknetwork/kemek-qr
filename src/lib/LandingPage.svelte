@@ -265,11 +265,11 @@
 	}
 	@media (max-width: 540px) {
 		.title-block-corner .rubric {
-			font-size: 8px;
+			font-size: 9px;
 			letter-spacing: 0.26em;
 		}
 		.title-block-corner .value {
-			font-size: 10px;
+			font-size: 11px;
 			letter-spacing: 0.1em;
 		}
 		.plate-large {

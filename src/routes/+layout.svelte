@@ -484,11 +484,11 @@
 			border-top: 1px dashed var(--rule);
 		}
 		.plate-num {
-			font-size: 8px;
+			font-size: 9px;
 			letter-spacing: 0.2em;
 		}
 		.plate-label {
-			font-size: 10px;
+			font-size: 12px;
 		}
 	}
 
@@ -524,7 +524,7 @@
 	}
 	.cell-rubric {
 		font-family: var(--font-mono);
-		font-size: 9px;
+		font-size: 10px;
 		letter-spacing: 0.28em;
 		text-transform: uppercase;
 		color: var(--micro);
@@ -589,7 +589,7 @@
 
 	@media (max-width: 720px) {
 		.pill {
-			font-size: 9px;
+			font-size: 10px;
 			letter-spacing: 0.12em;
 			padding: 0.36rem 0.6rem;
 		}
