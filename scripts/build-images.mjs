@@ -9,6 +9,7 @@ import toIco from 'to-ico';
 import { readFile, writeFile } from 'node:fs/promises';
 
 const FAVICON_SVG = await readFile('static/favicon.svg');
+const FAVICON_MASKABLE_SVG = await readFile('static/favicon-maskable.svg');
 const OG_SVG = await readFile('static/og.svg');
 
 /* sharp's `density` controls SVG-to-raster DPI. We use a high value
@@ -30,6 +31,14 @@ await rasterize(FAVICON_SVG, 32, 'static/favicon-32.png');
 await rasterize(FAVICON_SVG, 180, 'static/apple-touch-icon.png');
 await rasterize(FAVICON_SVG, 192, 'static/favicon-192.png');
 await rasterize(FAVICON_SVG, 512, 'static/favicon-512.png');
+
+/* Maskable variant for Android adaptive icons. The mark sits inside
+ * the 80% safe zone with paper bg filling the rest, so any device-
+ * chosen mask shape (circle / squircle / square / teardrop) leaves
+ * the mark intact. Declared in site.webmanifest with purpose:
+ * "maskable" alongside the "any" entries. */
+await rasterize(FAVICON_MASKABLE_SVG, 192, 'static/favicon-maskable-192.png');
+await rasterize(FAVICON_MASKABLE_SVG, 512, 'static/favicon-maskable-512.png');
 
 /* favicon.ico — bundle 16 + 32 + 48 so legacy browsers and Windows
  * pinning all pick a sharp size. to-ico accepts an array of PNG

@@ -1,33 +1,54 @@
 {
-	"name": "kemek/qr",
+	"name": "kemek/qr — free QR code generator",
 	"short_name": "kemek/qr",
-	"description": "Free QR code generator. No signup, no tracking, no upload. Runs entirely in your browser.",
+	"description": "Free QR code generator from KeMeK Network. No signup, no tracking, no upload — runs entirely in your browser. URL, text, WiFi, vCard, email, SMS, phone, geo.",
+	"id": "/",
 	"start_url": "/",
 	"scope": "/",
 	"display": "standalone",
+	"display_override": ["standalone", "minimal-ui"],
 	"orientation": "portrait",
+	"lang": "en",
+	"dir": "ltr",
+	"categories": ["utilities", "productivity", "graphics"],
 	"background_color": "#f2ebdd",
 	"theme_color": "#c53a1f",
 	"icons": [
 		{
 			"src": "/favicon.svg",
 			"type": "image/svg+xml",
-			"sizes": "any"
+			"sizes": "any",
+			"purpose": "any"
 		},
 		{
 			"src": "/favicon-192.png",
 			"sizes": "192x192",
-			"type": "image/png"
+			"type": "image/png",
+			"purpose": "any"
 		},
 		{
 			"src": "/favicon-512.png",
 			"sizes": "512x512",
-			"type": "image/png"
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/favicon-maskable-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "/favicon-maskable-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
 		},
 		{
 			"src": "/apple-touch-icon.png",
 			"sizes": "180x180",
-			"type": "image/png"
+			"type": "image/png",
+			"purpose": "any"
 		}
 	]
 }

@@ -101,22 +101,77 @@
 </script>
 
 <svelte:head>
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<!-- Modern browsers prefer SVG for theme/dpi-independent rendering;
-	     legacy browsers and platforms (iOS home screen, Windows pinned
-	     tiles, RSS readers) fall through to the rasters. -->
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+	<!-- Identity / publisher -->
+	<meta name="application-name" content="kemek/qr" />
+	<meta name="author" content="KeMeK Network" />
+	<meta name="publisher" content="KeMeK Network" />
+	<meta name="copyright" content="© 2026 KeMeK Network" />
+	<meta name="generator" content="SvelteKit" />
+
+	<!-- Crawlers: index aggressively, allow large image previews so the
+	     OG card surfaces in Google rich results. -->
+	<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+	<link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+
+	<!-- Privacy posture: don't leak referrer to outbound links. Matches
+	     the no-tracking ethos of the tool itself. -->
+	<meta name="referrer" content="no-referrer-when-downgrade" />
+
+	<!-- Stop Safari from auto-linking phone-shaped strings inside the
+	     app surface (WiFi passwords, vCard numbers, geo coords). -->
+	<meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
+
+	<!-- Icons. Modern browsers prefer SVG for theme/dpi-independent
+	     rendering; legacy browsers and platforms (iOS home screen,
+	     Windows pinned tiles, RSS readers) fall through to the rasters. -->
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 	<link rel="icon" href="/favicon.ico" sizes="any" />
 	<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
 	<link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16" />
 	<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
 	<link rel="manifest" href="/site.webmanifest" />
-	<meta name="theme-color" content="#c53a1f" />
+
+	<!-- Theme-color: matches the page surface so the mobile address bar
+	     and PWA chrome blend with the paper/graphite. The accent red
+	     stays in the manifest's theme_color (PWA splash screen) — bold
+	     identity moment for install, calm chrome for browsing. -->
+	<meta name="theme-color" content="#f2ebdd" media="(prefers-color-scheme: light)" />
+	<meta name="theme-color" content="#16140f" media="(prefers-color-scheme: dark)" />
+	<meta name="msapplication-TileColor" content="#c53a1f" />
+
+	<!-- iOS / Android PWA install hints -->
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-title" content="kemek/qr" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+	<!-- OG image (1200×630). Per-page og:title / og:description /
+	     og:url / og:type live in the page's own svelte:head. -->
+	<meta property="og:locale" content="en_US" />
 	<meta property="og:image" content="https://qr.kemek.com/og.png" />
+	<meta property="og:image:secure_url" content="https://qr.kemek.com/og.png" />
+	<meta property="og:image:type" content="image/png" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
-	<meta name="twitter:image" content="https://qr.kemek.com/og.png" />
+	<meta property="og:image:alt" content="kemek/qr — a free, browser-only QR code generator from KeMeK Network. Drafting-spec card with corner crop marks and dimensional metadata." />
+
 	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:image" content="https://qr.kemek.com/og.png" />
+	<meta name="twitter:image:alt" content="kemek/qr — a free, browser-only QR code generator from KeMeK Network." />
+
+	<!-- Schema.org Organization for KeMeK Network — establishes the
+	     publisher entity for Google's brand panel. Per-page
+	     WebApplication / AboutPage JSON-LD lives on each route. -->
+	{@html `<script type="application/ld+json">${JSON.stringify({
+		'@context': 'https://schema.org',
+		'@type': 'Organization',
+		name: 'KeMeK Network',
+		url: 'https://kemek.com',
+		logo: 'https://qr.kemek.com/favicon-512.png',
+		brand: { '@type': 'Brand', name: 'kemek/qr' }
+	})}</script>`}
 </svelte:head>
 
 <div class="page-frame">
@@ -174,7 +229,7 @@
 			<div class="colophon-cell">
 				<span class="cell-rubric">DRAWN BY</span>
 				<span class="cell-value">
-					<a href="https://kemek.com">KEMEK NETWORK</a>
+					<a href="https://kemek.com" rel="publisher">KEMEK NETWORK</a>
 				</span>
 			</div>
 			<div class="colophon-cell">
@@ -200,6 +255,9 @@
 				</button>
 			</div>
 		</div>
+		<p class="colophon-rights">
+			<a href="https://kemek.com" rel="publisher">KEMEK NETWORK</a> © <span class="rights-year">MMXXVI</span>
+		</p>
 	</footer>
 </div>
 
@@ -495,7 +553,6 @@
 	.colophon {
 		border-top: 1px solid var(--rule);
 		background: var(--paper);
-		padding-bottom: env(safe-area-inset-bottom);
 	}
 	.colophon-inner {
 		max-width: var(--max-w);
@@ -541,6 +598,33 @@
 	}
 	.cell-value a:hover {
 		color: var(--accent);
+	}
+
+	/* Sub-bar beneath the four-cell colophon: legal copyright + license
+	 * + publisher link. Roman-numeral year keeps the drafting-spec
+	 * voice; the actual <copyright> meta tag is the legal anchor. */
+	.colophon-rights {
+		max-width: var(--max-w);
+		margin: 0 auto;
+		padding: 0.7rem var(--gutter) calc(0.85rem + env(safe-area-inset-bottom));
+		font-family: var(--font-mono);
+		font-size: 10px;
+		letter-spacing: 0.22em;
+		text-transform: uppercase;
+		color: var(--micro);
+		border-top: 1px dashed var(--rule);
+		text-align: center;
+	}
+	.colophon-rights a {
+		color: var(--micro);
+		border-bottom: 1px solid var(--rule);
+	}
+	.colophon-rights a:hover {
+		color: var(--accent);
+		border-bottom-color: var(--accent);
+	}
+	.rights-year {
+		font-feature-settings: 'tnum';
 	}
 
 	/* TONE selector — replaces the decorative SHEET ∞/∞ stamp.
