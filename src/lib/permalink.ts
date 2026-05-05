@@ -19,7 +19,7 @@
  * 0.1.0 shape.
  */
 
-import { CONTENT_TYPES, type ContentMap, type ContentType } from './types';
+import { CONTENT_TYPES, DEFAULT_CONTENT, type ContentMap, type ContentType } from './types';
 
 export type DotType =
 	| 'square'
@@ -190,23 +190,14 @@ export type DecodedPermalink = Partial<StylingState> & {
 /* Validate per-type content shape: drop any unknown keys but trust
  * scalar values to be strings/booleans where the form expects them.
  * Form components call .toString()/coerce defensively, so a bad value
- * surfaces as an empty field rather than a crash. */
+ * surfaces as an empty field rather than a crash. Allowed keys come
+ * from DEFAULT_CONTENT so the two stay in lockstep — adding a field to
+ * a content shape automatically extends what the decoder accepts. */
 function validateContent(type: ContentType, c: unknown): Record<string, unknown> | null {
 	if (!c || typeof c !== 'object') return null;
 	const obj = c as Record<string, unknown>;
-	const allowedKeys: Record<ContentType, readonly string[]> = {
-		url: ['url'],
-		text: ['text'],
-		wifi: ['ssid', 'password', 'auth', 'hidden'],
-		vcard: ['firstName', 'lastName', 'org', 'title', 'phone', 'email', 'url', 'address'],
-		email: ['to', 'subject', 'body'],
-		sms: ['number', 'body'],
-		phone: ['number'],
-		geo: ['lat', 'lon', 'query']
-	};
-	const allowed = allowedKeys[type];
 	const out: Record<string, unknown> = {};
-	for (const k of allowed) {
+	for (const k of Object.keys(DEFAULT_CONTENT[type])) {
 		if (k in obj) out[k] = obj[k];
 	}
 	return out;

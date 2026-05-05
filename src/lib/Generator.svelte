@@ -115,6 +115,30 @@
 
 	const sessionKey = $derived(`kemek-qr:session:${type}`);
 
+	/* When adding a styling/content field, update this snapshot — both
+	 * autosave and permalink-copy go through here. */
+	function currentSnapshot() {
+		return {
+			type,
+			content: content[type],
+			fg: fgColor,
+			bg: bgColor,
+			dot: dotType,
+			ecc: errorCorrection,
+			logoSize,
+			logoDataUrl,
+			gradientEnabled,
+			gradientFrom,
+			gradientTo,
+			gradientAngle,
+			eyeFrame,
+			eyeBall,
+			frameEnabled,
+			frameLabel,
+			frameLabelSize
+		};
+	}
+
 	function applyDecoded(decoded: ReturnType<typeof decodePermalink>) {
 		if (!decoded) return;
 		/* The route fixes contentType, so we only restore the content
@@ -185,25 +209,7 @@
 	const SAVE_DEBOUNCE_MS = 1000;
 	let saveTimer: ReturnType<typeof setTimeout> | null = null;
 	$effect(() => {
-		const snapshot = {
-			type,
-			content: content[type],
-			fg: fgColor,
-			bg: bgColor,
-			dot: dotType,
-			ecc: errorCorrection,
-			logoSize,
-			logoDataUrl,
-			gradientEnabled,
-			gradientFrom,
-			gradientTo,
-			gradientAngle,
-			eyeFrame,
-			eyeBall,
-			frameEnabled,
-			frameLabel,
-			frameLabelSize
-		};
+		const snapshot = currentSnapshot();
 		if (!restored || typeof window === 'undefined') return;
 		if (saveTimer) clearTimeout(saveTimer);
 		saveTimer = setTimeout(() => {
@@ -306,28 +312,7 @@
 
 	async function copyPermalink() {
 		if (typeof window === 'undefined') return;
-		const result = encodePermalink(
-			{
-				type: contentType,
-				content: content[contentType],
-				fg: fgColor,
-				bg: bgColor,
-				dot: dotType,
-				ecc: errorCorrection,
-				logoSize,
-				logoDataUrl,
-				gradientEnabled,
-				gradientFrom,
-				gradientTo,
-				gradientAngle,
-				eyeFrame,
-				eyeBall,
-				frameEnabled,
-				frameLabel,
-				frameLabelSize
-			},
-			window.location.href
-		);
+		const result = encodePermalink(currentSnapshot(), window.location.href);
 		const ok = await clipboardCopy(result.url);
 		if (ok) {
 			copyState = result.logoDropped ? 'dropped' : 'copied';
@@ -378,6 +363,17 @@
 		return { fontPx, labelBand: Math.round(fontPx * 2.38) };
 	}
 
+	/* Single source for frame geometry — PNG (canvas), SVG (string), and
+	 * PDF (re-embeds the PNG) must agree pixel-for-pixel. */
+	function computeFrameLayout(qrSize: number, label: string) {
+		const padding = Math.round(qrSize * 0.05);
+		const borderWidth = Math.max(2, Math.round(qrSize * 0.008));
+		const { fontPx, labelBand: labelHeight } = frameLabelMetrics(qrSize, label, frameLabelSize);
+		const totalW = qrSize + padding * 2;
+		const totalH = qrSize + padding * 2 + labelHeight;
+		return { padding, borderWidth, half: borderWidth / 2, fontPx, labelHeight, totalW, totalH };
+	}
+
 	/* Compose the QR PNG inside an outer frame with a label band. We
 	 * draw onto a canvas larger than the QR, fill with bg, draw the
 	 * QR centered, stroke a border, then render the label centered
@@ -385,11 +381,8 @@
 	 * the download. */
 	async function composeFramedPng(qrBlob: Blob, qrSize: number, label: string): Promise<Blob> {
 		const img = await blobToImage(qrBlob);
-		const padding = Math.round(qrSize * 0.05);
-		const borderWidth = Math.max(2, Math.round(qrSize * 0.008));
-		const { fontPx, labelBand: labelHeight } = frameLabelMetrics(qrSize, label, frameLabelSize);
-		const totalW = qrSize + padding * 2;
-		const totalH = qrSize + padding * 2 + labelHeight;
+		const { padding, borderWidth, half, fontPx, labelHeight, totalW, totalH } =
+			computeFrameLayout(qrSize, label);
 
 		/* Force JetBrains Mono to load before canvas drawing — Canvas
 		 * font lookup is synchronous, and if the woff2 hasn't been
@@ -417,7 +410,6 @@
 
 		ctx.strokeStyle = fgColor;
 		ctx.lineWidth = borderWidth;
-		const half = borderWidth / 2;
 		ctx.strokeRect(half, half, totalW - borderWidth, totalH - borderWidth);
 
 		ctx.fillStyle = fgColor;
@@ -486,12 +478,8 @@
 	 * original SVG as a nested element — browsers and most SVG viewers
 	 * render nested <svg> correctly. */
 	function composeFramedSvg(qrSvgText: string, qrSize: number, label: string): string {
-		const padding = Math.round(qrSize * 0.05);
-		const borderWidth = Math.max(2, Math.round(qrSize * 0.008));
-		const { fontPx, labelBand: labelHeight } = frameLabelMetrics(qrSize, label, frameLabelSize);
-		const totalW = qrSize + padding * 2;
-		const totalH = qrSize + padding * 2 + labelHeight;
-		const half = borderWidth / 2;
+		const { padding, borderWidth, half, fontPx, labelHeight, totalW, totalH } =
+			computeFrameLayout(qrSize, label);
 
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(qrSvgText, 'image/svg+xml');
@@ -594,17 +582,6 @@
 		// views in Blob constructors).
 		const buffer = pdfBytes.slice().buffer;
 		triggerDownload(new Blob([buffer], { type: 'application/pdf' }), 'kemek-qr.pdf');
-	}
-
-	function hexToRgb01(hex: string): { r: number; g: number; b: number } {
-		const m = hex.match(/^#([0-9A-Fa-f]{6})$/);
-		if (!m) return { r: 0, g: 0, b: 0 };
-		const n = parseInt(m[1], 16);
-		return {
-			r: ((n >> 16) & 0xff) / 255,
-			g: ((n >> 8) & 0xff) / 255,
-			b: (n & 0xff) / 255
-		};
 	}
 
 	async function downloadActive() {
