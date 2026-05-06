@@ -256,7 +256,7 @@
 			</div>
 		</div>
 		<p class="colophon-rights">
-			<a href="https://kemek.com" target="_blank" rel="publisher noopener">KEMEK NETWORK</a> © <span class="rights-year">MMXXVI</span> · <a href="https://github.com/KeMeK-Network/kemek-QR/blob/main/LICENSE" target="_blank" rel="license noopener">MIT</a>
+			<a href="https://kemek.com" target="_blank" rel="publisher noopener">KEMEK NETWORK</a> © <span class="rights-year">MMXXVI</span> · License: <a href="https://github.com/KeMeK-Network/kemek-QR/blob/main/LICENSE" target="_blank" rel="license noopener">MIT</a>
 		</p>
 	</footer>
 </div>

@@ -660,7 +660,8 @@
 </script>
 
 <section class="workshop">
-	<div class="specimen">
+	<div class="workshop-left">
+		<div class="specimen">
 		<div class="dim dim-top" aria-hidden="true">
 			<span class="tick tick-l"></span>
 			<span class="dim-line dim-line-l"></span>
@@ -698,75 +699,80 @@
 				{/if}
 			</div>
 		</div>
-
-		<dl class="specimen-meta" aria-label="Specimen specification schedule">
-			<div>
-				<dt>S-01 FORMAT</dt>
-				<dd>{exportFormat.toUpperCase()}{exportFormat === 'png' ? ' · 1024 PX' : exportFormat === 'pdf' ? ' · A4 / 2048' : ' · VECTOR'}</dd>
-			</div>
-			<div>
-				<dt>S-02 DOTS</dt>
-				<dd>{dotLabel}</dd>
-			</div>
-			<div>
-				<dt>S-03 EC</dt>
-				<dd>{resolvedECC}{errorCorrection === 'auto' ? ' · auto' : ''}</dd>
-			</div>
-			<div>
-				<dt>S-04 LOGO</dt>
-				<dd>{logoName ?? '— none'}</dd>
-			</div>
-		</dl>
-
-		<div class="export-formats" role="radiogroup" aria-label="Export format">
-			{#each ['png', 'svg', 'pdf'] as const as fmt}
-				<label class="format-tab" class:active={exportFormat === fmt}>
-					<input type="radio" name="export-format" value={fmt} bind:group={exportFormat} />
-					{fmt.toUpperCase()}
-				</label>
-			{/each}
 		</div>
-		<div class="action-row">
-			<button
-				class="download"
-				type="button"
-				onclick={downloadActive}
-				disabled={exporting}
-				aria-busy={exporting}
-			>
-				<span class="download-label">
-					{exporting ? 'PREPARING…' : `DOWNLOAD ${exportFormat.toUpperCase()}`}
-				</span>
-				<span class="download-size">
-					{#if exportFormat === 'png'}1024 PX
-					{:else if exportFormat === 'svg'}VECTOR
-					{:else}A4 / 2048 PX{/if}
-				</span>
-				<span class="download-arrow" aria-hidden="true">↓</span>
-			</button>
-			<button
-				class="permalink"
-				type="button"
-				onclick={copyPermalink}
-				aria-live="polite"
-			>
-				<span class="permalink-label">
-					{#if copyState === 'copied'}LINK COPIED
-					{:else if copyState === 'dropped'}COPIED — LOGO NOT IN LINK
-					{:else}COPY LINK{/if}
-				</span>
-				<span class="permalink-glyph" aria-hidden="true">⌁</span>
-			</button>
+
+		<div class="specimen-actions">
+			<dl class="specimen-meta" aria-label="Specimen specification schedule">
+				<div>
+					<dt>S-01 FORMAT</dt>
+					<dd>{exportFormat.toUpperCase()}{exportFormat === 'png' ? ' · 1024 PX' : exportFormat === 'pdf' ? ' · A4 / 2048' : ' · VECTOR'}</dd>
+				</div>
+				<div>
+					<dt>S-02 DOTS</dt>
+					<dd>{dotLabel}</dd>
+				</div>
+				<div>
+					<dt>S-03 EC</dt>
+					<dd>{resolvedECC}{errorCorrection === 'auto' ? ' · auto' : ''}</dd>
+				</div>
+				<div>
+					<dt>S-04 LOGO</dt>
+					<dd>{logoName ?? '— none'}</dd>
+				</div>
+			</dl>
+
+			<div class="export-formats" role="radiogroup" aria-label="Export format">
+				{#each ['png', 'svg', 'pdf'] as const as fmt}
+					<label class="format-tab" class:active={exportFormat === fmt}>
+						<input type="radio" name="export-format" value={fmt} bind:group={exportFormat} />
+						{fmt.toUpperCase()}
+					</label>
+				{/each}
+			</div>
+
+			<div class="action-row">
+				<button
+					class="download"
+					type="button"
+					onclick={downloadActive}
+					disabled={exporting}
+					aria-busy={exporting}
+				>
+					<span class="download-label">
+						{exporting ? 'PREPARING…' : `DOWNLOAD ${exportFormat.toUpperCase()}`}
+					</span>
+					<span class="download-size">
+						{#if exportFormat === 'png'}1024 PX
+						{:else if exportFormat === 'svg'}VECTOR
+						{:else}A4 / 2048 PX{/if}
+					</span>
+					<span class="download-arrow" aria-hidden="true">↓</span>
+				</button>
+				<button
+					class="permalink"
+					type="button"
+					onclick={copyPermalink}
+					aria-live="polite"
+				>
+					<span class="permalink-label">
+						{#if copyState === 'copied'}LINK COPIED
+						{:else if copyState === 'dropped'}COPIED — LOGO NOT IN LINK
+						{:else}COPY LINK{/if}
+					</span>
+					<span class="permalink-glyph" aria-hidden="true">⌁</span>
+				</button>
+			</div>
+			{#if copyState === 'dropped'}
+				<p class="permalink-note">
+					Logo is too large to include in the link — recipient will see the QR
+					without it. Re-attaching the logo on their end recreates the design.
+				</p>
+			{/if}
 		</div>
-		{#if copyState === 'dropped'}
-			<p class="permalink-note">
-				Logo is too large to include in the link — recipient will see the QR
-				without it. Re-attaching the logo on their end recreates the design.
-			</p>
-		{/if}
 	</div>
 
-	<div class="controls">
+	<div class="controls" id="p-01">
+
 		{#if contentType === 'url'}
 			<fieldset class="control-block">
 				<legend><span class="p-num">P-01</span> DESTINATION</legend>
@@ -1169,10 +1175,36 @@
 		gap: clamp(2rem, 5vw, 4.5rem);
 		align-items: start;
 	}
+	/* Left-column wrapper holds specimen (QR display) + specimen-actions
+	 * (meta + format tabs + download/copy). Wrapping them lets the left
+	 * column size to its own content instead of stretching to match the
+	 * right column's form height. */
+	.workshop-left {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		min-width: 0;
+	}
+	/* Mobile: flatten the workshop into a single column and reorder so
+	 * the form sits between the QR display and the download actions —
+	 * the form is what the user came to fill in. */
 	@media (max-width: 880px) {
 		.workshop {
-			grid-template-columns: minmax(0, 1fr);
+			display: flex;
+			flex-direction: column;
+			/* Override the desktop grid's align-items: start — on mobile
+			 * flex-column, cross-axis is horizontal, so we want children
+			 * stretched to full container width (QR preview, form, action
+			 * row should all span the column edge to edge). */
+			align-items: stretch;
+			gap: 1.75rem;
 		}
+		.workshop-left {
+			display: contents;
+		}
+		.specimen { order: 1; }
+		.controls { order: 2; }
+		.specimen-actions { order: 3; }
 	}
 
 	.specimen {
@@ -1180,6 +1212,12 @@
 		flex-direction: column;
 		gap: 1rem;
 		animation: fade-up var(--duration-slow) var(--ease) 120ms both;
+		min-width: 0;
+	}
+	.specimen-actions {
+		display: flex;
+		flex-direction: column;
+		gap: 0.85rem;
 		min-width: 0;
 	}
 
@@ -1662,6 +1700,10 @@
 		gap: 1.1rem;
 		animation: fade-up var(--duration-slow) var(--ease) 240ms both;
 		min-width: 0;
+		/* Anchor target offset for #p-01 — keep the form's first
+		 * legend below any sticky header (none today, but small offset
+		 * tightens the visible jump on hash navigation). */
+		scroll-margin-top: 1rem;
 	}
 
 	.control-block {

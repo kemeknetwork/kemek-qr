@@ -303,6 +303,7 @@
 		padding: clamp(1.4rem, 4vw, 2.5rem) clamp(0.25rem, 2vw, 2rem);
 		text-align: center;
 		position: relative;
+		min-width: 0;
 	}
 	.title-block-body::before,
 	.title-block-body::after {
@@ -337,7 +338,7 @@
 		letter-spacing: -0.025em;
 		margin: 0 auto 1.2rem;
 		color: var(--ink);
-		max-width: 22ch;
+		max-width: min(22ch, 100%);
 		font-variation-settings: 'opsz' 144;
 		text-wrap: balance;
 		overflow-wrap: anywhere;
