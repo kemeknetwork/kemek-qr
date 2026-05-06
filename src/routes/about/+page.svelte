@@ -179,16 +179,17 @@
 			<span class="dropmark" aria-hidden="true">01</span>
 			The kemek/qr source is{' '}
 			<a href="https://github.com/KeMeK-Network/kemek-QR">on GitHub</a>{' '}
-			under the MIT license. Read the code, fork it, run your own copy if
-			you’d rather not trust ours. The privacy claims on this page reduce
-			to "we ship no telemetry code"; the source is the proof.
+			under the MIT license. Read the code, fork it, run your own copy
+			if you’d prefer. The privacy claims on this page reduce to "we
+			ship no telemetry code"; the source is the proof.
 		</p>
 		<p>
 			<span class="dropmark" aria-hidden="true">02</span>
 			kemek/qr is part of the{' '}
-			<a href="https://kemek.com">KeMeK Network</a> family of free
-			utilities. KeMeK Network builds tools that don’t ask anything of the
-			user; this one extends that posture to the public web.
+			<a href="https://kemek.com">KeMeK Network</a> family of
+			utilities. KeMeK Network builds privacy-first, local-first tools
+			and full-stack apps — each one drawn to spec, opinionated in
+			design, and built for the common good.
 		</p>
 	</div>
 

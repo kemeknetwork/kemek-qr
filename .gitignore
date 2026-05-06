@@ -32,3 +32,7 @@ exploration-*.md
 philosophy-*.md
 adrs/
 [0-9][0-9]-*.md
+
+# Local runbook for native-app store submissions (developer-account
+# context + draft submission steps; commit later if/when sanitized)
+ops/deploy/app-stores.md

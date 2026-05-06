@@ -5,8 +5,15 @@
 
 	let { type }: { type: ContentType } = $props();
 	const copy = $derived(LANDING_COPY[type]);
-	const others = $derived(
-		(CONTENT_TYPES as readonly ContentType[]).filter((t) => t !== type).map((t) => LANDING_COPY[t])
+	/* Render all 8 plates; the current page is hidden by CSS on
+	 * multi-column layouts (where the missing tile would be a visible
+	 * gap) and shown on mobile single-column (where filling the
+	 * stack reads as a complete index). */
+	const allPlates = $derived(
+		(CONTENT_TYPES as readonly ContentType[]).map((t) => ({
+			...LANDING_COPY[t],
+			isCurrent: t === type
+		}))
 	);
 
 	const PLATE: Record<ContentType, string> = {
@@ -146,9 +153,9 @@
 		<span class="section-rule" aria-hidden="true"></span>
 	</header>
 	<ol class="plate-index">
-		{#each others as o}
-			<li>
-				<a href={o.path}>
+		{#each allPlates as o}
+			<li class:is-current={o.isCurrent}>
+				<a href={o.path} aria-current={o.isCurrent ? 'page' : undefined}>
 					<span class="plate-index-num">PL.{PLATE[o.path === '/' ? 'url' : (o.path.slice(1) as ContentType)]}</span>
 					<span class="plate-index-body">
 						<span class="plate-index-label">{o.shortLabel}</span>
@@ -529,6 +536,30 @@
 	.plate-index li {
 		border-right: 1px solid var(--rule);
 		border-bottom: 1px solid var(--rule);
+	}
+	/* Current page is hidden on multi-column layouts (the missing tile
+	 * would otherwise be a visible gap) and shown on stacked mobile
+	 * (where the full eight reads as a complete index). 600 px is the
+	 * grid's auto-fit collapse threshold — minmax(280px, 1fr) drops to
+	 * a single column at ~600 px container width. */
+	.plate-index li.is-current {
+		display: none;
+	}
+	@media (max-width: 600px) {
+		.plate-index li.is-current {
+			display: list-item;
+		}
+		/* The current page's tile reads as "you are here" — muted
+		 * styling + non-clickable (anchor still present for a11y but
+		 * pointer-events suppressed so it doesn't look like a dead
+		 * link to the page you're on). */
+		.plate-index li.is-current a {
+			pointer-events: none;
+			opacity: 0.55;
+		}
+		.plate-index li.is-current .plate-index-arrow {
+			visibility: hidden;
+		}
 	}
 	.plate-index a {
 		display: grid;
