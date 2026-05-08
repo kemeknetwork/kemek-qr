@@ -257,3 +257,20 @@ select {
 		transition-duration: 0.01ms !important;
 	}
 }
+
+/* Shared entrance animation — used by both the LandingPage hero +
+ * explainer and the About page's hero + explainer. Defined globally
+ * here so the keyframe is one source of truth; the components'
+ * `animation: fade-up …` declarations resolve to this global name
+ * because Svelte only rewrites animation references when the
+ * matching `@keyframes` lives in the same component <style>. */
+@keyframes fade-up {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}

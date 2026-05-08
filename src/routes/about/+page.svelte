@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { LANDING_COPY } from '$lib/landing-copy';
-	import { CONTENT_TYPES, PLATE } from '$lib/types';
+	import ExplainerSection from '$lib/ExplainerSection.svelte';
+	import PlateIndex from '$lib/PlateIndex.svelte';
 
 	const SITE = 'https://qr.kemek.com';
 	const canonicalUrl = `${SITE}/about`;
@@ -73,11 +73,7 @@
 </section>
 
 <section class="explainer">
-	<header class="section-head">
-		<span class="section-marker">§01</span>
-		<h2 class="section-title">What kemek/qr is</h2>
-		<span class="section-rule" aria-hidden="true"></span>
-	</header>
+	<ExplainerSection marker="§01" title="What kemek/qr is" />
 	<div class="prose">
 		<p>
 			<span class="dropmark" aria-hidden="true">01</span>
@@ -104,11 +100,7 @@
 		</p>
 	</div>
 
-	<header class="section-head">
-		<span class="section-marker">§02</span>
-		<h2 class="section-title">What we don’t do</h2>
-		<span class="section-rule" aria-hidden="true"></span>
-	</header>
+	<ExplainerSection marker="§02" title="What we don’t do" />
 	<div class="prose">
 		<p>
 			<span class="dropmark" aria-hidden="true">01</span>
@@ -142,11 +134,7 @@
 		</p>
 	</div>
 
-	<header class="section-head">
-		<span class="section-marker">§03</span>
-		<h2 class="section-title">How your data flows</h2>
-		<span class="section-rule" aria-hidden="true"></span>
-	</header>
+	<ExplainerSection marker="§03" title="How your data flows" />
 	<div class="prose">
 		<p>
 			<span class="dropmark" aria-hidden="true">01</span>
@@ -172,11 +160,7 @@
 		</p>
 	</div>
 
-	<header class="section-head">
-		<span class="section-marker">§04</span>
-		<h2 class="section-title">License &amp; source</h2>
-		<span class="section-rule" aria-hidden="true"></span>
-	</header>
+	<ExplainerSection marker="§04" title="License & source" />
 	<div class="prose">
 		<p>
 			<span class="dropmark" aria-hidden="true">01</span>
@@ -196,26 +180,8 @@
 		</p>
 	</div>
 
-	<header class="section-head">
-		<span class="section-marker">§05</span>
-		<h2 class="section-title">Plate index</h2>
-		<span class="section-rule" aria-hidden="true"></span>
-	</header>
-	<ol class="plate-index">
-		{#each CONTENT_TYPES as t}
-			{@const o = LANDING_COPY[t]}
-			<li>
-				<a href={o.path}>
-					<span class="plate-index-num">PL.{PLATE[t]}</span>
-					<span class="plate-index-body">
-						<span class="plate-index-label">{o.shortLabel}</span>
-						<span class="plate-index-h1">{o.plateLabel}</span>
-					</span>
-					<span class="plate-index-arrow" aria-hidden="true">→</span>
-				</a>
-			</li>
-		{/each}
-	</ol>
+	<ExplainerSection marker="§05" title="Plate index" />
+	<PlateIndex compact labelKind="plateLabel" />
 </section>
 
 <style>
@@ -379,43 +345,9 @@
 		padding: clamp(2rem, 5vw, 3.5rem) var(--gutter) clamp(3rem, 6vw, 5rem);
 		animation: fade-up var(--duration-slow) var(--ease) 360ms both;
 	}
-	.section-head {
-		display: grid;
-		grid-template-columns: auto auto minmax(0, 1fr);
-		align-items: baseline;
-		gap: 0.8rem;
-		margin: clamp(2.2rem, 4vw, 3.2rem) 0 1.2rem;
-	}
-	.section-marker {
-		font-family: var(--font-mono);
-		font-size: 18px;
-		letter-spacing: 0.18em;
-		color: var(--accent);
-		font-feature-settings: 'tnum';
-	}
-	.section-title {
-		font-family: var(--font-mono);
-		font-weight: 500;
-		font-size: 18px;
-		letter-spacing: 0.18em;
-		text-transform: uppercase;
-		color: var(--ghost);
-		margin: 0;
-		/* See LandingPage `.section-title` — keep on one line so the
-		 * rule track fills; allow wrap at very narrow viewports. */
-		white-space: nowrap;
-	}
-	@media (max-width: 380px) {
-		.section-title {
-			white-space: normal;
-		}
-	}
-	.section-rule {
-		display: block;
-		border-bottom: 1px dashed var(--rule);
-		align-self: center;
-		margin-top: -2px;
-	}
+	/* .section-head / .section-marker / .section-title / .section-rule
+	 * styles live in `lib/ExplainerSection.svelte` (used here via
+	 * <ExplainerSection marker="§NN" title="…" />). */
 
 	.prose {
 		max-width: 68ch;
@@ -460,81 +392,6 @@
 		.dropmark { width: 1.8rem; }
 	}
 
-	.plate-index {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: 0;
-		border: 1px solid var(--rule);
-		border-radius: var(--radius-sm);
-		overflow: hidden;
-		background: var(--paper);
-	}
-	.plate-index li {
-		border-right: 1px solid var(--rule);
-		border-bottom: 1px solid var(--rule);
-	}
-	.plate-index a {
-		display: grid;
-		grid-template-columns: auto minmax(0, 1fr) auto;
-		align-items: center;
-		gap: 1rem;
-		padding: 0.85rem 1.1rem;
-		text-decoration: none;
-		border-bottom: none;
-		transition:
-			background var(--duration-fast) var(--ease),
-			color var(--duration-fast) var(--ease);
-	}
-	.plate-index a:hover {
-		background: var(--paper-warm);
-	}
-	.plate-index a:hover .plate-index-num,
-	.plate-index a:hover .plate-index-arrow {
-		color: var(--accent);
-	}
-	.plate-index-num {
-		font-family: var(--font-mono);
-		font-size: 12px;
-		letter-spacing: 0.2em;
-		color: var(--micro);
-		font-feature-settings: 'tnum';
-		min-width: 3.4ch;
-	}
-	.plate-index-body {
-		display: flex;
-		flex-direction: column;
-		gap: 0.18rem;
-		min-width: 0;
-	}
-	.plate-index-label {
-		font-family: var(--font-mono);
-		font-size: 12px;
-		letter-spacing: 0.18em;
-		color: var(--ink);
-		text-transform: uppercase;
-		font-weight: 500;
-	}
-	.plate-index-h1 {
-		font-family: var(--font-display);
-		font-size: var(--fs-sm);
-		color: var(--ghost);
-		line-height: 1.4;
-		font-variation-settings: 'opsz' 14;
-	}
-	.plate-index-arrow {
-		font-family: var(--font-mono);
-		color: var(--micro);
-		transition: transform var(--duration-fast) var(--ease);
-	}
-	.plate-index a:hover .plate-index-arrow {
-		transform: translateX(3px);
-	}
-
-	@keyframes fade-up {
-		from { opacity: 0; transform: translateY(12px); }
-		to { opacity: 1; transform: translateY(0); }
-	}
+	/* @keyframes fade-up lives in app.css — see comment in
+	 * LandingPage.svelte. */
 </style>

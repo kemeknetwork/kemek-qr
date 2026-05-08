@@ -1,21 +1,13 @@
 <script lang="ts">
+	import ExplainerSection from './ExplainerSection.svelte';
 	import Generator from './Generator.svelte';
+	import PlateIndex from './PlateIndex.svelte';
 	import QRAnatomy from './QRAnatomy.svelte';
 	import { LANDING_COPY } from './landing-copy';
-	import { CONTENT_TYPES, PLATE, type ContentType } from './types';
+	import { PLATE, type ContentType } from './types';
 
 	let { type }: { type: ContentType } = $props();
 	const copy = $derived(LANDING_COPY[type]);
-	/* Render all 8 plates; the current page is hidden by CSS on
-	 * multi-column layouts (where the missing tile would be a visible
-	 * gap) and shown on mobile single-column (where filling the
-	 * stack reads as a complete index). */
-	const allPlates = $derived(
-		(CONTENT_TYPES as readonly ContentType[]).map((t) => ({
-			...LANDING_COPY[t],
-			isCurrent: t === type
-		}))
-	);
 	const plate = $derived(PLATE[type]);
 
 	const SITE = 'https://qr.kemek.com';
@@ -127,22 +119,14 @@
 <Generator {type} />
 
 <section class="explainer">
-	<header class="section-head">
-		<span class="section-marker">§01</span>
-		<h2 class="section-title">Notes on the artifact</h2>
-		<span class="section-rule" aria-hidden="true"></span>
-	</header>
+	<ExplainerSection marker="§01" title="Notes on the artifact" />
 	<div class="prose">
 		{#each copy.paragraphs as p, i}
 			<p><span class="dropmark" aria-hidden="true">{(i + 1).toString().padStart(2, '0')}</span>{p}</p>
 		{/each}
 	</div>
 
-	<header class="section-head">
-		<span class="section-marker">§02</span>
-		<h2 class="section-title">Footnotes &amp; queries</h2>
-		<span class="section-rule" aria-hidden="true"></span>
-	</header>
+	<ExplainerSection marker="§02" title="Footnotes & queries" />
 	<dl class="faq">
 		{#each copy.faq as entry, i}
 			<div class="faq-entry">
@@ -155,32 +139,11 @@
 		{/each}
 	</dl>
 
-	<header class="section-head">
-		<span class="section-marker">§03</span>
-		<h2 class="section-title">Anatomy of the code</h2>
-		<span class="section-rule" aria-hidden="true"></span>
-	</header>
+	<ExplainerSection marker="§03" title="Anatomy of the code" />
 	<QRAnatomy />
 
-	<header class="section-head">
-		<span class="section-marker">§04</span>
-		<h2 class="section-title">Plate index</h2>
-		<span class="section-rule" aria-hidden="true"></span>
-	</header>
-	<ol class="plate-index">
-		{#each allPlates as o}
-			<li class:is-current={o.isCurrent}>
-				<a href={o.path} aria-current={o.isCurrent ? 'page' : undefined}>
-					<span class="plate-index-num">PL.{PLATE[o.path === '/' ? 'url' : (o.path.slice(1) as ContentType)]}</span>
-					<span class="plate-index-body">
-						<span class="plate-index-label">{o.shortLabel}</span>
-						<span class="plate-index-h1">{o.h1}</span>
-					</span>
-					<span class="plate-index-arrow" aria-hidden="true">→</span>
-				</a>
-			</li>
-		{/each}
-	</ol>
+	<ExplainerSection marker="§04" title="Plate index" />
+	<PlateIndex current={type} />
 </section>
 
 <style>
@@ -520,45 +483,9 @@
 		animation: fade-up var(--duration-slow) var(--ease) 360ms both;
 	}
 
-	.section-head {
-		display: grid;
-		grid-template-columns: auto auto minmax(0, 1fr);
-		align-items: baseline;
-		gap: 0.8rem;
-		margin: clamp(2.2rem, 4vw, 3.2rem) 0 1.2rem;
-	}
-	.section-marker {
-		font-family: var(--font-mono);
-		font-size: 18px;
-		letter-spacing: 0.18em;
-		color: var(--accent);
-		font-feature-settings: 'tnum';
-	}
-	.section-title {
-		font-family: var(--font-mono);
-		font-weight: 500;
-		font-size: 18px;
-		letter-spacing: 0.18em;
-		text-transform: uppercase;
-		color: var(--ghost);
-		margin: 0;
-		/* Keep "Notes on the artifact" / "Footnotes & queries" on one
-		 * line at common viewports so the dashed rule fills remaining
-		 * width. At very narrow widths (≤380 px) the title would force
-		 * horizontal scroll, so let it wrap there. */
-		white-space: nowrap;
-	}
-	@media (max-width: 380px) {
-		.section-title {
-			white-space: normal;
-		}
-	}
-	.section-rule {
-		display: block;
-		border-bottom: 1px dashed var(--rule);
-		align-self: center;
-		margin-top: -2px;
-	}
+	/* .section-head / .section-marker / .section-title / .section-rule
+	 * styles live in `lib/ExplainerSection.svelte` (used here via
+	 * <ExplainerSection marker="§NN" title="…" />). */
 
 	.prose {
 		max-width: 68ch;
@@ -640,98 +567,7 @@
 		font-variation-settings: 'opsz' 14;
 	}
 
-	.plate-index {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: 0;
-		border: 1px solid var(--rule);
-		border-radius: var(--radius-sm);
-		overflow: hidden;
-		background: var(--paper);
-	}
-	.plate-index li {
-		border-right: 1px solid var(--rule);
-		border-bottom: 1px solid var(--rule);
-	}
-	/* Current page reads as "you are here" — muted, non-clickable
-	 * (anchor still present for a11y; aria-current="page" announces
-	 * the state to screen readers). Showing all eight fills the
-	 * grid cleanly at every breakpoint — hiding the current would
-	 * leave a trailing empty cell on desktop multi-column. */
-	.plate-index li.is-current a {
-		pointer-events: none;
-		opacity: 0.55;
-	}
-	.plate-index li.is-current .plate-index-arrow {
-		visibility: hidden;
-	}
-	.plate-index a {
-		display: grid;
-		grid-template-columns: auto minmax(0, 1fr) auto;
-		align-items: center;
-		gap: 1rem;
-		padding: 0.85rem 1.1rem;
-		text-decoration: none;
-		border-bottom: none;
-		transition:
-			background var(--duration-fast) var(--ease),
-			color var(--duration-fast) var(--ease);
-	}
-	.plate-index a:hover {
-		background: var(--paper-warm);
-	}
-	.plate-index a:hover .plate-index-num,
-	.plate-index a:hover .plate-index-arrow {
-		color: var(--accent);
-	}
-	.plate-index-num {
-		font-family: var(--font-mono);
-		font-size: 13px;
-		letter-spacing: 0.2em;
-		color: var(--micro);
-		font-feature-settings: 'tnum';
-		min-width: 3.4ch;
-	}
-	.plate-index-body {
-		display: flex;
-		flex-direction: column;
-		gap: 0.18rem;
-		min-width: 0;
-	}
-	.plate-index-label {
-		font-family: var(--font-mono);
-		font-size: 13px;
-		letter-spacing: 0.18em;
-		color: var(--ink);
-		text-transform: uppercase;
-		font-weight: 500;
-	}
-	.plate-index-h1 {
-		font-family: var(--font-display);
-		font-size: var(--fs-sm);
-		color: var(--ghost);
-		line-height: 1.4;
-		font-variation-settings: 'opsz' 14;
-	}
-	.plate-index-arrow {
-		font-family: var(--font-mono);
-		color: var(--micro);
-		transition: transform var(--duration-fast) var(--ease);
-	}
-	.plate-index a:hover .plate-index-arrow {
-		transform: translateX(3px);
-	}
-	@keyframes fade-up {
-		from {
-			opacity: 0;
-			transform: translateY(12px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
+	/* @keyframes fade-up lives in app.css (used here + on the
+	 * about page; defining it once keeps both pages on the
+	 * same entrance animation). */
 </style>
