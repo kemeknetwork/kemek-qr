@@ -713,8 +713,8 @@
 	}
 	.cell-value {
 		font-family: var(--font-mono);
-		font-size: 16px;
-		letter-spacing: 0.08em;
+		font-size: 14.44px;
+		letter-spacing: 0.07em;
 		color: var(--ink);
 	}
 	.cell-value a {
@@ -769,7 +769,7 @@
 		border: none;
 		cursor: pointer;
 		font-family: var(--font-mono);
-		font-size: 16px;
+		font-size: 14.44px;
 		letter-spacing: 0.08em;
 		color: var(--ink);
 	}
