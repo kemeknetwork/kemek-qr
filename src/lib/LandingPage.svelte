@@ -549,6 +549,8 @@
 
 	.prose {
 		max-width: 68ch;
+		margin-left: auto;
+		margin-right: auto;
 	}
 	.prose p {
 		font-family: var(--font-display);
@@ -586,6 +588,8 @@
 		display: grid;
 		gap: 1.5rem;
 		max-width: 68ch;
+		margin-left: auto;
+		margin-right: auto;
 	}
 	.faq-entry {
 		display: grid;

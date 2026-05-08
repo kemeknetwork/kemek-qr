@@ -197,10 +197,60 @@
 				</span>
 				<span class="brand-name">kemek<span class="brand-slash">/</span>qr</span>
 			</a>
-			<a class="pill" href="/about" aria-label="About — privacy posture and license">
-				NO SIGNUP <span class="pill-dot">·</span> NO TRACKING <span class="pill-dot">·</span> NO UPLOAD
-				<span class="pill-arrow" aria-hidden="true">→</span>
-			</a>
+			<div class="masthead-actions">
+				<a class="pill" href="/about" aria-label="About — privacy posture and license">
+					NO SIGNUP <span class="pill-dot">·</span> NO TRACKING <span class="pill-dot">·</span> NO UPLOAD
+					<span class="pill-arrow" aria-hidden="true">→</span>
+				</a>
+				<button
+					class="theme-toggle"
+					class:is-dark={mode === 'dark'}
+					type="button"
+					onclick={toggleTone}
+					aria-label={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+					aria-pressed={mode === 'dark'}
+					title={mode === 'dark' ? 'Switch to day' : 'Switch to night'}
+				>
+					<span class="theme-toggle-icons" aria-hidden="true">
+						<!-- Sun: outlined limb + 8 rays (4 cardinal + 4 intercardinal),
+						     read as a celestial drafting mark. -->
+						<svg
+							class="icon-sun"
+							viewBox="0 0 24 24"
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.7"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<circle cx="12" cy="12" r="4" />
+							<line x1="12" y1="2.5" x2="12" y2="4.5" />
+							<line x1="12" y1="19.5" x2="12" y2="21.5" />
+							<line x1="2.5" y1="12" x2="4.5" y2="12" />
+							<line x1="19.5" y1="12" x2="21.5" y2="12" />
+							<line x1="5.22" y1="5.22" x2="6.64" y2="6.64" />
+							<line x1="17.36" y1="17.36" x2="18.78" y2="18.78" />
+							<line x1="5.22" y1="18.78" x2="6.64" y2="17.36" />
+							<line x1="17.36" y1="6.64" x2="18.78" y2="5.22" />
+						</svg>
+						<!-- Moon: closed crescent — outline-only to match the sun's
+						     stroke language; reads as a single architectural sweep. -->
+						<svg
+							class="icon-moon"
+							viewBox="0 0 24 24"
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.7"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+						</svg>
+					</span>
+				</button>
+			</div>
 		</div>
 		<nav class="type-nav" aria-label="QR content types — plate index">
 			<div class="type-nav-inner">
@@ -350,6 +400,14 @@
 		font-style: italic;
 	}
 
+	.masthead-actions {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.55rem;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+	}
+
 	.pill {
 		display: inline-flex;
 		align-items: center;
@@ -369,6 +427,78 @@
 		transition:
 			color var(--duration-fast) var(--ease),
 			border-color var(--duration-fast) var(--ease);
+	}
+
+	/* Theme toggle — circular satellite to the pill, sized to match
+	 * its overall height. The two icons stack absolutely inside a
+	 * fixed 18px square; the inactive one fades + spins out, the
+	 * active one fades + spins in. Crossfade is short enough to
+	 * feel like a flip, not a transition. */
+	.theme-toggle {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 32px;
+		height: 32px;
+		padding: 0;
+		margin: 0;
+		background: transparent;
+		border: 1px solid var(--rule);
+		border-radius: 99px;
+		color: var(--ghost);
+		cursor: pointer;
+		flex: 0 0 auto;
+		transition:
+			color var(--duration-fast) var(--ease),
+			border-color var(--duration-fast) var(--ease),
+			background var(--duration-fast) var(--ease);
+	}
+	.theme-toggle:hover {
+		color: var(--ink);
+		border-color: var(--accent);
+	}
+	.theme-toggle:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
+	.theme-toggle-icons {
+		position: relative;
+		display: block;
+		width: 18px;
+		height: 18px;
+	}
+	.theme-toggle-icons svg {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		transform-origin: center;
+		transition:
+			opacity 220ms var(--ease),
+			transform 320ms var(--ease);
+	}
+	/* Light mode — sun visible, moon waiting */
+	.theme-toggle .icon-sun {
+		opacity: 1;
+		transform: rotate(0deg) scale(1);
+	}
+	.theme-toggle .icon-moon {
+		opacity: 0;
+		transform: rotate(-65deg) scale(0.6);
+	}
+	/* Dark mode — moon visible, sun parked */
+	.theme-toggle.is-dark .icon-sun {
+		opacity: 0;
+		transform: rotate(65deg) scale(0.6);
+	}
+	.theme-toggle.is-dark .icon-moon {
+		opacity: 1;
+		transform: rotate(0deg) scale(1);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.theme-toggle-icons svg {
+			transition-duration: 0ms;
+		}
 	}
 	.pill:hover {
 		color: var(--ink);

@@ -397,6 +397,8 @@
 
 	.prose {
 		max-width: 68ch;
+		margin-left: auto;
+		margin-right: auto;
 	}
 	.prose p {
 		font-family: var(--font-display);
