@@ -643,12 +643,14 @@
 		.type-link {
 			border-right: 1px dashed var(--rule);
 		}
-		.type-link:nth-child(4n) {
+		/* `:nth-of-type` (not `:nth-child`) counts only the <a> links,
+		 * skipping the .type-nav-rubric <span> sibling — otherwise the
+		 * end-of-row math is off by one and WIFI loses its right border
+		 * instead of VCARD (and PHONE instead of GEO). */
+		.type-link:nth-of-type(4n) {
 			border-right: none;
 		}
-		/* Row 2 (links 5–8) gets a top dashed rule mirroring the
-		 * vertical separators on row 1. */
-		.type-link:nth-child(n + 5) {
+		.type-link:nth-of-type(n + 5) {
 			border-top: 1px dashed var(--rule);
 		}
 	}

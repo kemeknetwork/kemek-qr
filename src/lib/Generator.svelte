@@ -732,11 +732,13 @@
 					<dt>S-03 EC</dt>
 					<dd>{resolvedECC}{errorCorrection === 'auto' ? ' · auto' : ''}</dd>
 				</div>
-				<div>
-					<dt>S-04 LOGO</dt>
-					<dd>{logoName ?? '— none'}</dd>
-				</div>
 			</dl>
+			{#if logoName}
+				<dl class="specimen-meta-logo" aria-label="Embedded logo">
+					<dt>S-04 LOGO</dt>
+					<dd>{logoName}</dd>
+				</dl>
+			{/if}
 
 			<div class="export-formats" role="radiogroup" aria-label="Export format">
 				{#each ['png', 'svg', 'pdf'] as const as fmt}
@@ -1515,7 +1517,7 @@
 
 	.specimen-meta {
 		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 		margin: 0;
 		border: 1px solid var(--rule);
 		border-radius: var(--radius-sm);
@@ -1523,22 +1525,23 @@
 		background: var(--paper);
 	}
 	.specimen-meta > div { min-width: 0; }
+	/* Below 640 px the 3-cell row gets too tight for "PNG · 1024 PX"
+	 * to sit on one line, so collapse to a 1-column stack. Each cell
+	 * still has its dt/dd column treatment. */
 	@media (max-width: 640px) {
 		.specimen-meta {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
+			grid-template-columns: minmax(0, 1fr);
 		}
 		.specimen-meta > div {
+			border-right: none;
 			border-bottom: 1px solid var(--rule);
 		}
-		.specimen-meta > div:nth-child(2n) {
-			border-right: none;
-		}
-		.specimen-meta > div:nth-last-child(-n + 2) {
+		.specimen-meta > div:last-child {
 			border-bottom: none;
 		}
 	}
 	.specimen-meta > div {
-		padding: 0.65rem 0.8rem 0.7rem;
+		padding: 0.65rem 0.85rem 0.7rem;
 		border-right: 1px solid var(--rule);
 		display: flex;
 		flex-direction: column;
@@ -1557,10 +1560,42 @@
 	}
 	.specimen-meta dd {
 		margin: 0;
-		font-size: 18px;
+		font-size: 16.8px;
 		color: var(--ink);
 		letter-spacing: 0.04em;
 		word-break: break-all;
+	}
+
+	/* Logo specification appears as a separate full-width row only
+	 * when a logo is actually loaded. Hidden by default — empty/none
+	 * state communicates itself by the QR not having a logo, no need
+	 * for an "— none" placeholder cell that eats space. */
+	.specimen-meta-logo {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr);
+		gap: 0 0.8rem;
+		align-items: baseline;
+		margin: 0.5rem 0 0;
+		padding: 0.65rem 0.85rem 0.7rem;
+		border: 1px solid var(--rule);
+		border-radius: var(--radius-sm);
+		background: var(--paper);
+	}
+	.specimen-meta-logo dt {
+		font-size: 15px;
+		letter-spacing: 0.2em;
+		color: var(--accent);
+		margin: 0;
+		font-feature-settings: 'tnum';
+		font-weight: 500;
+	}
+	.specimen-meta-logo dd {
+		margin: 0;
+		font-size: 16.8px;
+		color: var(--ink);
+		letter-spacing: 0.04em;
+		word-break: break-all;
+		min-width: 0;
 	}
 	.download {
 		display: flex;

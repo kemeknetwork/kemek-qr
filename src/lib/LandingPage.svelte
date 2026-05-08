@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Generator from './Generator.svelte';
+	import QRAnatomy from './QRAnatomy.svelte';
 	import { LANDING_COPY } from './landing-copy';
 	import { CONTENT_TYPES, type ContentType } from './types';
 
@@ -167,6 +168,13 @@
 
 	<header class="section-head">
 		<span class="section-marker">§03</span>
+		<h2 class="section-title">Anatomy of the code</h2>
+		<span class="section-rule" aria-hidden="true"></span>
+	</header>
+	<QRAnatomy />
+
+	<header class="section-head">
+		<span class="section-marker">§04</span>
 		<h2 class="section-title">Plate index</h2>
 		<span class="section-rule" aria-hidden="true"></span>
 	</header>
