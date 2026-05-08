@@ -27,6 +27,12 @@ import type {
 	WifiContent
 } from './types';
 
+/* Typed dispatch table: TS narrows `ContentMap[K]` per key, so each
+ * entry's argument type matches the encoder's parameter without
+ * runtime casts. Adding a new content type is one row here +
+ * one entry in `ContentMap` — TS enforces both ends. */
+type EncoderTable = { readonly [K in ContentType]: (c: ContentMap[K]) => string };
+
 /* WiFi field escape: backslash, semicolon, comma, colon, double-quote.
  * Per the de-facto standard implemented by Android/iOS scanners. */
 function escapeWifi(s: string): string {
@@ -101,24 +107,17 @@ export function encodeGeo(c: GeoContent): string {
 	return c.query ? `${base}?q=${encodeURIComponent(c.query)}` : base;
 }
 
+const ENCODERS: EncoderTable = {
+	url: encodeUrl,
+	text: encodeText,
+	wifi: encodeWifi,
+	vcard: encodeVCard,
+	email: encodeEmail,
+	sms: encodeSms,
+	phone: encodePhone,
+	geo: encodeGeo
+};
+
 export function encode<T extends ContentType>(type: T, content: ContentMap[T]): string {
-	switch (type) {
-		case 'url':
-			return encodeUrl(content as UrlContent);
-		case 'text':
-			return encodeText(content as TextContent);
-		case 'wifi':
-			return encodeWifi(content as WifiContent);
-		case 'vcard':
-			return encodeVCard(content as VCardContent);
-		case 'email':
-			return encodeEmail(content as EmailContent);
-		case 'sms':
-			return encodeSms(content as SmsContent);
-		case 'phone':
-			return encodePhone(content as PhoneContent);
-		case 'geo':
-			return encodeGeo(content as GeoContent);
-	}
-	return '';
+	return ENCODERS[type](content);
 }

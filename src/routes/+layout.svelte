@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import '../app.css';
 	import { page } from '$app/state';
-	import { CONTENT_TYPES, TYPE_LABELS, type ContentType } from '$lib/types';
+	import { CONTENT_TYPES, PLATE, ROUTE_FOR_TYPE, TYPE_LABELS, type ContentType } from '$lib/types';
 
 	let { children } = $props();
 
@@ -18,15 +18,27 @@
 		if (typeof document === 'undefined') return 'light';
 		const attr = document.documentElement.getAttribute('data-theme');
 		if (attr === 'dark' || attr === 'light') return attr;
+		/* Defense-in-depth: the FOUC script in app.html now sets
+		 * data-theme unconditionally before first paint, so this
+		 * matchMedia fallback only fires if that script silently
+		 * failed (CSP violation, ancient browser without
+		 * matchMedia, etc.). Returning the actual system preference
+		 * here keeps the UI sane in those edge cases instead of
+		 * defaulting to light unconditionally. */
 		return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 	}
 
 	let mode = $state<Mode>(readInitialMode());
 
-	function applyTheme(next: Mode) {
+	function applyTheme(next: Mode, persist = true) {
 		mode = next;
 		if (typeof document === 'undefined') return;
 		document.documentElement.setAttribute('data-theme', next);
+		/* `persist=false` is used by the system-preference listener so a
+		 * follow-the-OS change doesn't get written back to localStorage
+		 * as an explicit override (which would lock the next page load
+		 * to that theme even after the user changes their OS again). */
+		if (!persist) return;
 		try {
 			localStorage.setItem(THEME_KEY, next);
 		} catch {
@@ -56,39 +68,12 @@
 				 * override; the system preference takes effect. */
 			}
 			if (saved !== 'dark' && saved !== 'light') {
-				mode = mq.matches ? 'dark' : 'light';
+				applyTheme(mq.matches ? 'dark' : 'light', false);
 			}
 		};
 		mq.addEventListener('change', onSystemChange);
 		return () => mq.removeEventListener('change', onSystemChange);
 	});
-
-	/* Map a route pathname to its ContentType. `/` is the URL generator
-	 * (canonical landing); each /<type> is a per-type landing page. */
-	const ROUTE_FOR_TYPE: Record<ContentType, string> = {
-		url: '/',
-		text: '/text',
-		wifi: '/wifi',
-		vcard: '/vcard',
-		email: '/email',
-		sms: '/sms',
-		phone: '/phone',
-		geo: '/geo'
-	};
-
-	/* Plate numbers — the drawing-set ordering. URL is plate 01 (the
-	 * canonical landing); the rest follow in spec.section order so the
-	 * sequence reads like a published volume. */
-	const PLATE: Record<ContentType, string> = {
-		url: '01',
-		text: '02',
-		wifi: '03',
-		vcard: '04',
-		email: '05',
-		sms: '06',
-		phone: '07',
-		geo: '08'
-	};
 
 	const activeType = $derived.by<ContentType>(() => {
 		const path = page.url.pathname || '/';

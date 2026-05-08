@@ -85,3 +85,32 @@ export const TYPE_LABELS: Record<ContentType, string> = {
 	phone: 'PHONE',
 	geo: 'GEO'
 };
+
+/* Route paths per content type. URL is the canonical landing at `/`;
+ * all others sit at `/<type>`. Single source of truth for the
+ * masthead nav, plate-index links, and any future cross-type
+ * navigation. */
+export const ROUTE_FOR_TYPE: Record<ContentType, string> = {
+	url: '/',
+	text: '/text',
+	wifi: '/wifi',
+	vcard: '/vcard',
+	email: '/email',
+	sms: '/sms',
+	phone: '/phone',
+	geo: '/geo'
+};
+
+/* Plate numbers — drawing-set ordering, two-digit zero-padded. URL
+ * is plate 01 (canonical landing); the rest follow in spec.section
+ * order so the sequence reads like a published volume. */
+export const PLATE: Record<ContentType, string> = {
+	url: '01',
+	text: '02',
+	wifi: '03',
+	vcard: '04',
+	email: '05',
+	sms: '06',
+	phone: '07',
+	geo: '08'
+};

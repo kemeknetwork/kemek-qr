@@ -87,7 +87,29 @@ const FRAME_LABEL_FONT_VALUES: ReadonlySet<FrameLabelFont> = new Set(['mono', 'd
 
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
-const TYPES_SET: ReadonlySet<string> = new Set(CONTENT_TYPES);
+const TYPES_SET: ReadonlySet<ContentType> = new Set(CONTENT_TYPES);
+
+/* Narrowing validators — each returns a TS type-guard so the
+ * decoder can assign `out.field = w.x` without `as` casts. Adding
+ * a new wire field becomes a one-liner using the matching helper. */
+function isOneOf<T extends string>(v: unknown, set: ReadonlySet<T>): v is T {
+	/* The `set as ReadonlySet<string>` cast is narrowly scoped here so
+	 * `.has(v)` accepts an `unknown`-narrowed-to-`string` value —
+	 * `Set<T>.has()` insists on `T` typing-wise, but at runtime any
+	 * value works and a non-T input correctly returns false. The
+	 * function's `v is T` predicate gives the caller a real narrowing,
+	 * so call sites stay cast-free. */
+	return typeof v === 'string' && (set as ReadonlySet<string>).has(v);
+}
+function isHexColor(v: unknown): v is string {
+	return typeof v === 'string' && HEX_RE.test(v);
+}
+function isNumberInRange(v: unknown, min: number, max: number): v is number {
+	return typeof v === 'number' && v >= min && v <= max;
+}
+function isStringMaxLen(v: unknown, max: number): v is string {
+	return typeof v === 'string' && v.length <= max;
+}
 
 type WireV1 = {
 	t?: ContentType;
@@ -225,34 +247,30 @@ export function decodePermalink(hash: string): DecodedPermalink | null {
 	const w = parsed as WireV1;
 	const out: DecodedPermalink = {};
 
-	if (typeof w.t === 'string' && TYPES_SET.has(w.t)) out.type = w.t;
+	if (isOneOf(w.t, TYPES_SET)) out.type = w.t;
 	if (out.type && w.c) {
 		const v = validateContent(out.type, w.c);
 		if (v) out.content = v;
 	}
-	if (typeof w.f === 'string' && HEX_RE.test(w.f)) out.fg = w.f;
-	if (typeof w.b === 'string' && HEX_RE.test(w.b)) out.bg = w.b;
-	if (typeof w.d === 'string' && DOT_TYPES.has(w.d as DotType)) out.dot = w.d as DotType;
-	if (typeof w.e === 'string' && ECC_VALUES.has(w.e as ECC)) out.ecc = w.e as ECC;
-	if (typeof w.ls === 'number' && w.ls >= 0.05 && w.ls <= 0.5) out.logoSize = w.ls;
+	if (isHexColor(w.f)) out.fg = w.f;
+	if (isHexColor(w.b)) out.bg = w.b;
+	if (isOneOf(w.d, DOT_TYPES)) out.dot = w.d;
+	if (isOneOf(w.e, ECC_VALUES)) out.ecc = w.e;
+	if (isNumberInRange(w.ls, 0.05, 0.5)) out.logoSize = w.ls;
 	if (typeof w.l === 'string' && w.l.startsWith('data:image/')) out.logoDataUrl = w.l;
-	if (typeof w.ef === 'string' && EYE_FRAME_VALUES.has(w.ef as EyeFrameType))
-		out.eyeFrame = w.ef as EyeFrameType;
-	if (typeof w.eb === 'string' && EYE_BALL_VALUES.has(w.eb as EyeBallType))
-		out.eyeBall = w.eb as EyeBallType;
+	if (isOneOf(w.ef, EYE_FRAME_VALUES)) out.eyeFrame = w.ef;
+	if (isOneOf(w.eb, EYE_BALL_VALUES)) out.eyeBall = w.eb;
 	if (w.g === true) {
 		out.gradientEnabled = true;
-		if (typeof w.gf === 'string' && HEX_RE.test(w.gf)) out.gradientFrom = w.gf;
-		if (typeof w.gt === 'string' && HEX_RE.test(w.gt)) out.gradientTo = w.gt;
-		if (typeof w.ga === 'number' && w.ga >= 0 && w.ga <= 360) out.gradientAngle = w.ga;
+		if (isHexColor(w.gf)) out.gradientFrom = w.gf;
+		if (isHexColor(w.gt)) out.gradientTo = w.gt;
+		if (isNumberInRange(w.ga, 0, 360)) out.gradientAngle = w.ga;
 	}
 	if (w.fr === true) {
 		out.frameEnabled = true;
-		if (typeof w.fl === 'string' && w.fl.length <= 64) out.frameLabel = w.fl;
-		if (typeof w.fls === 'string' && FRAME_LABEL_SIZE_VALUES.has(w.fls as FrameLabelSize))
-			out.frameLabelSize = w.fls as FrameLabelSize;
-		if (typeof w.flf === 'string' && FRAME_LABEL_FONT_VALUES.has(w.flf as FrameLabelFont))
-			out.frameLabelFont = w.flf as FrameLabelFont;
+		if (isStringMaxLen(w.fl, 64)) out.frameLabel = w.fl;
+		if (isOneOf(w.fls, FRAME_LABEL_SIZE_VALUES)) out.frameLabelSize = w.fls;
+		if (isOneOf(w.flf, FRAME_LABEL_FONT_VALUES)) out.frameLabelFont = w.flf;
 	}
 
 	return out;

@@ -2,7 +2,7 @@
 	import Generator from './Generator.svelte';
 	import QRAnatomy from './QRAnatomy.svelte';
 	import { LANDING_COPY } from './landing-copy';
-	import { CONTENT_TYPES, type ContentType } from './types';
+	import { CONTENT_TYPES, PLATE, type ContentType } from './types';
 
 	let { type }: { type: ContentType } = $props();
 	const copy = $derived(LANDING_COPY[type]);
@@ -16,17 +16,6 @@
 			isCurrent: t === type
 		}))
 	);
-
-	const PLATE: Record<ContentType, string> = {
-		url: '01',
-		text: '02',
-		wifi: '03',
-		vcard: '04',
-		email: '05',
-		sms: '06',
-		phone: '07',
-		geo: '08'
-	};
 	const plate = $derived(PLATE[type]);
 
 	const SITE = 'https://qr.kemek.com';

@@ -18,6 +18,10 @@ export type LandingCopy = {
 	path: string;
 	/* Short label used in cross-links and the nav. */
 	shortLabel: string;
+	/* Tighter mixed-case label used in cross-page plate indexes
+	 * (e.g. About → plate index) where the full h1 would over-repeat
+	 * "Free … QR code generator" eight times in a list. */
+	plateLabel: string;
 	/* Body paragraphs rendered in order under the generator. Plain text. */
 	paragraphs: string[];
 	/* Two-column FAQ entries; each renders as a subsection with its own H3. */
@@ -35,6 +39,7 @@ export const LANDING_COPY: Record<ContentType, LandingCopy> = {
 			'Generate QR codes for any URL. Free, no signup, no tracking. Customize colors, dot styles, and logo. Download PNG, SVG, or PDF straight from your browser.',
 		path: '/',
 		shortLabel: 'URL',
+		plateLabel: 'URL QR generator',
 		paragraphs: [
 			'Paste a link, get a scannable QR code. The encoder runs entirely in your browser, so the URL you type never reaches our servers — there is no server to reach. The same is true for any logo you embed: it is read with FileReader and composited locally.',
 			'A QR code that points at a URL is a static QR. It will work for as long as the destination URL itself works. There is no shortener in the middle, no analytics pixel, no expiring redirect. If you change your domain later, the old code stops resolving — that is the trade-off for not needing an account.',
@@ -64,6 +69,7 @@ export const LANDING_COPY: Record<ContentType, LandingCopy> = {
 			'Generate QR codes for plain text. Free, no signup. Useful for notes, codes, instructions, anything that does not need to open in a browser.',
 		path: '/text',
 		shortLabel: 'TEXT',
+		plateLabel: 'Text QR generator',
 		paragraphs: [
 			'A text QR code does not point anywhere. The scanner shows the decoded string and stops there. That is useful when the goal is to deliver information directly — a serial number, a poem, a one-time access code, a printed message — rather than open a website.',
 			'Most modern phone cameras will offer to copy the decoded text. Some will offer to "search" it, which usually means a generic web search. There is no auto-redirect because there is nowhere to redirect to.',
@@ -93,6 +99,7 @@ export const LANDING_COPY: Record<ContentType, LandingCopy> = {
 			'Make a WiFi QR code that joins your network with one scan. Supports WPA/WPA2/WPA3, WEP, open. No signup, no tracking. Credentials stay in your browser.',
 		path: '/wifi',
 		shortLabel: 'WIFI',
+		plateLabel: 'WiFi QR generator',
 		paragraphs: [
 			'A WiFi QR code carries the SSID, password, security type, and a hidden-network flag in a standard format that iOS and Android camera apps both recognize. When scanned, the phone offers to join the network — no typing required. This is the same format printed on the side of many home routers.',
 			'The format is plain text — anyone who scans the QR can read the password by feeding the decoded string to a parser. That is fine for a guest WiFi sticker by your front door, less fine for a corporate network. Treat the printed QR like the printed password.',
@@ -122,6 +129,7 @@ export const LANDING_COPY: Record<ContentType, LandingCopy> = {
 			'Make a vCard QR for your contact info. Scans into iPhone and Android contacts. Free, no signup, no tracking. Generated entirely in your browser.',
 		path: '/vcard',
 		shortLabel: 'VCARD',
+		plateLabel: 'vCard QR generator',
 		paragraphs: [
 			'A vCard QR carries a contact card in the same format your phone uses to share a contact via AirDrop or Nearby Share. When scanned, the recipient is offered an "Add to Contacts" sheet pre-filled with the fields you set. It is the modern equivalent of a paper business card, except it survives the wallet.',
 			'We emit vCard 3.0 because it has the widest scanner support across iPhone, Android, and the long tail of QR-reading apps. Newer versions (4.0) are slightly more compact but break in older readers. The trade-off is not worth it for a contact card.',
@@ -151,6 +159,7 @@ export const LANDING_COPY: Record<ContentType, LandingCopy> = {
 			'Generate a QR code that opens an email draft when scanned. Pre-fill subject and body. Free, no signup, no tracking. Encoded in your browser.',
 		path: '/email',
 		shortLabel: 'EMAIL',
+		plateLabel: 'Email QR generator',
 		paragraphs: [
 			'An email QR encodes a mailto: URL — the same format you would use in an HTML link. When scanned, the phone opens the user’s default mail app with the To, Subject, and Body fields pre-filled. The user can edit before sending; nothing is sent automatically.',
 			'Subject and body are URL-encoded so spaces, ampersands, and line breaks survive the round-trip. There is no length limit imposed by the QR format itself — the practical limit is whatever the scanner’s URL parser tolerates, which is comfortably in the thousands of characters.',
@@ -176,6 +185,7 @@ export const LANDING_COPY: Record<ContentType, LandingCopy> = {
 			'QR codes that open a pre-filled SMS draft when scanned. Free, no signup, no tracking. Generated entirely in your browser.',
 		path: '/sms',
 		shortLabel: 'SMS',
+		plateLabel: 'SMS QR generator',
 		paragraphs: [
 			'An SMS QR encodes the recipient number and a message body. We use the SMSTO: format, which has the broadest stock-app compatibility — better than the official sms: scheme, which some Android stock messaging apps still mishandle.',
 			'Common uses include "Text JOIN to opt in" replacements, support shortcuts ("Scan to text our help desk"), and event check-ins where a typed message is awkward. As with the email QR, scanning opens a draft — the user has to send.',
@@ -201,6 +211,7 @@ export const LANDING_COPY: Record<ContentType, LandingCopy> = {
 			'Generate QR codes that dial a phone number when scanned. Free, no signup, no tracking. Encoded in your browser.',
 		path: '/phone',
 		shortLabel: 'PHONE',
+		plateLabel: 'Phone QR generator',
 		paragraphs: [
 			'A phone QR encodes a tel: URL — the same format used by clickable phone numbers in HTML. Scanning offers a "Call <number>" prompt. The user has to confirm; phones do not silently dial from a QR.',
 			'Include the country code (+1 for the US, +44 for the UK, etc.) so the QR works regardless of where it is scanned. A national-format number works locally but fails when a traveler scans it.',
@@ -226,6 +237,7 @@ export const LANDING_COPY: Record<ContentType, LandingCopy> = {
 			'QR codes that open a map pin when scanned. Latitude / longitude with optional label. Free, no signup, no tracking. Generated entirely in your browser.',
 		path: '/geo',
 		shortLabel: 'GEO',
+		plateLabel: 'Geo location QR generator',
 		paragraphs: [
 			'A geo QR uses the geo: URL scheme defined by RFC 5870. Scanning opens whatever maps app is the user’s default — Apple Maps on iOS, Google Maps or Waze on Android, Organic Maps if they have set that as default. The pin lands at the lat/lon you specify.',
 			'The optional label is encoded as a `q=` parameter, a Google-Maps convention that most modern map apps honor. Older or stricter readers ignore the label and just drop a pin at the coordinates — that fallback is fine.',

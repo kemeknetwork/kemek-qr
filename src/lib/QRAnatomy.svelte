@@ -1,4 +1,4 @@
-<script lang="ts">
+<script module lang="ts">
 	/* Schematic of a QR code (drawn at version 2 / 25 × 25 modules
 	 * because that's the smallest version with an alignment pattern,
 	 * which lets the diagram show all six functional regions in one
@@ -13,7 +13,13 @@
 	 * Data cells are scattered sparsely (~22 % density) to hint at
 	 * "data territory" while staying visually subordinate to the
 	 * called-out structural features. Cell positions are deterministic
-	 * via a seeded LCG so the diagram is reproducible across builds. */
+	 * via a seeded LCG so the diagram is reproducible across builds.
+	 *
+	 * This script runs at *module* scope (Svelte 5 `<script module>`)
+	 * so the geometry + cell layout is computed exactly once per page
+	 * load instead of every time a route navigation re-mounts the
+	 * component — the layout is purely deterministic, no per-instance
+	 * state. */
 
 	const SIZE = 25;
 	const MODULE = 8;

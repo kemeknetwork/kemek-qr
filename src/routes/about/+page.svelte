@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { LANDING_COPY } from '$lib/landing-copy';
+	import { CONTENT_TYPES, PLATE } from '$lib/types';
+
 	const SITE = 'https://qr.kemek.com';
 	const canonicalUrl = `${SITE}/about`;
 	const title = 'About kemek/qr — privacy posture, scope, license | KeMeK';
@@ -199,14 +202,19 @@
 		<span class="section-rule" aria-hidden="true"></span>
 	</header>
 	<ol class="plate-index">
-		<li><a href="/"><span class="plate-index-num">PL.01</span><span class="plate-index-body"><span class="plate-index-label">URL</span><span class="plate-index-h1">URL QR generator</span></span><span class="plate-index-arrow" aria-hidden="true">→</span></a></li>
-		<li><a href="/text"><span class="plate-index-num">PL.02</span><span class="plate-index-body"><span class="plate-index-label">TEXT</span><span class="plate-index-h1">Text QR generator</span></span><span class="plate-index-arrow" aria-hidden="true">→</span></a></li>
-		<li><a href="/wifi"><span class="plate-index-num">PL.03</span><span class="plate-index-body"><span class="plate-index-label">WIFI</span><span class="plate-index-h1">WiFi QR generator</span></span><span class="plate-index-arrow" aria-hidden="true">→</span></a></li>
-		<li><a href="/vcard"><span class="plate-index-num">PL.04</span><span class="plate-index-body"><span class="plate-index-label">VCARD</span><span class="plate-index-h1">vCard QR generator</span></span><span class="plate-index-arrow" aria-hidden="true">→</span></a></li>
-		<li><a href="/email"><span class="plate-index-num">PL.05</span><span class="plate-index-body"><span class="plate-index-label">EMAIL</span><span class="plate-index-h1">Email QR generator</span></span><span class="plate-index-arrow" aria-hidden="true">→</span></a></li>
-		<li><a href="/sms"><span class="plate-index-num">PL.06</span><span class="plate-index-body"><span class="plate-index-label">SMS</span><span class="plate-index-h1">SMS QR generator</span></span><span class="plate-index-arrow" aria-hidden="true">→</span></a></li>
-		<li><a href="/phone"><span class="plate-index-num">PL.07</span><span class="plate-index-body"><span class="plate-index-label">PHONE</span><span class="plate-index-h1">Phone QR generator</span></span><span class="plate-index-arrow" aria-hidden="true">→</span></a></li>
-		<li><a href="/geo"><span class="plate-index-num">PL.08</span><span class="plate-index-body"><span class="plate-index-label">GEO</span><span class="plate-index-h1">Geo location QR generator</span></span><span class="plate-index-arrow" aria-hidden="true">→</span></a></li>
+		{#each CONTENT_TYPES as t}
+			{@const o = LANDING_COPY[t]}
+			<li>
+				<a href={o.path}>
+					<span class="plate-index-num">PL.{PLATE[t]}</span>
+					<span class="plate-index-body">
+						<span class="plate-index-label">{o.shortLabel}</span>
+						<span class="plate-index-h1">{o.plateLabel}</span>
+					</span>
+					<span class="plate-index-arrow" aria-hidden="true">→</span>
+				</a>
+			</li>
+		{/each}
 	</ol>
 </section>
 

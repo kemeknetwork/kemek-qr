@@ -78,9 +78,14 @@
 /* Dark mode tokens — drafting board at night. Warm graphite paper,
  * cream ink, slightly hotter accent so the red survives over the
  * darker surface. Inverted grain (cream dots) and a softer warm
- * vignette suggesting a single desk lamp at the top of the page. */
-:root[data-theme='dark'],
-:root.dark {
+ * vignette suggesting a single desk lamp at the top of the page.
+ *
+ * The FOUC script in `app.html` resolves either the explicit
+ * localStorage override or the OS preference and sets data-theme
+ * unconditionally before first paint, so this is the single source
+ * of truth for dark tokens — no companion `@media
+ * (prefers-color-scheme: dark)` block to drift against. */
+:root[data-theme='dark'] {
 	color-scheme: dark;
 	--ink: #f9eedb;
 	--ink-soft: #e7dfc8;
@@ -97,26 +102,6 @@
 	--grain-2: rgba(235, 226, 203, 0.03);
 	--vignette: rgba(235, 226, 203, 0.05);
 	--specimen-highlight: rgba(235, 226, 203, 0.07);
-}
-@media (prefers-color-scheme: dark) {
-	:root:not([data-theme='light']) {
-		color-scheme: dark;
-		--ink: #f9eedb;
-		--ink-soft: #e7dfc8;
-		--paper: #100e09;
-		--paper-warm: #16130d;
-		--paper-cool: #0b0906;
-		--rule: rgba(249, 238, 219, 0.24);
-		--rule-strong: rgba(249, 238, 219, 0.46);
-		--ghost: rgba(249, 238, 219, 0.78);
-		--micro: rgba(249, 238, 219, 0.71);
-		--accent: #e0492c;
-		--accent-deep: #b13a23;
-		--grain-1: rgba(235, 226, 203, 0.045);
-		--grain-2: rgba(235, 226, 203, 0.03);
-		--vignette: rgba(235, 226, 203, 0.05);
-		--specimen-highlight: rgba(235, 226, 203, 0.07);
-	}
 }
 
 *,

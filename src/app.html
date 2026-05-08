@@ -6,16 +6,25 @@
 		<meta name="text-scale" content="scale" />
 		<meta name="color-scheme" content="light dark" />
 		<script>
-			/* FOUC firewall: apply the explicit theme override (if any) on
-			 * <html> before first paint so the dark-mode token block is
-			 * already in effect when the page renders. No saved override
-			 * means the system preference takes over via @media. */
+			/* FOUC firewall: resolve theme (explicit override or system
+			 * preference) and set the data-theme attribute on <html>
+			 * before first paint, so the matching token block is in
+			 * effect when the page renders. Setting data-theme
+			 * unconditionally (rather than only on explicit override)
+			 * lets app.css keep a single dark-mode token rule instead
+			 * of duplicating the block across `[data-theme='dark']`
+			 * and `@media (prefers-color-scheme: dark)`. */
 			(function () {
-				try {
-					var t = localStorage.getItem('kemek-qr:theme');
-					if (t === 'dark' || t === 'light')
-						document.documentElement.setAttribute('data-theme', t);
-				} catch (e) {}
+				var t = null;
+				try { t = localStorage.getItem('kemek-qr:theme'); } catch (e) {}
+				var resolved =
+					t === 'dark' || t === 'light'
+						? t
+						: window.matchMedia &&
+							  window.matchMedia('(prefers-color-scheme: dark)').matches
+							? 'dark'
+							: 'light';
+				document.documentElement.setAttribute('data-theme', resolved);
 			})();
 		</script>
 		%sveltekit.head%
