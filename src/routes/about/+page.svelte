@@ -265,13 +265,13 @@
 	.title-block-bl { justify-self: start; grid-row: 3; grid-column: 1; padding-left: 0; }
 	.title-block-br { justify-self: end; text-align: right; grid-row: 3; grid-column: 2; padding-right: 0; }
 	.title-block-corner .rubric {
-		font-size: 11px;
+		font-size: 12px;
 		letter-spacing: 0.32em;
 		color: var(--micro);
 		text-transform: uppercase;
 	}
 	.title-block-corner .value {
-		font-size: 13px;
+		font-size: 14px;
 		letter-spacing: 0.14em;
 		color: var(--ink);
 		text-transform: uppercase;
@@ -279,7 +279,7 @@
 	}
 	.plate-large {
 		font-family: var(--font-display);
-		font-size: clamp(1.5rem, 3.5vw, 2.4rem);
+		font-size: clamp(1.6rem, 3.7vw, 2.55rem);
 		font-weight: 400;
 		font-style: italic;
 		color: var(--accent);
@@ -289,12 +289,12 @@
 		margin-top: 0.1rem;
 	}
 	@media (max-width: 540px) {
-		.title-block-corner .rubric { font-size: 10px; letter-spacing: 0.26em; }
-		.title-block-corner .value { font-size: 12px; letter-spacing: 0.1em; }
-		.plate-large { font-size: clamp(1.25rem, 6vw, 1.75rem); margin-top: 0.05rem; }
+		.title-block-corner .rubric { font-size: 11px; letter-spacing: 0.26em; }
+		.title-block-corner .value { font-size: 13px; letter-spacing: 0.1em; }
+		.plate-large { font-size: clamp(1.35rem, 6.4vw, 1.85rem); margin-top: 0.05rem; }
 	}
 	@media (max-width: 380px) {
-		.title-block-corner .value:not(.plate-large) { font-size: 11px; letter-spacing: 0.04em; }
+		.title-block-corner .value:not(.plate-large) { font-size: 12px; letter-spacing: 0.04em; }
 	}
 
 	.title-block-body {
@@ -321,7 +321,7 @@
 		display: inline-block;
 		max-width: 100%;
 		font-family: var(--font-mono);
-		font-size: 12.5px;
+		font-size: 13px;
 		letter-spacing: 0.32em;
 		text-transform: uppercase;
 		color: var(--accent);
@@ -333,7 +333,7 @@
 	.hero-title {
 		font-family: var(--font-display);
 		font-weight: 400;
-		font-size: clamp(1.7rem, 5vw + 0.5rem, 3.75rem);
+		font-size: clamp(1.85rem, 5.4vw + 0.55rem, 4rem);
 		line-height: 1.06;
 		letter-spacing: -0.025em;
 		margin: 0 auto 1.2rem;
@@ -344,10 +344,10 @@
 		overflow-wrap: anywhere;
 	}
 	@media (max-width: 540px) {
-		.title-rubric { font-size: 11px; letter-spacing: 0.24em; padding: 0.3rem 0.55rem; margin-bottom: 0.85rem; }
+		.title-rubric { font-size: 12px; letter-spacing: 0.24em; padding: 0.3rem 0.55rem; margin-bottom: 0.85rem; }
 	}
 	@media (max-width: 380px) {
-		.title-rubric { font-size: 10px; letter-spacing: 0.18em; padding: 0.28rem 0.45rem; }
+		.title-rubric { font-size: 11px; letter-spacing: 0.18em; padding: 0.28rem 0.45rem; }
 	}
 	.hero-sub {
 		font-family: var(--font-mono);
@@ -374,7 +374,7 @@
 	}
 	.section-marker {
 		font-family: var(--font-mono);
-		font-size: 12px;
+		font-size: 18px;
 		letter-spacing: 0.18em;
 		color: var(--accent);
 		font-feature-settings: 'tnum';
@@ -382,11 +382,19 @@
 	.section-title {
 		font-family: var(--font-mono);
 		font-weight: 500;
-		font-size: var(--fs-xs);
-		letter-spacing: 0.22em;
+		font-size: 18px;
+		letter-spacing: 0.18em;
 		text-transform: uppercase;
 		color: var(--ghost);
 		margin: 0;
+		/* See LandingPage `.section-title` — keep on one line so the
+		 * rule track fills; allow wrap at very narrow viewports. */
+		white-space: nowrap;
+	}
+	@media (max-width: 380px) {
+		.section-title {
+			white-space: normal;
+		}
 	}
 	.section-rule {
 		display: block;
@@ -425,7 +433,7 @@
 		left: 0;
 		top: 0.55em;
 		font-family: var(--font-mono);
-		font-size: 10px;
+		font-size: 11px;
 		letter-spacing: 0.2em;
 		color: var(--accent);
 		font-feature-settings: 'tnum';
@@ -475,7 +483,7 @@
 	}
 	.plate-index-num {
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: 12px;
 		letter-spacing: 0.2em;
 		color: var(--micro);
 		font-feature-settings: 'tnum';
@@ -489,7 +497,7 @@
 	}
 	.plate-index-label {
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: 12px;
 		letter-spacing: 0.18em;
 		color: var(--ink);
 		text-transform: uppercase;

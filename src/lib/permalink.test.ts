@@ -16,7 +16,8 @@ const baseStyling = {
 	eyeBall: 'square' as const,
 	frameEnabled: false,
 	frameLabel: 'SCAN ME',
-	frameLabelSize: 'M' as const
+	frameLabelSize: 'M' as const,
+	frameLabelFont: 'mono' as const
 };
 
 describe('encode → decode round trip', () => {
@@ -134,6 +135,33 @@ describe('styling fields', () => {
 		expect(enc.hash).not.toContain('fls');
 		const dec = decodePermalink(enc.hash);
 		expect(dec?.frameLabelSize).toBeUndefined();
+	});
+	it('round-trips frameLabelFont when frame is enabled and font != mono', () => {
+		const state: PermalinkState<'url'> = {
+			...baseStyling,
+			type: 'url',
+			content: { url: 'https://kemek.com' },
+			frameEnabled: true,
+			frameLabel: 'SCAN ME',
+			frameLabelFont: 'display'
+		};
+		const enc = encodePermalink(state, 'https://qr.kemek.com/');
+		const dec = decodePermalink(enc.hash);
+		expect(dec?.frameLabelFont).toBe('display');
+	});
+	it('omits frameLabelFont when default (mono) to keep links short', () => {
+		const state: PermalinkState<'url'> = {
+			...baseStyling,
+			type: 'url',
+			content: { url: 'x' },
+			frameEnabled: true,
+			frameLabel: 'SCAN ME',
+			frameLabelFont: 'mono'
+		};
+		const enc = encodePermalink(state, 'https://qr.kemek.com/');
+		expect(enc.hash).not.toContain('flf');
+		const dec = decodePermalink(enc.hash);
+		expect(dec?.frameLabelFont).toBeUndefined();
 	});
 	it('omits gradient fields when disabled (keeps default-state links short)', () => {
 		const state: PermalinkState<'url'> = {

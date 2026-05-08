@@ -18,19 +18,18 @@
 	 * media query lets a user override the system preference back
 	 * to light without `light dark` from the system pulling them
 	 * into dark again. */
-	--ink: #1a1815;
-	--ink-soft: #2c2924;
-	--paper: #f2ebdd;
-	--paper-warm: #ede4ce;
-	--paper-cool: #e8dfc8;
-	--rule: rgba(26, 24, 21, 0.18);
-	--rule-strong: rgba(26, 24, 21, 0.4);
-	/* --ghost is used for body-adjacent secondary text; tuned to ~6:1
-	 * over --paper. --micro is for very small (≤11px) labels; bumped
-	 * from 0.35 (~3:1, fails AA for normal text) to 0.55 to comfortably
-	 * pass WCAG AA on the only sizes it's used at. */
-	--ghost: rgba(26, 24, 21, 0.62);
-	--micro: rgba(26, 24, 21, 0.55);
+	--ink: #0e0b06;
+	--ink-soft: #1d1813;
+	--paper: #f4eee0;
+	--paper-warm: #efe6cf;
+	--paper-cool: #e9e1ca;
+	--rule: rgba(14, 11, 6, 0.26);
+	--rule-strong: rgba(14, 11, 6, 0.5);
+	/* --ghost: body-adjacent secondary text. --micro: small (≤11 px)
+	 * caps labels. Both alphas are tuned to clear WCAG AA over --paper
+	 * at the sizes they're consumed at — re-verify if you change them. */
+	--ghost: rgba(14, 11, 6, 0.78);
+	--micro: rgba(14, 11, 6, 0.71);
 	--accent: #c53a1f;
 	--accent-deep: #9c2d17;
 	/* Texture tokens — paper grain dots + page-edge vignette. Pulled
@@ -44,19 +43,19 @@
 	/* ── Typography ────────────────────────────────────────── */
 	--font-display: 'Fraunces Variable', 'Fraunces', Georgia, serif;
 	--font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-	--fs-micro: 11px;
-	--fs-xs: 12px;
+	--fs-micro: 12px;
+	--fs-xs: 13px;
 	/* --fs-help: body-shaped help/error/note text (warnings, error
 	 * messages, inline explanations). The floor for prose we expect
 	 * users to read, not glance at — distinct from the rubric/caps
 	 * language that surrounds it. */
-	--fs-help: 13px;
-	--fs-sm: 14px;
-	--fs-base: 16px;
-	--fs-md: 19px;
-	--fs-lg: 25px;
-	--fs-xl: 33px;
-	--fs-display: clamp(2.5rem, 5vw + 1rem, 4.75rem);
+	--fs-help: 14px;
+	--fs-sm: 15px;
+	--fs-base: 17px;
+	--fs-md: 20px;
+	--fs-lg: 27px;
+	--fs-xl: 35px;
+	--fs-display: clamp(2.7rem, 5.4vw + 1.1rem, 5.1rem);
 
 	/* ── Layout ────────────────────────────────────────────── */
 	/* Tighter floor on narrow phones (was 1.5rem) so a 360 px viewport
@@ -83,15 +82,15 @@
 :root[data-theme='dark'],
 :root.dark {
 	color-scheme: dark;
-	--ink: #ebe2cb;
-	--ink-soft: #d4ccb6;
-	--paper: #16140f;
-	--paper-warm: #1c1914;
-	--paper-cool: #110f0b;
-	--rule: rgba(235, 226, 203, 0.16);
-	--rule-strong: rgba(235, 226, 203, 0.36);
-	--ghost: rgba(235, 226, 203, 0.62);
-	--micro: rgba(235, 226, 203, 0.55);
+	--ink: #f9eedb;
+	--ink-soft: #e7dfc8;
+	--paper: #100e09;
+	--paper-warm: #16130d;
+	--paper-cool: #0b0906;
+	--rule: rgba(249, 238, 219, 0.24);
+	--rule-strong: rgba(249, 238, 219, 0.46);
+	--ghost: rgba(249, 238, 219, 0.78);
+	--micro: rgba(249, 238, 219, 0.71);
 	--accent: #e0492c;
 	--accent-deep: #b13a23;
 	--grain-1: rgba(235, 226, 203, 0.045);
@@ -102,15 +101,15 @@
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme='light']) {
 		color-scheme: dark;
-		--ink: #ebe2cb;
-		--ink-soft: #d4ccb6;
-		--paper: #16140f;
-		--paper-warm: #1c1914;
-		--paper-cool: #110f0b;
-		--rule: rgba(235, 226, 203, 0.16);
-		--rule-strong: rgba(235, 226, 203, 0.36);
-		--ghost: rgba(235, 226, 203, 0.62);
-		--micro: rgba(235, 226, 203, 0.55);
+		--ink: #f9eedb;
+		--ink-soft: #e7dfc8;
+		--paper: #100e09;
+		--paper-warm: #16130d;
+		--paper-cool: #0b0906;
+		--rule: rgba(249, 238, 219, 0.24);
+		--rule-strong: rgba(249, 238, 219, 0.46);
+		--ghost: rgba(249, 238, 219, 0.78);
+		--micro: rgba(249, 238, 219, 0.71);
 		--accent: #e0492c;
 		--accent-deep: #b13a23;
 		--grain-1: rgba(235, 226, 203, 0.045);

@@ -197,60 +197,58 @@
 				</span>
 				<span class="brand-name">kemek<span class="brand-slash">/</span>qr</span>
 			</a>
-			<div class="masthead-actions">
-				<a class="pill" href="/about" aria-label="About — privacy posture and license">
-					NO SIGNUP <span class="pill-dot">·</span> NO TRACKING <span class="pill-dot">·</span> NO UPLOAD
-					<span class="pill-arrow" aria-hidden="true">→</span>
-				</a>
-				<button
-					class="theme-toggle"
-					class:is-dark={mode === 'dark'}
-					type="button"
-					onclick={toggleTone}
-					aria-label={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-					aria-pressed={mode === 'dark'}
-					title={mode === 'dark' ? 'Switch to day' : 'Switch to night'}
-				>
-					<span class="theme-toggle-icons" aria-hidden="true">
-						<!-- Sun: outlined limb + 8 rays (4 cardinal + 4 intercardinal),
-						     read as a celestial drafting mark. -->
-						<svg
-							class="icon-sun"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="1.7"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						>
-							<circle cx="12" cy="12" r="4" />
-							<line x1="12" y1="2.5" x2="12" y2="4.5" />
-							<line x1="12" y1="19.5" x2="12" y2="21.5" />
-							<line x1="2.5" y1="12" x2="4.5" y2="12" />
-							<line x1="19.5" y1="12" x2="21.5" y2="12" />
-							<line x1="5.22" y1="5.22" x2="6.64" y2="6.64" />
-							<line x1="17.36" y1="17.36" x2="18.78" y2="18.78" />
-							<line x1="5.22" y1="18.78" x2="6.64" y2="17.36" />
-							<line x1="17.36" y1="6.64" x2="18.78" y2="5.22" />
-						</svg>
-						<!-- Moon: closed crescent — outline-only to match the sun's
-						     stroke language; reads as a single architectural sweep. -->
-						<svg
-							class="icon-moon"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="1.7"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						>
-							<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-						</svg>
-					</span>
-				</button>
-			</div>
+			<a class="pill" href="/about" aria-label="About — privacy posture and license">
+				NO SIGNUP <span class="pill-dot">·</span> NO TRACKING <span class="pill-dot">·</span> NO UPLOAD
+				<span class="pill-arrow" aria-hidden="true">→</span>
+			</a>
+			<button
+				class="theme-toggle"
+				class:is-dark={mode === 'dark'}
+				type="button"
+				onclick={toggleTone}
+				aria-label={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+				aria-pressed={mode === 'dark'}
+				title={mode === 'dark' ? 'Switch to day' : 'Switch to night'}
+			>
+				<span class="theme-toggle-icons" aria-hidden="true">
+					<!-- Sun: outlined limb + 8 rays (4 cardinal + 4 intercardinal),
+					     read as a celestial drafting mark. -->
+					<svg
+						class="icon-sun"
+						viewBox="0 0 24 24"
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.7"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<circle cx="12" cy="12" r="4" />
+						<line x1="12" y1="2.5" x2="12" y2="4.5" />
+						<line x1="12" y1="19.5" x2="12" y2="21.5" />
+						<line x1="2.5" y1="12" x2="4.5" y2="12" />
+						<line x1="19.5" y1="12" x2="21.5" y2="12" />
+						<line x1="5.22" y1="5.22" x2="6.64" y2="6.64" />
+						<line x1="17.36" y1="17.36" x2="18.78" y2="18.78" />
+						<line x1="5.22" y1="18.78" x2="6.64" y2="17.36" />
+						<line x1="17.36" y1="6.64" x2="18.78" y2="5.22" />
+					</svg>
+					<!-- Moon: closed crescent — outline-only to match the sun's
+					     stroke language; reads as a single architectural sweep. -->
+					<svg
+						class="icon-moon"
+						viewBox="0 0 24 24"
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.7"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+					</svg>
+				</span>
+			</button>
 		</div>
 		<nav class="type-nav" aria-label="QR content types — plate index">
 			<div class="type-nav-inner">
@@ -334,7 +332,7 @@
 		color: var(--paper);
 		padding: 0.6rem 1rem;
 		font-family: var(--font-mono);
-		font-size: 12px;
+		font-size: 13px;
 		letter-spacing: 0.18em;
 		text-transform: uppercase;
 		z-index: 100;
@@ -359,8 +357,7 @@
 		padding: 1.1rem var(--gutter);
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
-		gap: 0.7rem 1rem;
+		gap: 0.55rem;
 		flex-wrap: wrap;
 	}
 
@@ -370,15 +367,17 @@
 		gap: 0.55rem;
 		font-family: var(--font-display);
 		font-weight: 500;
-		font-size: 23px;
+		font-size: 31px;
 		letter-spacing: -0.015em;
 		border-bottom: none;
 		font-variation-settings: 'opsz' 36;
+		/* Push pill + toggle to the right edge of the masthead. */
+		margin-right: auto;
 	}
 	.brand-mark {
 		display: inline-flex;
-		width: 22px;
-		height: 22px;
+		width: 30px;
+		height: 30px;
 		color: var(--accent);
 		flex: 0 0 auto;
 		/* Tiny vertical lift so the QR mark's optical center sits on
@@ -400,29 +399,21 @@
 		font-style: italic;
 	}
 
-	.masthead-actions {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.55rem;
-		flex-wrap: wrap;
-		justify-content: flex-end;
-	}
-
 	.pill {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.35rem;
-		flex-wrap: wrap;
-		justify-content: center;
+		gap: 0.255rem;
+		flex-wrap: nowrap;
+		white-space: nowrap;
 		max-width: 100%;
 		font-family: var(--font-mono);
-		font-size: 10px;
+		font-size: 10.5px;
 		text-transform: uppercase;
 		color: var(--ghost);
 		border: 1px solid var(--rule);
-		padding: 0.32rem 0.7rem 0.32rem 0.7rem;
+		padding: 0.33rem 0.55rem;
 		border-radius: 99px;
-		letter-spacing: 0.16em;
+		letter-spacing: 0.11em;
 		text-decoration: none;
 		transition:
 			color var(--duration-fast) var(--ease),
@@ -438,8 +429,8 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 32px;
-		height: 32px;
+		width: 37px;
+		height: 37px;
 		padding: 0;
 		margin: 0;
 		background: transparent;
@@ -464,8 +455,8 @@
 	.theme-toggle-icons {
 		position: relative;
 		display: block;
-		width: 18px;
-		height: 18px;
+		width: 21px;
+		height: 21px;
 	}
 	.theme-toggle-icons svg {
 		position: absolute;
@@ -512,7 +503,7 @@
 	}
 	.pill-arrow {
 		color: var(--accent);
-		margin-left: 0.4rem;
+		margin-left: 0.3rem;
 		transition: transform var(--duration-fast) var(--ease);
 	}
 
@@ -570,11 +561,11 @@
 		display: inline-flex;
 		align-items: center;
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: 13px;
 		letter-spacing: 0.32em;
 		text-transform: uppercase;
 		color: var(--micro);
-		padding: 0.7rem 1rem 0.7rem 0;
+		padding: 0.9rem 1.1rem 0.9rem 0;
 		border-right: 1px dashed var(--rule);
 		margin-right: 0.5rem;
 		flex: 0 0 auto;
@@ -585,12 +576,12 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.18rem;
+		gap: 0.22rem;
 		font-family: var(--font-mono);
-		font-size: 12.5px;
-		letter-spacing: 0.16em;
+		font-size: 21px;
+		letter-spacing: 0.14em;
 		text-transform: uppercase;
-		padding: 0.65rem 1rem 0.7rem;
+		padding: 1rem 1.1rem 1.05rem;
 		color: var(--ghost);
 		border: none;
 		border-bottom: 2px solid transparent;
@@ -606,8 +597,8 @@
 		justify-content: center;
 	}
 	.plate-num {
-		font-size: 10px;
-		letter-spacing: 0.24em;
+		font-size: 13px;
+		letter-spacing: 0.22em;
 		color: var(--micro);
 		font-feature-settings: 'tnum';
 	}
@@ -629,26 +620,18 @@
 	.type-link.active .plate-num {
 		color: var(--accent);
 	}
-	@media (max-width: 720px) {
-		.type-nav-rubric {
-			display: none;
-		}
-		.type-link {
-			padding: 0.7rem 0.85rem 0.75rem;
-		}
-		.type-nav-inner {
-			padding: 0 calc(var(--gutter) * 0.8);
-		}
-	}
-	/* At ≤480 px the horizontal-scroll plate-nav consistently read as
-	 * "an item got cut off" rather than "scroll for more". Switch to a
-	 * static 2 × 4 grid: every plate visible, no scroll affordance to
-	 * misread. Keeps the engineering-spec lettering and the active
-	 * underline; the PLATE INDEX rubric is already hidden at this
-	 * size so the column structure stands on its own. */
-	@media (max-width: 480px) {
+	/* Below 1100 px the 8 type-links + PLATE INDEX rubric no longer
+	 * fit a single horizontal row at the post-bump 20 px label size.
+	 * Switching to a 4 × 2 grid here (instead of at the previous
+	 * ≤480 px breakpoint) keeps every plate visible at laptop and
+	 * tablet widths instead of pushing PL.06–08 off-screen behind
+	 * a scroll affordance the user is unlikely to discover. */
+	@media (max-width: 1100px) {
 		.type-nav::before,
 		.type-nav::after {
+			display: none;
+		}
+		.type-nav-rubric {
 			display: none;
 		}
 		.type-nav-inner {
@@ -658,25 +641,35 @@
 			padding: 0;
 		}
 		.type-link {
-			padding: 0.6rem 0.3rem 0.65rem;
-			gap: 0.1rem;
 			border-right: 1px dashed var(--rule);
 		}
 		.type-link:nth-child(4n) {
 			border-right: none;
 		}
-		/* Row 2 (links 5–8) gets a top dashed rule to separate it
-		 * from row 1 — same dashed-rule language used for vertical
-		 * separators on the row. */
+		/* Row 2 (links 5–8) gets a top dashed rule mirroring the
+		 * vertical separators on row 1. */
 		.type-link:nth-child(n + 5) {
 			border-top: 1px dashed var(--rule);
 		}
+	}
+	@media (max-width: 720px) {
+		.type-link {
+			padding: 0.9rem 0.6rem 0.95rem;
+			font-size: 19px;
+			letter-spacing: 0.12em;
+		}
+	}
+	@media (max-width: 480px) {
+		.type-link {
+			padding: 0.85rem 0.35rem 0.9rem;
+			gap: 0.18rem;
+		}
 		.plate-num {
-			font-size: 10px;
-			letter-spacing: 0.2em;
+			font-size: 12px;
+			letter-spacing: 0.18em;
 		}
 		.plate-label {
-			font-size: 13px;
+			font-size: 18px;
 		}
 	}
 
@@ -711,14 +704,14 @@
 	}
 	.cell-rubric {
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: 14px;
 		letter-spacing: 0.28em;
 		text-transform: uppercase;
 		color: var(--micro);
 	}
 	.cell-value {
 		font-family: var(--font-mono);
-		font-size: 13px;
+		font-size: 16px;
 		letter-spacing: 0.08em;
 		color: var(--ink);
 	}
@@ -738,7 +731,7 @@
 		margin: 0 auto;
 		padding: 0.7rem var(--gutter) calc(0.85rem + env(safe-area-inset-bottom));
 		font-family: var(--font-mono);
-		font-size: 10px;
+		font-size: 12px;
 		letter-spacing: 0.22em;
 		text-transform: uppercase;
 		color: var(--micro);
@@ -774,7 +767,7 @@
 		border: none;
 		cursor: pointer;
 		font-family: var(--font-mono);
-		font-size: 13px;
+		font-size: 16px;
 		letter-spacing: 0.08em;
 		color: var(--ink);
 	}
@@ -802,11 +795,6 @@
 	}
 
 	@media (max-width: 720px) {
-		.pill {
-			font-size: 10px;
-			letter-spacing: 0.12em;
-			padding: 0.36rem 0.6rem;
-		}
 		.colophon-inner {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
@@ -827,24 +815,43 @@
 			border-bottom: none;
 		}
 	}
-	@media (max-width: 460px) {
-		.brand {
-			font-size: 20px;
-		}
-		.brand-mark {
-			width: 18px;
-			height: 18px;
-		}
+	@media (max-width: 480px) {
+		/* Two-row masthead at phone-portrait widths: brand + theme
+		 * toggle on row 1 (toggle right-aligned), pill alone on row 2.
+		 * The flat masthead-inner becomes a 2-col grid; the pill spans
+		 * both columns and centers itself. With its own row the pill
+		 * has room to grow — text bumps ~30 % so it reads as a real
+		 * privacy banner instead of the cramped tag-along it was. */
 		.masthead-inner {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) auto;
+			grid-template-areas:
+				'brand toggle'
+				'pill  pill';
+			column-gap: 0.6rem;
+			row-gap: 0.6rem;
 			padding: 0.95rem var(--gutter);
 		}
-		.pill .pill-arrow {
-			display: none;
+		.brand {
+			grid-area: brand;
+			margin-right: 0;
+			font-size: 26px;
+		}
+		.brand-mark {
+			width: 24px;
+			height: 24px;
+		}
+		.theme-toggle {
+			grid-area: toggle;
+			justify-self: end;
 		}
 		.pill {
+			grid-area: pill;
+			justify-self: center;
+			font-size: 14px;
 			letter-spacing: 0.08em;
-			padding: 0.32rem 0.55rem;
-			gap: 0.25rem;
+			padding: 0.45rem 0.85rem;
+			gap: 0.32rem;
 		}
 		.colophon-inner {
 			grid-template-columns: 1fr;

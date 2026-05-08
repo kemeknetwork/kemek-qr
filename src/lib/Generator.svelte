@@ -8,7 +8,8 @@
 		type ECC,
 		type EyeBallType,
 		type EyeFrameType,
-		type FrameLabelSize
+		type FrameLabelSize,
+		type FrameLabelFont
 	} from '$lib/permalink';
 	import { encode } from '$lib/encoders';
 	import { DEFAULT_CONTENT, type ContentMap, type ContentType, type WifiAuth } from '$lib/types';
@@ -36,6 +37,7 @@
 	let frameEnabled = $state(false);
 	let frameLabel = $state('SCAN ME');
 	let frameLabelSize = $state<FrameLabelSize>('M');
+	let frameLabelFont = $state<FrameLabelFont>('mono');
 	let exportFormat = $state<'png' | 'svg' | 'pdf'>('png');
 	let exporting = $state(false);
 	let engineError = $state<string | null>(null);
@@ -135,7 +137,8 @@
 			eyeBall,
 			frameEnabled,
 			frameLabel,
-			frameLabelSize
+			frameLabelSize,
+			frameLabelFont
 		};
 	}
 
@@ -169,6 +172,7 @@
 		if (decoded.frameEnabled !== undefined) frameEnabled = decoded.frameEnabled;
 		if (decoded.frameLabel !== undefined) frameLabel = decoded.frameLabel;
 		if (decoded.frameLabelSize !== undefined) frameLabelSize = decoded.frameLabelSize;
+		if (decoded.frameLabelFont !== undefined) frameLabelFont = decoded.frameLabelFont;
 	}
 
 	let restored = false;
@@ -335,6 +339,14 @@
 	 * label length — short labels get a huge font, long ones get a
 	 * smaller font. The band grows proportionally so the layout
 	 * stays balanced. */
+	/* Font-family strings used by all three frame-label renderers
+	 * (preview CSS class, canvas/PNG, SVG). Keeping them in one
+	 * place stops the three surfaces from drifting. */
+	const FRAME_LABEL_FONT_FAMILY: Record<FrameLabelFont, string> = {
+		mono: '"JetBrains Mono", ui-monospace, monospace',
+		display: '"Fraunces Variable", "Fraunces", Georgia, serif'
+	};
+
 	function frameLabelMetrics(
 		qrSize: number,
 		label: string,
@@ -347,7 +359,11 @@
 			const tempCtx = tempCanvas.getContext('2d');
 			if (tempCtx && label.trim().length > 0) {
 				const baseFontPx = 100;
-				tempCtx.font = `500 ${baseFontPx}px "JetBrains Mono", ui-monospace, monospace`;
+				/* Measure with the same font that will render — Fraunces
+				 * is proportional, JetBrains Mono is monospace, so the
+				 * widths differ enough to throw the XL fit-to-frame
+				 * formula off if measured with the wrong family. */
+				tempCtx.font = `500 ${baseFontPx}px ${FRAME_LABEL_FONT_FAMILY[frameLabelFont]}`;
 				const baseWidth = tempCtx.measureText(label).width;
 				const targetWidth = totalW * 0.88;
 				fontPx = Math.max(8, Math.round(baseFontPx * (targetWidth / Math.max(baseWidth, 1))));
@@ -384,14 +400,15 @@
 		const { padding, borderWidth, half, fontPx, labelHeight, totalW, totalH } =
 			computeFrameLayout(qrSize, label);
 
-		/* Force JetBrains Mono to load before canvas drawing — Canvas
-		 * font lookup is synchronous, and if the woff2 hasn't been
-		 * fetched yet the label will rasterize in whatever generic
-		 * monospace fallback the OS provides. With this await, PNG
-		 * (and the PDF that re-embeds it) reliably show the same
-		 * font as the on-screen preview. */
+		/* Force the chosen frame-label font to load before canvas
+		 * drawing — Canvas font lookup is synchronous, and if the
+		 * woff2 hasn't been fetched yet the label rasterizes in
+		 * whatever fallback the OS provides. After this await, PNG
+		 * (and the PDF that re-embeds it) match the on-screen
+		 * preview. */
+		const primaryFamily = frameLabelFont === 'display' ? '"Fraunces Variable"' : '"JetBrains Mono"';
 		try {
-			await document.fonts.load(`500 ${fontPx}px "JetBrains Mono"`);
+			await document.fonts.load(`500 ${fontPx}px ${primaryFamily}`);
 		} catch {
 			/* document.fonts not present (very old browser) — accept
 			 * fallback rendering rather than aborting the export. */
@@ -413,7 +430,7 @@
 		ctx.strokeRect(half, half, totalW - borderWidth, totalH - borderWidth);
 
 		ctx.fillStyle = fgColor;
-		ctx.font = `500 ${fontPx}px "JetBrains Mono", ui-monospace, monospace`;
+		ctx.font = `500 ${fontPx}px ${FRAME_LABEL_FONT_FAMILY[frameLabelFont]}`;
 		ctx.textAlign = 'center';
 		ctx.textBaseline = 'middle';
 		const labelY = qrSize + padding * 2 + labelHeight / 2;
@@ -498,7 +515,7 @@
   <rect x="0" y="0" width="${totalW}" height="${totalH}" fill="${bgColor}"/>
   <rect x="${half}" y="${half}" width="${totalW - borderWidth}" height="${totalH - borderWidth}" fill="none" stroke="${fgColor}" stroke-width="${borderWidth}"/>
   ${innerSerialized}
-  <text x="${totalW / 2}" y="${qrSize + padding * 2 + labelHeight / 2}" text-anchor="middle" dominant-baseline="middle" font-family="JetBrains Mono, ui-monospace, monospace" font-weight="500" font-size="${fontPx}" fill="${fgColor}">${escapeXml(label)}</text>
+  <text x="${totalW / 2}" y="${qrSize + padding * 2 + labelHeight / 2}" text-anchor="middle" dominant-baseline="middle" font-family='${FRAME_LABEL_FONT_FAMILY[frameLabelFont]}' font-weight="500" font-size="${fontPx}" fill="${fgColor}">${escapeXml(label)}</text>
 </svg>`;
 	}
 
@@ -684,7 +701,7 @@
 					<div bind:this={qrContainer} class="qr-mount" role="img" aria-label="QR code preview"></div>
 					{#if frameEnabled}
 						<div
-							class="qr-frame-label qr-frame-label-{frameLabelSize}"
+							class="qr-frame-label qr-frame-label-{frameLabelSize} qr-frame-label-font-{frameLabelFont}"
 							style:--label-len={Math.max(1, frameLabel.length)}
 						>
 							{frameLabel}
@@ -1160,6 +1177,22 @@
 						{/each}
 					</div>
 				</div>
+				<div class="field" style="padding-top: 0.85rem;">
+					<span class="field-label">FONT</span>
+					<div class="segmented cols-2" role="radiogroup" aria-label="Frame label font">
+						{#each [{ value: 'mono' as const, label: 'MONO' }, { value: 'display' as const, label: 'DISPLAY' }] as opt}
+							<label class="seg" class:active={frameLabelFont === opt.value}>
+								<input
+									type="radio"
+									name="frame-label-font"
+									value={opt.value}
+									bind:group={frameLabelFont}
+								/>
+								{opt.label}
+							</label>
+						{/each}
+					</div>
+				</div>
 			{/if}
 		</fieldset>
 	</div>
@@ -1265,7 +1298,7 @@
 		right: 0;
 	}
 	.dim-readout {
-		font-size: 12px;
+		font-size: 13px;
 		letter-spacing: 0.22em;
 		color: var(--accent);
 		text-transform: uppercase;
@@ -1443,7 +1476,6 @@
 	}
 	.qr-frame-label {
 		text-align: center;
-		font-family: var(--font-mono);
 		font-weight: 500;
 		letter-spacing: 0.18em;
 		text-transform: uppercase;
@@ -1451,6 +1483,16 @@
 		padding: 0.3rem 0;
 		line-height: 1.05;
 		overflow-wrap: anywhere;
+	}
+	.qr-frame-label-font-mono {
+		font-family: var(--font-mono);
+	}
+	/* Display font (Fraunces) is proportional + has an optical-size
+	 * axis; pin opsz to 36 so caps render with the editorial weight
+	 * the project uses elsewhere (corner cells, plate labels). */
+	.qr-frame-label-font-display {
+		font-family: var(--font-display);
+		font-variation-settings: 'opsz' 36;
 	}
 	/* S/M/L map to fixed fractions of the container width; M matches
 	 * the previous default. XL is dynamic — the formula divides 88 %
@@ -1506,8 +1548,8 @@
 		border-right: none;
 	}
 	.specimen-meta dt {
-		font-size: 11px;
-		letter-spacing: 0.22em;
+		font-size: 15px;
+		letter-spacing: 0.2em;
 		color: var(--accent);
 		margin: 0;
 		font-feature-settings: 'tnum';
@@ -1515,7 +1557,7 @@
 	}
 	.specimen-meta dd {
 		margin: 0;
-		font-size: 13px;
+		font-size: 18px;
 		color: var(--ink);
 		letter-spacing: 0.04em;
 		word-break: break-all;
@@ -1531,8 +1573,8 @@
 		border-radius: var(--radius-sm);
 		font-family: var(--font-mono);
 		font-weight: 500;
-		letter-spacing: 0.18em;
-		font-size: var(--fs-sm);
+		letter-spacing: 0.16em;
+		font-size: 20px;
 		transition:
 			transform var(--duration-fast) var(--ease),
 			background var(--duration-fast) var(--ease),
@@ -1547,7 +1589,7 @@
 		transform: translateY(1px);
 	}
 	.download-size {
-		font-size: 12px;
+		font-size: 17px;
 		/* Muted variant of the button's text color (--paper) — uses
 		 * color-mix so dark mode reads as near-black-faded over the
 		 * cream button bg, light mode reads as cream-faded over the
@@ -1580,8 +1622,8 @@
 		padding: 0.55rem 0.4rem;
 		min-height: 36px;
 		font-family: var(--font-mono);
-		font-size: 14px;
-		letter-spacing: 0.2em;
+		font-size: 20px;
+		letter-spacing: 0.16em;
 		color: var(--ghost);
 		border-right: 1px solid var(--rule);
 		cursor: pointer;
@@ -1658,8 +1700,8 @@
 		border-radius: var(--radius-sm);
 		font-family: var(--font-mono);
 		font-weight: 500;
-		letter-spacing: 0.16em;
-		font-size: 12px;
+		letter-spacing: 0.14em;
+		font-size: 17px;
 		text-transform: uppercase;
 		transition:
 			color var(--duration-fast) var(--ease),
@@ -1715,26 +1757,26 @@
 	}
 	.control-block legend {
 		font-family: var(--font-mono);
-		font-size: 13px;
-		letter-spacing: 0.22em;
+		font-size: 18px;
+		letter-spacing: 0.2em;
 		color: var(--ink);
-		padding: 0.22rem 0.6rem 0.22rem 0.45rem;
+		padding: 0.3rem 0.7rem 0.3rem 0.55rem;
 		margin-left: -0.25rem;
 		background: var(--paper);
 		border: 1px solid var(--rule-strong);
 		border-radius: 0;
 		display: inline-flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: 0.55rem;
 		text-transform: uppercase;
 		font-weight: 500;
 	}
 	.control-block legend .p-num {
-		font-size: 12px;
-		letter-spacing: 0.18em;
+		font-size: 17px;
+		letter-spacing: 0.16em;
 		color: var(--accent);
 		font-feature-settings: 'tnum';
-		padding-right: 0.5rem;
+		padding-right: 0.55rem;
 		border-right: 1px solid var(--rule);
 	}
 
@@ -1745,8 +1787,8 @@
 		padding-top: 0.4rem;
 	}
 	.field-label {
-		font-size: 13px;
-		letter-spacing: 0.16em;
+		font-size: 16px;
+		letter-spacing: 0.14em;
 		color: var(--micro);
 		text-transform: uppercase;
 	}
@@ -1845,6 +1887,9 @@
 		margin-top: 0.5rem;
 		background: var(--paper);
 	}
+	.segmented.cols-2 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
 	.segmented.cols-3 {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
@@ -1862,8 +1907,8 @@
 		padding: 0.65rem 0.4rem;
 		min-height: 36px;
 		font-family: var(--font-mono);
-		font-size: 12px;
-		letter-spacing: 0.14em;
+		font-size: 15px;
+		letter-spacing: 0.12em;
 		color: var(--ghost);
 		border: none;
 		border-right: 1px solid var(--rule);
@@ -1896,6 +1941,12 @@
 	.seg:has(input:focus-visible) {
 		outline: 2px solid var(--accent);
 		outline-offset: -3px;
+	}
+	.segmented.cols-2 .seg {
+		border-bottom: none;
+	}
+	.segmented.cols-2 .seg:nth-child(2n) {
+		border-right: none;
 	}
 	.segmented.cols-3 .seg:nth-child(3n) {
 		border-right: none;
@@ -1940,7 +1991,7 @@
 		min-height: 40px;
 		border: 1px dashed var(--rule-strong);
 		border-radius: var(--radius-sm);
-		font-size: 12px;
+		font-size: 13px;
 		letter-spacing: 0.18em;
 		color: var(--ghost);
 		background: var(--paper);
@@ -1968,7 +2019,7 @@
 	}
 	.logo-clear {
 		padding: 0.7rem 0.9rem;
-		font-size: 12px;
+		font-size: 13px;
 		letter-spacing: 0.18em;
 		color: var(--ghost);
 		background: var(--paper);
@@ -2057,7 +2108,7 @@
 	}
 	.engine-error-eyebrow {
 		font-family: var(--font-mono);
-		font-size: 12px;
+		font-size: 13px;
 		letter-spacing: 0.22em;
 		color: var(--accent);
 	}

@@ -265,13 +265,13 @@
 		padding-right: 0;
 	}
 	.title-block-corner .rubric {
-		font-size: 11px;
+		font-size: 14px;
 		letter-spacing: 0.32em;
 		color: var(--micro);
 		text-transform: uppercase;
 	}
 	.title-block-corner .value {
-		font-size: 13px;
+		font-size: 16px;
 		letter-spacing: 0.14em;
 		color: var(--ink);
 		text-transform: uppercase;
@@ -279,7 +279,7 @@
 	}
 	.plate-large {
 		font-family: var(--font-display);
-		font-size: clamp(1.5rem, 3.5vw, 2.4rem);
+		font-size: clamp(1.85rem, 4.25vw, 2.95rem);
 		font-weight: 400;
 		font-style: italic;
 		color: var(--accent);
@@ -290,15 +290,15 @@
 	}
 	@media (max-width: 540px) {
 		.title-block-corner .rubric {
-			font-size: 10px;
+			font-size: 13px;
 			letter-spacing: 0.26em;
 		}
 		.title-block-corner .value {
-			font-size: 12px;
+			font-size: 15px;
 			letter-spacing: 0.1em;
 		}
 		.plate-large {
-			font-size: clamp(1.25rem, 6vw, 1.75rem);
+			font-size: clamp(1.55rem, 7.4vw, 2.15rem);
 			margin-top: 0.05rem;
 		}
 	}
@@ -308,7 +308,7 @@
 	 * keep them honest no matter how long their tnum values are. */
 	@media (max-width: 380px) {
 		.title-block-corner .value:not(.plate-large) {
-			font-size: 10px;
+			font-size: 13px;
 			letter-spacing: 0.04em;
 		}
 	}
@@ -345,19 +345,19 @@
 		display: inline-block;
 		max-width: 100%;
 		font-family: var(--font-mono);
-		font-size: 12.5px;
-		letter-spacing: 0.32em;
+		font-size: 15px;
+		letter-spacing: 0.3em;
 		text-transform: uppercase;
 		color: var(--accent);
 		margin-bottom: 1.1rem;
-		padding: 0.35rem 0.7rem;
+		padding: 0.4rem 0.8rem;
 		border: 1px solid var(--accent);
 		overflow-wrap: anywhere;
 	}
 	.hero-title {
 		font-family: var(--font-display);
 		font-weight: 400;
-		font-size: clamp(1.7rem, 5vw + 0.5rem, 3.75rem);
+		font-size: clamp(2.13rem, 6.2vw + 0.63rem, 4.6rem);
 		line-height: 1.06;
 		letter-spacing: -0.025em;
 		margin: 0 auto 1.2rem;
@@ -374,22 +374,22 @@
 	}
 	@media (max-width: 540px) {
 		.title-rubric {
-			font-size: 11px;
+			font-size: 14px;
 			letter-spacing: 0.24em;
-			padding: 0.3rem 0.55rem;
+			padding: 0.35rem 0.6rem;
 			margin-bottom: 0.85rem;
 		}
 	}
 	@media (max-width: 380px) {
 		.title-rubric {
-			font-size: 10px;
+			font-size: 13px;
 			letter-spacing: 0.18em;
-			padding: 0.28rem 0.45rem;
+			padding: 0.32rem 0.5rem;
 		}
 	}
 	.hero-sub {
 		font-family: var(--font-mono);
-		font-size: var(--fs-sm);
+		font-size: 17px;
 		color: var(--ghost);
 		margin: 0 auto 1.5rem;
 		max-width: 60ch;
@@ -416,7 +416,7 @@
 		align-items: center;
 		justify-content: center;
 		gap: 0.7rem;
-		padding: 1rem 1.6rem;
+		padding: 1.1rem 1.75rem;
 		min-height: var(--touch);
 		background: var(--accent);
 		color: var(--paper);
@@ -424,8 +424,8 @@
 		border-radius: var(--radius-sm);
 		font-family: var(--font-mono);
 		font-weight: 500;
-		font-size: 14px;
-		letter-spacing: 0.22em;
+		font-size: 18px;
+		letter-spacing: 0.2em;
 		text-transform: uppercase;
 		text-decoration: none;
 		box-shadow: 0 12px 28px -16px var(--accent-deep, rgba(197, 58, 31, 0.55));
@@ -446,7 +446,7 @@
 		box-shadow: 0 6px 12px -8px var(--accent-deep, rgba(197, 58, 31, 0.5));
 	}
 	.hero-cta-arrow {
-		font-size: 16px;
+		font-size: 20px;
 		line-height: 1;
 		transform: translateY(1px);
 	}
@@ -475,14 +475,14 @@
 		gap: 0.2rem;
 	}
 	.title-meta dt {
-		font-size: 11px;
+		font-size: 14px;
 		letter-spacing: 0.28em;
 		color: var(--micro);
 		text-transform: uppercase;
 	}
 	.title-meta dd {
 		margin: 0;
-		font-size: 13px;
+		font-size: 16px;
 		letter-spacing: 0.06em;
 		color: var(--ink);
 		overflow-wrap: break-word;
@@ -526,7 +526,7 @@
 	}
 	.section-marker {
 		font-family: var(--font-mono);
-		font-size: 12px;
+		font-size: 18px;
 		letter-spacing: 0.18em;
 		color: var(--accent);
 		font-feature-settings: 'tnum';
@@ -534,11 +534,21 @@
 	.section-title {
 		font-family: var(--font-mono);
 		font-weight: 500;
-		font-size: var(--fs-xs);
-		letter-spacing: 0.22em;
+		font-size: 18px;
+		letter-spacing: 0.18em;
 		text-transform: uppercase;
 		color: var(--ghost);
 		margin: 0;
+		/* Keep "Notes on the artifact" / "Footnotes & queries" on one
+		 * line at common viewports so the dashed rule fills remaining
+		 * width. At very narrow widths (≤380 px) the title would force
+		 * horizontal scroll, so let it wrap there. */
+		white-space: nowrap;
+	}
+	@media (max-width: 380px) {
+		.section-title {
+			white-space: normal;
+		}
 	}
 	.section-rule {
 		display: block;
@@ -567,7 +577,7 @@
 		left: 0;
 		top: 0.55em;
 		font-family: var(--font-mono);
-		font-size: 10px;
+		font-size: 11px;
 		letter-spacing: 0.2em;
 		color: var(--accent);
 		font-feature-settings: 'tnum';
@@ -601,7 +611,7 @@
 		grid-row: 1 / span 2;
 		grid-column: 1;
 		font-family: var(--font-mono);
-		font-size: 12px;
+		font-size: 13px;
 		letter-spacing: 0.06em;
 		color: var(--accent);
 		padding-top: 0.3rem;
@@ -612,7 +622,7 @@
 		font-family: var(--font-display);
 		font-style: italic;
 		font-weight: 500;
-		font-size: 18px;
+		font-size: 19px;
 		color: var(--ink);
 		line-height: 1.32;
 		font-variation-settings: 'opsz' 36;
@@ -621,7 +631,7 @@
 		grid-column: 2;
 		margin: 0;
 		font-family: var(--font-display);
-		font-size: 15px;
+		font-size: 17px;
 		line-height: 1.6;
 		color: var(--ink-soft);
 		font-variation-settings: 'opsz' 14;
@@ -676,7 +686,7 @@
 	}
 	.plate-index-num {
 		font-family: var(--font-mono);
-		font-size: 12px;
+		font-size: 13px;
 		letter-spacing: 0.2em;
 		color: var(--micro);
 		font-feature-settings: 'tnum';
@@ -690,7 +700,7 @@
 	}
 	.plate-index-label {
 		font-family: var(--font-mono);
-		font-size: 12px;
+		font-size: 13px;
 		letter-spacing: 0.18em;
 		color: var(--ink);
 		text-transform: uppercase;
