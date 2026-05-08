@@ -239,9 +239,7 @@
 	     the diagram stays focused on geometry and the metadata reflows
 	     responsively as ordinary text. -->
 	<div class="anatomy-spec">
-		<span class="spec-rubric">FIG. B</span>
-		<span class="spec-sep" aria-hidden="true">·</span>
-		<span>QR ANATOMY</span>
+		<span class="spec-rubric">QR ANATOMY</span>
 		<span class="spec-sep" aria-hidden="true">·</span>
 		<span>FUNCTIONAL REGIONS</span>
 		<span class="spec-sep" aria-hidden="true">·</span>
@@ -285,9 +283,13 @@
 	.quiet-zone {
 		fill: none;
 		stroke: currentColor;
-		stroke-width: 0.6;
+		stroke-width: 0.8;
 		stroke-dasharray: 3 3;
-		opacity: 0.32;
+		/* Opacity bumped from 0.32 → 0.5 so the dashed margin still
+		 * reads as a continuous boundary at small render sizes and
+		 * survives leader-line crossings on the left edge (FINDER +
+		 * FORMAT INFO leaders both pass through it). */
+		opacity: 0.5;
 	}
 	.callouts .leader {
 		stroke: var(--accent);
