@@ -402,16 +402,16 @@
 	.pill {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.255rem;
+		gap: 0.28rem;
 		flex-wrap: nowrap;
 		white-space: nowrap;
 		max-width: 100%;
 		font-family: var(--font-mono);
-		font-size: 10.5px;
+		font-size: 11.55px;
 		text-transform: uppercase;
 		color: var(--ghost);
 		border: 1px solid var(--rule);
-		padding: 0.33rem 0.55rem;
+		padding: 0.36rem 0.6rem;
 		border-radius: 99px;
 		letter-spacing: 0.11em;
 		text-decoration: none;
@@ -850,10 +850,10 @@
 		.pill {
 			grid-area: pill;
 			justify-self: center;
-			font-size: 14px;
+			font-size: 15.4px;
 			letter-spacing: 0.08em;
-			padding: 0.45rem 0.85rem;
-			gap: 0.32rem;
+			padding: 0.5rem 0.94rem;
+			gap: 0.35rem;
 		}
 		.colophon-inner {
 			grid-template-columns: 1fr;
