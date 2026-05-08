@@ -86,7 +86,7 @@
 		</div>
 		<div class="title-block-corner title-block-bl">
 			<span class="rubric">EDITION</span>
-			<span class="value">v{__APP_VERSION__}</span>
+			<span class="value value-version">v{__APP_VERSION__}</span>
 		</div>
 		<div class="title-block-corner title-block-br">
 			<span class="rubric">FILE</span>
@@ -107,19 +107,19 @@
 
 			<dl class="title-meta">
 				<div>
-					<dt>Process</dt>
-					<dd>Client-side · zero upload</dd>
+					<dt>process</dt>
+					<dd>client-side · zero upload</dd>
 				</div>
 				<div>
-					<dt>Cost</dt>
-					<dd>Free · no signup · no expiry</dd>
+					<dt>cost</dt>
+					<dd>free · no signup · no expiry</dd>
 				</div>
 				<div>
-					<dt>Format</dt>
+					<dt>format</dt>
 					<dd>PNG · SVG · PDF</dd>
 				</div>
 				<div>
-					<dt>License</dt>
+					<dt>license</dt>
 					<dd>
 						<a
 							class="title-meta-link"
@@ -276,6 +276,13 @@
 		color: var(--ink);
 		text-transform: uppercase;
 		font-feature-settings: 'tnum';
+	}
+	/* Version string shows the actual lowercase `v` from package.json
+	 * rather than the all-caps treatment the other corner rubrics use
+	 * — semantic-versioning convention is "v0.25.1", not "V0.25.1". */
+	.title-block-corner .value-version {
+		text-transform: none;
+		letter-spacing: 0.06em;
 	}
 	.plate-large {
 		font-family: var(--font-display);
@@ -478,7 +485,6 @@
 		font-size: 14px;
 		letter-spacing: 0.28em;
 		color: var(--micro);
-		text-transform: uppercase;
 	}
 	.title-meta dd {
 		margin: 0;

@@ -50,7 +50,7 @@
 		</div>
 		<div class="title-block-corner title-block-bl">
 			<span class="rubric">EDITION</span>
-			<span class="value">v{__APP_VERSION__}</span>
+			<span class="value value-version">v{__APP_VERSION__}</span>
 		</div>
 		<div class="title-block-corner title-block-br">
 			<span class="rubric">FILE</span>
@@ -276,6 +276,12 @@
 		color: var(--ink);
 		text-transform: uppercase;
 		font-feature-settings: 'tnum';
+	}
+	/* SemVer convention is "v0.25.1" — keep the lowercase `v` instead
+	 * of the all-caps treatment the other corner rubrics use. */
+	.title-block-corner .value-version {
+		text-transform: none;
+		letter-spacing: 0.06em;
 	}
 	.plate-large {
 		font-family: var(--font-display);
