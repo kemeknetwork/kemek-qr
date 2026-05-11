@@ -116,6 +116,48 @@ jq -r '.event.cf.country' /tmp/pageviews.jsonl | sort | uniq -c | sort -rn   # t
 
 The middleware also runs on the 404 SPA fallback, so mis-typed URLs appear in the log — useful diagnostic for stale links.
 
+### 10. (Optional) Visible "Impressions" counter — KV setup
+
+The middleware in step 9 also increments a running page-view counter in KV (Cloudflare's edge key-value store) **if a `PV_COUNTER` binding is configured**. The site's footer renders an `Impressions: N` cell in the `.colophon-rights` line when `/api/impressions` returns a numeric count; otherwise it silently hides the cell. This is the visible "you are visitor #N" pattern from the 1990s, now riding on CF edge KV instead of a CGI script.
+
+**One-time setup:**
+
+1. **Create the KV namespace:**
+
+   Either via CLI:
+
+   ```sh
+   npx wrangler kv namespace create kemek-qr-pv-counter
+   ```
+
+   The output shows a namespace ID. Note it.
+
+   Or via dashboard: Workers & Pages → KV → **Create a namespace** → name `kemek-qr-pv-counter`.
+
+2. **Bind the namespace to the Pages project as `PV_COUNTER`:**
+
+   Workers & Pages → kemek-qr → **Settings** → **Functions** → **KV namespace bindings** → **Add binding**:
+   - **Variable name:** `PV_COUNTER` (must match what `_middleware.ts` and `api/impressions.ts` read)
+   - **KV namespace:** the namespace created in step 1
+
+   Save. The binding applies to the **next deployment** — re-trigger the build (push any commit, or click "Retry deployment" on the latest build in the Deployments tab) so the binding takes effect.
+
+3. **Verify:**
+
+   Hit `https://qr.kemek.com/api/impressions` directly in a browser. After at least one page-view has incremented the counter, the response should be `{"count":N}` where N is some positive integer. The footer's `Impressions:` cell should appear on the next page load.
+
+   If the response is `{"count":null}`, the binding isn't set or KV is unreachable — re-check step 2.
+
+**KV free-tier ceiling:**
+
+The CF free tier allows 1,000 writes/day across all KV namespaces. Every page-view is one write. For a quiet utility this is plenty; at >1K visitors/day the counter starts silently dropping increments. If kemek-qr ever hits that scale, upgrade paths:
+
+- **Workers Paid plan** ($5/mo) — lifts the KV write ceiling to 1 M/day.
+- **CF Analytics Engine** — purpose-built for high-cardinality edge metrics, included in Workers Paid; replace the KV increment in `_middleware.ts` with `env.ANALYTICS.writeDataPoint(...)`.
+- **Durable Object counter** — for strictly-accurate atomic counting (KV is eventually consistent so simultaneous reads can both write the same incremented value, losing one count).
+
+Cost-of-counting is real but currently small. The counter is decorative — accurate to order-of-magnitude, not real-time precision. Don't redesign the footer around it.
+
 ## Operational notes
 
 - **No Cloudflare proxy / orange-cloud / WAF / page rules for this subdomain**, because DNS is at GoDaddy. Pages still serves from Cloudflare's global edge — the CDN benefit is intact. The proxy-layer features (rate limiting, bot management, cache rules) require DNS at Cloudflare; deferred.

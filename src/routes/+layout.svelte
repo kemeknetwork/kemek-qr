@@ -66,6 +66,13 @@
 		applyTheme(mode === 'dark' ? 'light' : 'dark');
 	}
 
+	/* Decorative footer counter, populated post-mount from
+	 * /api/impressions (KV-backed via Pages Function). Null until
+	 * fetched OR if KV binding is absent / endpoint errors — the
+	 * footer hides the IMPRESSIONS cell while null so users on
+	 * pre-binding builds see no broken UI. */
+	let impressions = $state<number | null>(null);
+
 	onMount(() => {
 		/* If hydration finished on a different mode than the inline
 		 * FOUC script applied (rare — only when matchMedia disagrees
@@ -87,6 +94,19 @@
 			}
 		};
 		mq.addEventListener('change', onSystemChange);
+
+		/* Page-view counter — first-party fetch to our own Pages
+		 * Function. Same-origin, no third-party. Silent fail; the
+		 * footer cell is decorative, never a load-bearing UI bit. */
+		fetch('/api/impressions')
+			.then((r) => (r.ok ? r.json() : null))
+			.then((data) => {
+				if (data && typeof data.count === 'number') impressions = data.count;
+			})
+			.catch(() => {
+				/* swallow — decorative, never block */
+			});
+
 		return () => mq.removeEventListener('change', onSystemChange);
 	});
 
@@ -328,6 +348,9 @@
 				target="_blank"
 				rel="license noopener">MIT</a
 			>
+			{#if impressions !== null}
+				· Impressions: <span class="impressions-count">{impressions.toLocaleString()}</span>
+			{/if}
 		</p>
 	</footer>
 </div>
@@ -775,6 +798,15 @@
 	}
 	.rights-year {
 		font-feature-settings: 'tnum';
+	}
+	/* Digit treatment for the impressions counter. Tabular figures so
+	 * the number doesn't reflow when the count rolls past a digit
+	 * boundary; accent-red to subtly differentiate from the static
+	 * copyright/license tokens. */
+	.impressions-count {
+		font-feature-settings: 'tnum';
+		color: var(--accent);
+		letter-spacing: 0.18em;
 	}
 
 	/* TONE selector — replaces the decorative SHEET ∞/∞ stamp.

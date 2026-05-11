@@ -46,9 +46,25 @@
  * counter (Tier 2) or Analytics Engine (Tier 3) would land here
  * the same way — extend the inside of the `if (isPageView)` block. */
 
+/* Minimal KV interface — declared inline rather than pulling in
+ * @cloudflare/workers-types as a devDep. Only the methods we use. */
+type KVNamespace = {
+	get: (key: string) => Promise<string | null>;
+	put: (key: string, value: string) => Promise<void>;
+};
+
 type EventContext = {
 	request: Request;
 	next: () => Promise<Response>;
+	waitUntil: (promise: Promise<unknown>) => void;
+	env: {
+		/* Bound in the CF dashboard under Workers & Pages →
+		 * kemek-qr → Settings → Functions → KV namespace bindings.
+		 * Variable name `PV_COUNTER`. Optional — middleware
+		 * gracefully no-ops if the binding is absent (the structured
+		 * log still emits regardless). */
+		PV_COUNTER?: KVNamespace;
+	};
 };
 
 type CfProperties = {
@@ -70,8 +86,29 @@ export async function onRequest(context: EventContext): Promise<Response> {
 				ref: context.request.headers.get('referer') ?? null
 			})
 		);
+		if (context.env.PV_COUNTER) {
+			context.waitUntil(incrementCounter(context.env.PV_COUNTER));
+		}
 	}
 	return context.next();
+}
+
+/* Best-effort counter. KV writes are eventually consistent and
+ * not atomic — two simultaneous reads can both write the same
+ * incremented value, losing one count. Acceptable for a decorative
+ * "IMPRESSIONS" footer cell where order-of-magnitude is what
+ * matters, not precision. Strictly accurate counting would need
+ * Durable Objects; that's Tier 3 territory.
+ *
+ * Errors are swallowed silently — the counter is non-critical and
+ * must never block a request or surface a 500 to the visitor. */
+async function incrementCounter(kv: KVNamespace): Promise<void> {
+	try {
+		const current = parseInt((await kv.get('total')) ?? '0', 10);
+		await kv.put('total', String(current + 1));
+	} catch {
+		/* intentional: decorative counter, swallow failures */
+	}
 }
 
 /* Page-view heuristic — the request hits a route (HTML) rather than
