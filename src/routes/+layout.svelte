@@ -188,9 +188,9 @@
 				</span>
 				<span class="brand-name">kemek<span class="brand-slash">/</span>qr</span>
 			</a>
-			<a class="pill" href="/about" aria-label="NO SIGNUP, NO TRACKING, NO UPLOAD — about page">
-				NO SIGNUP <span class="pill-dot">·</span> NO TRACKING <span class="pill-dot">·</span> NO
-				UPLOAD
+			<a class="pill" href="/about" aria-label="NO SIGNUP NO TRACKING NO UPLOAD — about page">
+				NO SIGNUP <span class="pill-dot" aria-hidden="true">·</span> NO TRACKING
+				<span class="pill-dot" aria-hidden="true">·</span> NO UPLOAD
 				<span class="pill-arrow" aria-hidden="true">→</span>
 			</a>
 			<button
