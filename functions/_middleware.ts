@@ -112,15 +112,19 @@ async function incrementCounter(kv: KVNamespace): Promise<void> {
 }
 
 /* Page-view heuristic — the request hits a route (HTML) rather than
- * an asset (CSS/JS/font/favicon/etc.). True if the trailing path
- * segment has no `.` (treated as a directory or extensionless route)
- * or explicitly ends in `.html`. This intentionally excludes
- * `/llms.txt`, `/robots.txt`, `/sitemap.xml`, `/og.png`, the entire
- * `_app/immutable/...` tree, and the favicon family — all of which
- * are asset fetches, not page-views. The 404 SPA fallback at
- * `/404.html` is also a page-view (path ends in .html) so we'll see
+ * an asset (CSS/JS/font/favicon/etc.) or an API endpoint. True if the
+ * trailing path segment has no `.` (treated as a directory or
+ * extensionless route) or explicitly ends in `.html`, AND the path
+ * doesn't sit under `/api/`. Intentionally excludes `/llms.txt`,
+ * `/robots.txt`, `/sitemap.xml`, `/og.png`, the entire
+ * `_app/immutable/...` tree, the favicon family, and the
+ * `/api/impressions` endpoint (which is fetched by the footer cell
+ * on every page mount — would otherwise self-loop and inflate the
+ * counter ~1 per unique visitor per minute). The 404 SPA fallback
+ * at `/404.html` IS a page-view (path ends in .html) so we'll see
  * mis-typed URLs in the log too, which is useful diagnostic data. */
 function isPageView(pathname: string): boolean {
+	if (pathname.startsWith('/api/')) return false;
 	const last = pathname.split('/').pop() ?? '';
 	if (!last) return true;
 	if (last.endsWith('.html')) return true;
