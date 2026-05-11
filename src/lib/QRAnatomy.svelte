@@ -186,55 +186,58 @@
 		<line class="inset-divider" x1="80" y1="320" x2="560" y2="320" />
 
 		<!-- ─── DETAIL · FINDER PATTERN ─────────────────────────
-		     Zoomed cross-section of one finder pattern (drawn at 14 px
-		     per module = 2 × the main diagram's scale). The dimensional
-		     strip on the right shows the 1·1·3·1·1 module construction
-		     that's load-bearing to QR scanning: the proportional ring
-		     is unique enough that scanners can detect it at any
-		     rotation, and three of these patterns triangulate the
-		     code's orientation. -->
+		     Zoomed cross-section of one finder pattern (drawn at 18 px
+		     per module = ~2.25 × the main diagram's scale). The
+		     dimensional strip on the right shows the 1·1·3·1·1 module
+		     construction that's load-bearing to QR scanning: the
+		     proportional ring is unique enough that scanners can detect
+		     it at any rotation, and three of these patterns triangulate
+		     the code's orientation. -->
 		<g class="inset">
-			<text class="inset-rubric" x="80" y="346">DETAIL · FINDER PATTERN</text>
-			<text class="inset-scale" x="560" y="346" text-anchor="end">SCALE 2:1</text>
+			<text class="inset-rubric" x="80" y="343">DETAIL · FINDER PATTERN</text>
+			<text class="inset-scale" x="560" y="343" text-anchor="end">SCALE ≈ 2.25:1</text>
 
-			<!-- Zoomed finder at 14 px / module = 98 × 98 -->
-			<g class="modules" transform="translate(248, 360)">
-				<rect x="0" y="0" width="98" height="14" />
-				<rect x="0" y="84" width="98" height="14" />
-				<rect x="0" y="0" width="14" height="98" />
-				<rect x="84" y="0" width="14" height="98" />
-				<rect x="28" y="28" width="42" height="42" />
+			<!-- Zoomed finder at 18 px / module = 126 × 126 -->
+			<g class="modules" transform="translate(236, 354)">
+				<rect x="0" y="0" width="126" height="18" />
+				<rect x="0" y="108" width="126" height="18" />
+				<rect x="0" y="0" width="18" height="126" />
+				<rect x="108" y="0" width="18" height="126" />
+				<rect x="36" y="36" width="54" height="54" />
 			</g>
 
 			<!-- Dimensional strip on the right of the zoomed finder.
 			     Vertical bracket + tick marks at module boundaries +
 			     module-count digits in the middle of each band. -->
-			<g class="dim-strip" transform="translate(360, 360)">
-				<line class="dim-bracket" x1="0" y1="0" x2="0" y2="98" />
-				<line class="dim-tick" x1="0" y1="0" x2="6" y2="0" />
-				<line class="dim-tick" x1="0" y1="14" x2="6" y2="14" />
-				<line class="dim-tick" x1="0" y1="28" x2="6" y2="28" />
-				<line class="dim-tick" x1="0" y1="70" x2="6" y2="70" />
-				<line class="dim-tick" x1="0" y1="84" x2="6" y2="84" />
-				<line class="dim-tick" x1="0" y1="98" x2="6" y2="98" />
+			<g class="dim-strip" transform="translate(378, 354)">
+				<line class="dim-bracket" x1="0" y1="0" x2="0" y2="126" />
+				<line class="dim-tick" x1="0" y1="0" x2="7" y2="0" />
+				<line class="dim-tick" x1="0" y1="18" x2="7" y2="18" />
+				<line class="dim-tick" x1="0" y1="36" x2="7" y2="36" />
+				<line class="dim-tick" x1="0" y1="90" x2="7" y2="90" />
+				<line class="dim-tick" x1="0" y1="108" x2="7" y2="108" />
+				<line class="dim-tick" x1="0" y1="126" x2="7" y2="126" />
 
-				<text class="dim-label" x="14" y="11">1</text>
-				<text class="dim-label" x="14" y="25">1</text>
-				<text class="dim-label" x="14" y="53">3</text>
-				<text class="dim-label" x="14" y="81">1</text>
-				<text class="dim-label" x="14" y="95">1</text>
+				<text class="dim-label" x="16" y="14">1</text>
+				<text class="dim-label" x="16" y="32">1</text>
+				<text class="dim-label" x="16" y="68">3</text>
+				<text class="dim-label" x="16" y="104">1</text>
+				<text class="dim-label" x="16" y="122">1</text>
 
-				<text class="dim-summary" x="0" y="118">RING · 1·1·3·1·1</text>
+				<text class="dim-summary" x="0" y="148">RING · 1·1·3·1·1</text>
 			</g>
 
 			<!-- Annotation labels on the left side of the zoomed
-			     finder identifying each band's role. -->
+			     finder identifying each band's role. Y positions track
+			     band midpoints in absolute viewBox coordinates: bands
+			     are 18 px tall (outer ring / quiet band) and 54 px tall
+			     (solid center), with finder translated to y=354. -->
 			<g class="dim-anno">
-				<text class="dim-anno-label" x="240" y="367" text-anchor="end">OUTER RING</text>
-				<text class="dim-anno-label" x="240" y="389" text-anchor="end">QUIET BAND</text>
-				<text class="dim-anno-label" x="240" y="412" text-anchor="end">SOLID CENTER</text>
-				<text class="dim-anno-label" x="240" y="438" text-anchor="end">QUIET BAND</text>
-				<text class="dim-anno-label" x="240" y="455" text-anchor="end">OUTER RING</text>
+				<text class="dim-anno-label" x="228" y="367" text-anchor="end">OUTER RING</text>
+				<text class="dim-anno-label" x="228" y="385" text-anchor="end">QUIET BAND</text>
+				<text class="dim-anno-label" x="228" y="416" text-anchor="end">SOLID CENTER</text>
+				<text class="dim-anno-label" x="228" y="446" text-anchor="end">QUIET BAND</text>
+				<text class="dim-anno-label" x="228" y="464" text-anchor="end">OUTER RING</text>
 			</g>
 		</g>
 	</svg>
@@ -333,7 +336,7 @@
 	}
 	.inset-rubric {
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: 13px;
 		letter-spacing: 0.28em;
 		fill: var(--accent);
 		text-transform: uppercase;
@@ -341,7 +344,7 @@
 	}
 	.inset-scale {
 		font-family: var(--font-mono);
-		font-size: 10px;
+		font-size: 12px;
 		letter-spacing: 0.22em;
 		fill: var(--micro);
 		text-transform: uppercase;
@@ -350,12 +353,12 @@
 	.dim-strip .dim-bracket,
 	.dim-strip .dim-tick {
 		stroke: var(--accent);
-		stroke-width: 0.7;
+		stroke-width: 0.9;
 		opacity: 0.85;
 	}
 	.dim-label {
 		font-family: var(--font-mono);
-		font-size: 10px;
+		font-size: 12px;
 		letter-spacing: 0.04em;
 		fill: var(--ink);
 		font-weight: 500;
@@ -363,7 +366,7 @@
 	}
 	.dim-summary {
 		font-family: var(--font-mono);
-		font-size: 9px;
+		font-size: 11px;
 		letter-spacing: 0.18em;
 		fill: var(--micro);
 		text-transform: uppercase;
@@ -371,7 +374,7 @@
 	}
 	.dim-anno-label {
 		font-family: var(--font-mono);
-		font-size: 9px;
+		font-size: 11px;
 		letter-spacing: 0.16em;
 		fill: var(--ghost);
 		text-transform: uppercase;
