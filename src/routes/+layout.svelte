@@ -3,6 +3,21 @@
 	import '../app.css';
 	import { page } from '$app/state';
 	import { CONTENT_TYPES, PLATE, ROUTE_FOR_TYPE, TYPE_LABELS, type ContentType } from '$lib/types';
+	/* Vite `?url` imports resolve to the bundled, content-hashed asset
+	 * paths at build time, so the preload tags below land on the
+	 * exact filenames the @import-chain inside app.css will eventually
+	 * request. Without this, the WOFF2 fetches sit behind 4 serial
+	 * round-trips (HTML → main CSS → @fontsource CSS → WOFF2);
+	 * preloading parallelizes the WOFF2 download against the CSS
+	 * bundle. Three files cover every glyph rendered above the fold:
+	 * Fraunces Variable for the hero title, JetBrains Mono 400 for
+	 * body labels, JetBrains Mono 500 for the masthead pill + plate
+	 * nav. Italic Fraunces (used by the title-rubric and version
+	 * value) is small enough that synthesized italic from the
+	 * variable normal axis is acceptable during preload. */
+	import frauncesNormalUrl from '@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2?url';
+	import mono400Url from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2?url';
+	import mono500Url from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-500-normal.woff2?url';
 
 	let { children } = $props();
 
@@ -86,6 +101,15 @@
 </script>
 
 <svelte:head>
+	<!-- Critical font preloads — parallelize WOFF2 fetches against the
+	     CSS bundle. See script-top comment for rationale. `crossorigin=""`
+	     (equivalent to `crossorigin="anonymous"`) is required by the
+	     HTML spec for `<link rel="preload" as="font">` regardless of
+	     origin; Svelte/TS reject the boolean shorthand. -->
+	<link rel="preload" href={frauncesNormalUrl} as="font" type="font/woff2" crossorigin="" />
+	<link rel="preload" href={mono500Url} as="font" type="font/woff2" crossorigin="" />
+	<link rel="preload" href={mono400Url} as="font" type="font/woff2" crossorigin="" />
+
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
 	<!-- Identity / publisher -->
