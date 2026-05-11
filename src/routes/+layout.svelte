@@ -188,7 +188,7 @@
 				</span>
 				<span class="brand-name">kemek<span class="brand-slash">/</span>qr</span>
 			</a>
-			<a class="pill" href="/about" aria-label="About — privacy posture and license">
+			<a class="pill" href="/about" aria-label="NO SIGNUP, NO TRACKING, NO UPLOAD — about page">
 				NO SIGNUP <span class="pill-dot">·</span> NO TRACKING <span class="pill-dot">·</span> NO
 				UPLOAD
 				<span class="pill-arrow" aria-hidden="true">→</span>
@@ -286,7 +286,7 @@
 					class="tone-toggle"
 					type="button"
 					onclick={toggleTone}
-					aria-label="Toggle color theme"
+					aria-label="DAY NIGHT — color theme toggle"
 					aria-pressed={mode === 'dark'}
 				>
 					<span class="tone-seg" class:active={mode === 'light'}>DAY</span>

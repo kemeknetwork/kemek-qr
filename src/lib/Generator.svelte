@@ -1669,8 +1669,11 @@
 		/* Muted variant of the button's text color (--paper) — uses
 		 * color-mix so dark mode reads as near-black-faded over the
 		 * cream button bg, light mode reads as cream-faded over the
-		 * ink-dark button bg. Hardcoding cream-alpha would invert. */
-		color: color-mix(in srgb, var(--paper), transparent 45%);
+		 * ink-dark button bg. Hardcoding cream-alpha would invert.
+		 * Transparency tuned to 25% (was 45%) to clear WCAG AA at
+		 * 17 px normal-weight text; Lighthouse a11y audit 2026-05-11
+		 * flagged 45% as failing 4.5:1 contrast ratio. */
+		color: color-mix(in srgb, var(--paper), transparent 25%);
 		margin-left: auto;
 	}
 	.download-arrow {

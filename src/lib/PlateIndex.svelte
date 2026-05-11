@@ -57,11 +57,18 @@
 		border-right: 1px solid var(--rule);
 		border-bottom: 1px solid var(--rule);
 	}
-	/* "You are here" — muted, non-clickable. Anchor still present
-	 * for a11y; aria-current="page" announces the state. */
+	/* "You are here" — non-clickable, distinguished by a paper-warm
+	 * background tint + italic h1 rather than opacity. Previously
+	 * used `opacity: 0.55` which multiplied the already-muted
+	 * `--micro` / `--ghost` text below WCAG AA contrast threshold
+	 * (Lighthouse 2026-05-11 flagged it). Anchor still present for
+	 * a11y; `aria-current="page"` announces the state to SR. */
 	.plate-index li.is-current a {
 		pointer-events: none;
-		opacity: 0.55;
+		background: var(--paper-warm);
+	}
+	.plate-index li.is-current .plate-index-h1 {
+		font-style: italic;
 	}
 	.plate-index li.is-current .plate-index-arrow {
 		visibility: hidden;
