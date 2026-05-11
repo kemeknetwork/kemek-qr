@@ -64,9 +64,9 @@
 			<span class="title-rubric">COLOPHON · ABOUT THIS SPECIFICATION</span>
 			<h1 class="hero-title">A QR generator that doesn’t want anything from you.</h1>
 			<p class="hero-sub">
-				kemek/qr is a free utility from KeMeK Network. It runs entirely in your
-				browser — no upload, no account, no expiry, no tracking. This page
-				explains exactly what that means and where the limits are.
+				kemek/qr is a free utility from KeMeK Network. It runs entirely in your browser — no upload,
+				no account, no expiry, no tracking. This page explains exactly what that means and where the
+				limits are.
 			</p>
 		</div>
 	</div>
@@ -77,26 +77,22 @@
 	<div class="prose">
 		<p>
 			<span class="dropmark" aria-hidden="true">01</span>
-			A static-page web app for generating QR codes. You pick a content type
-			(URL, plain text, WiFi credentials, vCard contact, mailto:, SMS, tel:,
-			geo:), tune the styling, and download a print-ready PNG, SVG, or PDF.
-			The generator and every export run in your browser — there is no
-			backend involved at any step.
+			A static-page web app for generating QR codes. You pick a content type (URL, plain text, WiFi credentials,
+			vCard contact, mailto:, SMS, tel:, geo:), tune the styling, and download a print-ready PNG, SVG,
+			or PDF. The generator and every export run in your browser — there is no backend involved at any
+			step.
 		</p>
 		<p>
 			<span class="dropmark" aria-hidden="true">02</span>
-			"Static" here means the QR encodes its destination directly. There is
-			no shortener, no redirect server, nothing tracking the scan. A static
-			URL QR works for as long as the URL itself works; a static WiFi QR
-			works as long as the network credentials match. None of these can be
-			edited after the fact — to change the destination you regenerate the
-			QR.
+			"Static" here means the QR encodes its destination directly. There is no shortener, no redirect
+			server, nothing tracking the scan. A static URL QR works for as long as the URL itself works; a
+			static WiFi QR works as long as the network credentials match. None of these can be edited after
+			the fact — to change the destination you regenerate the QR.
 		</p>
 		<p>
 			<span class="dropmark" aria-hidden="true">03</span>
-			The generator is a single SvelteKit app, prerendered to static HTML
-			and bundled JavaScript. Cloudflare Pages serves the artifact;
-			Cloudflare touches no request payloads beyond standard CDN logging.
+			The generator is a single SvelteKit app, prerendered to static HTML and bundled JavaScript. Cloudflare
+			Pages serves the artifact; Cloudflare touches no request payloads beyond standard CDN logging.
 		</p>
 	</div>
 
@@ -104,34 +100,27 @@
 	<div class="prose">
 		<p>
 			<span class="dropmark" aria-hidden="true">01</span>
-			<strong>No client-side analytics, no tracking scripts.</strong> No
-			Google Analytics, no Plausible, no Umami — anything that injects a
-			script tag and pings a server while you generate. We see what our
-			host sees — aggregate pageview counts, no individual tracking, no
-			cookies, no third-party scripts.
+			<strong>No client-side analytics, no tracking scripts.</strong> No Google Analytics, no Plausible,
+			no Umami — anything that injects a script tag and pings a server while you generate. We see what
+			our host sees — aggregate pageview counts, no individual tracking, no cookies, no third-party scripts.
 		</p>
 		<p>
 			<span class="dropmark" aria-hidden="true">02</span>
-			<strong>No third-party assets.</strong> Fonts (Fraunces and JetBrains
-			Mono) are bundled locally via npm packages, not loaded from Google
-			Fonts. There is no CDN-hosted JavaScript, no embed scripts, no
-			tracking pixels.
+			<strong>No third-party assets.</strong> Fonts (Fraunces and JetBrains Mono) are bundled locally
+			via npm packages, not loaded from Google Fonts. There is no CDN-hosted JavaScript, no embed scripts,
+			no tracking pixels.
 		</p>
 		<p>
 			<span class="dropmark" aria-hidden="true">03</span>
-			<strong>No signup, no account, no email gate.</strong> Every feature is
-			free at the same point: open the page, generate the code, download.
-			Permalinks (the COPY LINK button on each generator) encode every
-			setting into the URL hash so you can share or bookmark a configured
-			QR without an account.
+			<strong>No signup, no account, no email gate.</strong> Every feature is free at the same point:
+			open the page, generate the code, download. Permalinks (the COPY LINK button on each generator)
+			encode every setting into the URL hash so you can share or bookmark a configured QR without an account.
 		</p>
 		<p>
 			<span class="dropmark" aria-hidden="true">04</span>
-			<strong>No dynamic QRs, no scan analytics.</strong> Editable
-			destinations and per-scan analytics require a server-side redirect,
-			which would mean accounts, hosted endpoints, and tracking by
-			construction. That is a different product. If you need it, choose a
-			SaaS QR provider — there are many.
+			<strong>No dynamic QRs, no scan analytics.</strong> Editable destinations and per-scan analytics
+			require a server-side redirect, which would mean accounts, hosted endpoints, and tracking by construction.
+			That is a different product. If you need it, choose a SaaS QR provider — there are many.
 		</p>
 	</div>
 
@@ -139,24 +128,22 @@
 	<div class="prose">
 		<p>
 			<span class="dropmark" aria-hidden="true">01</span>
-			Anything you type into a form (URL, WiFi password, contact name,
-			etc.) stays in the browser tab. It is not sent over the wire. The QR
-			image is rendered locally by a JavaScript library
-			(<a href="https://github.com/kozakdenys/qr-code-styling">qr-code-styling</a>)
-			and the file you download comes out of the same tab.
+			Anything you type into a form (URL, WiFi password, contact name, etc.) stays in the browser tab.
+			It is not sent over the wire. The QR image is rendered locally by a JavaScript library (<a
+				href="https://github.com/kozakdenys/qr-code-styling">qr-code-styling</a
+			>) and the file you download comes out of the same tab.
 		</p>
 		<p>
 			<span class="dropmark" aria-hidden="true">02</span>
-			If you upload a logo to embed in the QR, the file is read with the
-			browser’s built-in <code>FileReader</code>, kept in memory, and
-			composited into the output. It is never uploaded anywhere.
+			If you upload a logo to embed in the QR, the file is read with the browser’s built-in
+			<code>FileReader</code>, kept in memory, and composited into the output. It is never uploaded
+			anywhere.
 		</p>
 		<p>
 			<span class="dropmark" aria-hidden="true">03</span>
 			Your last inputs persist between sessions via
-			<code>localStorage</code> on the same device — also local, also
-			under your control. Clearing site data clears the saved session.
-			Loading a permalink (a URL with a <code>#s=…</code> hash) overrides
+			<code>localStorage</code> on the same device — also local, also under your control. Clearing
+			site data clears the saved session. Loading a permalink (a URL with a <code>#s=…</code> hash) overrides
 			the saved session for that visit.
 		</p>
 	</div>
@@ -167,17 +154,15 @@
 			<span class="dropmark" aria-hidden="true">01</span>
 			The kemek/qr source is
 			<a href="https://github.com/KeMeK-Network/kemek-QR">on GitHub</a>
-			under the MIT license. Read the code, fork it, run your own copy
-			if you’d prefer. The privacy claims on this page reduce to "we
-			ship no telemetry code"; the source is the proof.
+			under the MIT license. Read the code, fork it, run your own copy if you’d prefer. The privacy claims
+			on this page reduce to "we ship no telemetry code"; the source is the proof.
 		</p>
 		<p>
 			<span class="dropmark" aria-hidden="true">02</span>
 			kemek/qr is part of the
-			<a href="https://kemek.com">KeMeK Network</a> family of
-			utilities. KeMeK Network builds privacy-first, local-first tools
-			and full-stack apps — each one drawn to spec, opinionated in
-			design, and built for the common good.
+			<a href="https://kemek.com">KeMeK Network</a> family of utilities. KeMeK Network builds privacy-first,
+			local-first tools and full-stack apps — each one drawn to spec, opinionated in design, and built
+			for the common good.
 		</p>
 	</div>
 
@@ -206,7 +191,9 @@
 		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 		grid-template-rows: auto 1fr auto;
 	}
-	.title-block-corner { min-width: 0; }
+	.title-block-corner {
+		min-width: 0;
+	}
 	.title-block::before,
 	.title-block::after {
 		content: '';
@@ -235,10 +222,32 @@
 		font-family: var(--font-mono);
 		padding: 0 0.5rem;
 	}
-	.title-block-tl { justify-self: start; grid-row: 1; grid-column: 1; padding-left: 0; }
-	.title-block-tr { justify-self: end; text-align: right; grid-row: 1; grid-column: 2; padding-right: 0; }
-	.title-block-bl { justify-self: start; grid-row: 3; grid-column: 1; padding-left: 0; }
-	.title-block-br { justify-self: end; text-align: right; grid-row: 3; grid-column: 2; padding-right: 0; }
+	.title-block-tl {
+		justify-self: start;
+		grid-row: 1;
+		grid-column: 1;
+		padding-left: 0;
+	}
+	.title-block-tr {
+		justify-self: end;
+		text-align: right;
+		grid-row: 1;
+		grid-column: 2;
+		padding-right: 0;
+	}
+	.title-block-bl {
+		justify-self: start;
+		grid-row: 3;
+		grid-column: 1;
+		padding-left: 0;
+	}
+	.title-block-br {
+		justify-self: end;
+		text-align: right;
+		grid-row: 3;
+		grid-column: 2;
+		padding-right: 0;
+	}
 	.title-block-corner .rubric {
 		font-size: 12px;
 		letter-spacing: 0.32em;
@@ -270,12 +279,24 @@
 		margin-top: 0.1rem;
 	}
 	@media (max-width: 540px) {
-		.title-block-corner .rubric { font-size: 11px; letter-spacing: 0.26em; }
-		.title-block-corner .value { font-size: 13px; letter-spacing: 0.1em; }
-		.plate-large { font-size: clamp(1.35rem, 6.4vw, 1.85rem); margin-top: 0.05rem; }
+		.title-block-corner .rubric {
+			font-size: 11px;
+			letter-spacing: 0.26em;
+		}
+		.title-block-corner .value {
+			font-size: 13px;
+			letter-spacing: 0.1em;
+		}
+		.plate-large {
+			font-size: clamp(1.35rem, 6.4vw, 1.85rem);
+			margin-top: 0.05rem;
+		}
 	}
 	@media (max-width: 380px) {
-		.title-block-corner .value:not(.plate-large) { font-size: 12px; letter-spacing: 0.04em; }
+		.title-block-corner .value:not(.plate-large) {
+			font-size: 12px;
+			letter-spacing: 0.04em;
+		}
 	}
 
 	.title-block-body {
@@ -295,8 +316,12 @@
 		height: 1px;
 		background: var(--rule);
 	}
-	.title-block-body::before { top: 0; }
-	.title-block-body::after { bottom: 0; }
+	.title-block-body::before {
+		top: 0;
+	}
+	.title-block-body::after {
+		bottom: 0;
+	}
 
 	.title-rubric {
 		display: inline-block;
@@ -325,10 +350,19 @@
 		overflow-wrap: anywhere;
 	}
 	@media (max-width: 540px) {
-		.title-rubric { font-size: 12px; letter-spacing: 0.24em; padding: 0.3rem 0.55rem; margin-bottom: 0.85rem; }
+		.title-rubric {
+			font-size: 12px;
+			letter-spacing: 0.24em;
+			padding: 0.3rem 0.55rem;
+			margin-bottom: 0.85rem;
+		}
 	}
 	@media (max-width: 380px) {
-		.title-rubric { font-size: 11px; letter-spacing: 0.18em; padding: 0.28rem 0.45rem; }
+		.title-rubric {
+			font-size: 11px;
+			letter-spacing: 0.18em;
+			padding: 0.28rem 0.45rem;
+		}
 	}
 	.hero-sub {
 		font-family: var(--font-mono);
@@ -389,8 +423,12 @@
 		width: 2.2rem;
 	}
 	@media (max-width: 480px) {
-		.prose p { padding-left: 2.4rem; }
-		.dropmark { width: 1.8rem; }
+		.prose p {
+			padding-left: 2.4rem;
+		}
+		.dropmark {
+			width: 1.8rem;
+		}
 	}
 
 	/* @keyframes fade-up lives in app.css — see comment in

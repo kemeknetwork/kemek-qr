@@ -140,11 +140,17 @@
 	<meta property="og:image:type" content="image/png" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
-	<meta property="og:image:alt" content="kemek/qr — a free, browser-only QR code generator from KeMeK Network. Drafting-spec card with corner crop marks and dimensional metadata." />
+	<meta
+		property="og:image:alt"
+		content="kemek/qr — a free, browser-only QR code generator from KeMeK Network. Drafting-spec card with corner crop marks and dimensional metadata."
+	/>
 
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:image" content="https://qr.kemek.com/og.png" />
-	<meta name="twitter:image:alt" content="kemek/qr — a free, browser-only QR code generator from KeMeK Network." />
+	<meta
+		name="twitter:image:alt"
+		content="kemek/qr — a free, browser-only QR code generator from KeMeK Network."
+	/>
 
 	<!-- Schema.org Organization for KeMeK Network — establishes the
 	     publisher entity for Google's brand panel. Per-page
@@ -183,7 +189,8 @@
 				<span class="brand-name">kemek<span class="brand-slash">/</span>qr</span>
 			</a>
 			<a class="pill" href="/about" aria-label="About — privacy posture and license">
-				NO SIGNUP <span class="pill-dot">·</span> NO TRACKING <span class="pill-dot">·</span> NO UPLOAD
+				NO SIGNUP <span class="pill-dot">·</span> NO TRACKING <span class="pill-dot">·</span> NO
+				UPLOAD
 				<span class="pill-arrow" aria-hidden="true">→</span>
 			</a>
 			<button
@@ -289,7 +296,14 @@
 			</div>
 		</div>
 		<p class="colophon-rights">
-			<a href="https://kemek.com" target="_blank" rel="publisher noopener">KEMEK NETWORK</a> © <span class="rights-year">MMXXVI</span> · License: <a href="https://github.com/KeMeK-Network/kemek-QR/blob/main/LICENSE" target="_blank" rel="license noopener">MIT</a>
+			<a href="https://kemek.com" target="_blank" rel="publisher noopener">KEMEK NETWORK</a> ©
+			<span class="rights-year">MMXXVI</span>
+			· License:
+			<a
+				href="https://github.com/KeMeK-Network/kemek-QR/blob/main/LICENSE"
+				target="_blank"
+				rel="license noopener">MIT</a
+			>
 		</p>
 	</footer>
 </div>
@@ -671,7 +685,9 @@
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 		align-items: stretch;
 	}
-	.colophon-cell { min-width: 0; }
+	.colophon-cell {
+		min-width: 0;
+	}
 	.colophon-cell {
 		display: flex;
 		flex-direction: column;

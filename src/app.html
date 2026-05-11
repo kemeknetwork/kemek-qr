@@ -31,12 +31,13 @@
 			 * and `@media (prefers-color-scheme: dark)`. */
 			(function () {
 				var t = null;
-				try { t = localStorage.getItem('kemek-qr:theme'); } catch (e) {}
+				try {
+					t = localStorage.getItem('kemek-qr:theme');
+				} catch (e) {}
 				var resolved =
 					t === 'dark' || t === 'light'
 						? t
-						: window.matchMedia &&
-							  window.matchMedia('(prefers-color-scheme: dark)').matches
+						: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
 							? 'dark'
 							: 'light';
 				document.documentElement.setAttribute('data-theme', resolved);

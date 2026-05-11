@@ -107,8 +107,8 @@
 							class="title-meta-link"
 							href="https://github.com/KeMeK-Network/kemek-QR/blob/main/LICENSE"
 							target="_blank"
-							rel="license noopener"
-						>MIT</a> · open source
+							rel="license noopener">MIT</a
+						> · open source
 					</dd>
 				</div>
 			</dl>
@@ -122,7 +122,9 @@
 	<ExplainerSection marker="§01" title="Notes on the artifact" />
 	<div class="prose">
 		{#each copy.paragraphs as p, i}
-			<p><span class="dropmark" aria-hidden="true">{(i + 1).toString().padStart(2, '0')}</span>{p}</p>
+			<p>
+				<span class="dropmark" aria-hidden="true">{(i + 1).toString().padStart(2, '0')}</span>{p}
+			</p>
 		{/each}
 	</div>
 
@@ -167,7 +169,9 @@
 		grid-template-rows: auto 1fr auto;
 		gap: 0;
 	}
-	.title-block-corner { min-width: 0; }
+	.title-block-corner {
+		min-width: 0;
+	}
 	.title-block::before,
 	.title-block::after {
 		content: '';

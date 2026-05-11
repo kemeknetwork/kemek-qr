@@ -11,7 +11,10 @@
 
 <svelte:head>
 	<title>{title}</title>
-	<meta name="description" content="{status} — the requested page is not on the kemek/qr drafting set." />
+	<meta
+		name="description"
+		content="{status} — the requested page is not on the kemek/qr drafting set."
+	/>
 	<meta name="robots" content="noindex, follow" />
 </svelte:head>
 
@@ -38,9 +41,8 @@
 			<span class="title-rubric">ERRATUM · UNFILED REFERENCE</span>
 			<h1 class="hero-title">{message}.</h1>
 			<p class="hero-sub">
-				The URL you followed doesn’t match any plate in the index — likely a
-				typo, an old link, or a path that never existed. The full drafting
-				set is below; pick one up.
+				The URL you followed doesn’t match any plate in the index — likely a typo, an old link, or a
+				path that never existed. The full drafting set is below; pick one up.
 			</p>
 			<div class="hero-cta-wrap">
 				<a href="/" class="hero-cta">
@@ -78,7 +80,9 @@
 		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 		grid-template-rows: auto 1fr auto;
 	}
-	.title-block-corner { min-width: 0; }
+	.title-block-corner {
+		min-width: 0;
+	}
 	.title-block::before,
 	.title-block::after {
 		content: '';
@@ -107,10 +111,32 @@
 		font-family: var(--font-mono);
 		padding: 0 0.5rem;
 	}
-	.title-block-tl { justify-self: start; grid-row: 1; grid-column: 1; padding-left: 0; }
-	.title-block-tr { justify-self: end; text-align: right; grid-row: 1; grid-column: 2; padding-right: 0; }
-	.title-block-bl { justify-self: start; grid-row: 3; grid-column: 1; padding-left: 0; }
-	.title-block-br { justify-self: end; text-align: right; grid-row: 3; grid-column: 2; padding-right: 0; }
+	.title-block-tl {
+		justify-self: start;
+		grid-row: 1;
+		grid-column: 1;
+		padding-left: 0;
+	}
+	.title-block-tr {
+		justify-self: end;
+		text-align: right;
+		grid-row: 1;
+		grid-column: 2;
+		padding-right: 0;
+	}
+	.title-block-bl {
+		justify-self: start;
+		grid-row: 3;
+		grid-column: 1;
+		padding-left: 0;
+	}
+	.title-block-br {
+		justify-self: end;
+		text-align: right;
+		grid-row: 3;
+		grid-column: 2;
+		padding-right: 0;
+	}
 	.title-block-corner .rubric {
 		font-size: 12px;
 		letter-spacing: 0.32em;
@@ -140,12 +166,24 @@
 		margin-top: 0.1rem;
 	}
 	@media (max-width: 540px) {
-		.title-block-corner .rubric { font-size: 11px; letter-spacing: 0.26em; }
-		.title-block-corner .value { font-size: 13px; letter-spacing: 0.1em; }
-		.plate-large { font-size: clamp(1.35rem, 6.4vw, 1.85rem); margin-top: 0.05rem; }
+		.title-block-corner .rubric {
+			font-size: 11px;
+			letter-spacing: 0.26em;
+		}
+		.title-block-corner .value {
+			font-size: 13px;
+			letter-spacing: 0.1em;
+		}
+		.plate-large {
+			font-size: clamp(1.35rem, 6.4vw, 1.85rem);
+			margin-top: 0.05rem;
+		}
 	}
 	@media (max-width: 380px) {
-		.title-block-corner .value:not(.plate-large) { font-size: 12px; letter-spacing: 0.04em; }
+		.title-block-corner .value:not(.plate-large) {
+			font-size: 12px;
+			letter-spacing: 0.04em;
+		}
 	}
 
 	.title-block-body {
@@ -165,8 +203,12 @@
 		height: 1px;
 		background: var(--rule);
 	}
-	.title-block-body::before { top: 0; }
-	.title-block-body::after { bottom: 0; }
+	.title-block-body::before {
+		top: 0;
+	}
+	.title-block-body::after {
+		bottom: 0;
+	}
 
 	.title-rubric {
 		display: inline-block;
@@ -195,10 +237,19 @@
 		overflow-wrap: anywhere;
 	}
 	@media (max-width: 540px) {
-		.title-rubric { font-size: 12px; letter-spacing: 0.24em; padding: 0.3rem 0.55rem; margin-bottom: 0.85rem; }
+		.title-rubric {
+			font-size: 12px;
+			letter-spacing: 0.24em;
+			padding: 0.3rem 0.55rem;
+			margin-bottom: 0.85rem;
+		}
 	}
 	@media (max-width: 380px) {
-		.title-rubric { font-size: 11px; letter-spacing: 0.18em; padding: 0.28rem 0.45rem; }
+		.title-rubric {
+			font-size: 11px;
+			letter-spacing: 0.18em;
+			padding: 0.28rem 0.45rem;
+		}
 	}
 	.hero-sub {
 		font-family: var(--font-mono);
@@ -228,7 +279,9 @@
 		padding: 0.65rem 1.1rem;
 		border: 1px solid var(--accent);
 		text-decoration: none;
-		transition: background var(--duration) var(--ease), color var(--duration) var(--ease);
+		transition:
+			background var(--duration) var(--ease),
+			color var(--duration) var(--ease);
 	}
 	.hero-cta:hover,
 	.hero-cta:focus-visible {

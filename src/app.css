@@ -244,7 +244,6 @@ select {
 	color: var(--ghost);
 }
 
-
 /* Reduced-motion override. Uses 0.01ms rather than 0ms or `none`
  * deliberately: Svelte's transition system reads the computed
  * transition-duration to know when a transition is "active." A literal

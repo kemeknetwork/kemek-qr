@@ -21,13 +21,7 @@
 
 import { CONTENT_TYPES, DEFAULT_CONTENT, type ContentMap, type ContentType } from './types';
 
-export type DotType =
-	| 'square'
-	| 'rounded'
-	| 'dots'
-	| 'classy'
-	| 'classy-rounded'
-	| 'extra-rounded';
+export type DotType = 'square' | 'rounded' | 'dots' | 'classy' | 'classy-rounded' | 'extra-rounded';
 
 export type ECC = 'auto' | 'L' | 'M' | 'Q' | 'H';
 
@@ -154,10 +148,7 @@ function fromBase64Url(s: string): string {
 	return new TextDecoder().decode(bytes);
 }
 
-function buildWire<T extends ContentType>(
-	state: PermalinkState<T>,
-	includeLogo: boolean
-): WireV1 {
+function buildWire<T extends ContentType>(state: PermalinkState<T>, includeLogo: boolean): WireV1 {
 	const w: WireV1 = {
 		t: state.type,
 		c: state.content as unknown as Record<string, unknown>,

@@ -22,22 +22,20 @@ describe('encodeUrl', () => {
 
 describe('encodeText', () => {
 	it('passes through arbitrary text including special chars', () => {
-		expect(encodeText({ text: 'hello; "world", line\nbreak' })).toBe(
-			'hello; "world", line\nbreak'
-		);
+		expect(encodeText({ text: 'hello; "world", line\nbreak' })).toBe('hello; "world", line\nbreak');
 	});
 });
 
 describe('encodeWifi', () => {
 	it('emits a WIFI string with WPA, hidden=false', () => {
-		expect(
-			encodeWifi({ ssid: 'KemekNet', password: 'hunter2', auth: 'WPA', hidden: false })
-		).toBe('WIFI:T:WPA;S:KemekNet;P:hunter2;H:;;');
+		expect(encodeWifi({ ssid: 'KemekNet', password: 'hunter2', auth: 'WPA', hidden: false })).toBe(
+			'WIFI:T:WPA;S:KemekNet;P:hunter2;H:;;'
+		);
 	});
 	it('emits hidden=true', () => {
-		expect(
-			encodeWifi({ ssid: 'KemekNet', password: 'hunter2', auth: 'WPA', hidden: true })
-		).toBe('WIFI:T:WPA;S:KemekNet;P:hunter2;H:true;;');
+		expect(encodeWifi({ ssid: 'KemekNet', password: 'hunter2', auth: 'WPA', hidden: true })).toBe(
+			'WIFI:T:WPA;S:KemekNet;P:hunter2;H:true;;'
+		);
 	});
 	it('omits password for nopass', () => {
 		expect(
@@ -149,9 +147,7 @@ describe('encodePhone', () => {
 
 describe('encodeGeo', () => {
 	it('emits bare geo: when no query', () => {
-		expect(encodeGeo({ lat: '40.7128', lon: '-74.0060', query: '' })).toBe(
-			'geo:40.7128,-74.0060'
-		);
+		expect(encodeGeo({ lat: '40.7128', lon: '-74.0060', query: '' })).toBe('geo:40.7128,-74.0060');
 	});
 	it('appends ?q= when query is set', () => {
 		expect(encodeGeo({ lat: '40.7128', lon: '-74.0060', query: 'Statue of Liberty' })).toBe(

@@ -3,15 +3,7 @@
  * payload string. Keep these shapes flat — they round-trip through the
  * permalink hash and any nesting wastes characters. */
 
-export type ContentType =
-	| 'url'
-	| 'text'
-	| 'wifi'
-	| 'vcard'
-	| 'email'
-	| 'sms'
-	| 'phone'
-	| 'geo';
+export type ContentType = 'url' | 'text' | 'wifi' | 'vcard' | 'email' | 'sms' | 'phone' | 'geo';
 
 export const CONTENT_TYPES: readonly ContentType[] = [
 	'url',

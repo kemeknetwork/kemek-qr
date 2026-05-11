@@ -211,7 +211,9 @@
 			qrInstance.append(qrContainer);
 		} catch (err) {
 			engineError =
-				err instanceof Error ? `QR engine failed to load: ${err.message}` : 'QR engine failed to load.';
+				err instanceof Error
+					? `QR engine failed to load: ${err.message}`
+					: 'QR engine failed to load.';
 		}
 	});
 
@@ -405,8 +407,10 @@
 	 * the download. */
 	async function composeFramedPng(qrBlob: Blob, qrSize: number, label: string): Promise<Blob> {
 		const img = await blobToImage(qrBlob);
-		const { padding, borderWidth, half, fontPx, labelHeight, totalW, totalH } =
-			computeFrameLayout(qrSize, label);
+		const { padding, borderWidth, half, fontPx, labelHeight, totalW, totalH } = computeFrameLayout(
+			qrSize,
+			label
+		);
 
 		/* Force the chosen frame-label font to load before canvas
 		 * drawing — Canvas font lookup is synchronous, and if the
@@ -503,8 +507,10 @@
 	 * original SVG as a nested element — browsers and most SVG viewers
 	 * render nested <svg> correctly. */
 	function composeFramedSvg(qrSvgText: string, qrSize: number, label: string): string {
-		const { padding, borderWidth, half, fontPx, labelHeight, totalW, totalH } =
-			computeFrameLayout(qrSize, label);
+		const { padding, borderWidth, half, fontPx, labelHeight, totalW, totalH } = computeFrameLayout(
+			qrSize,
+			label
+		);
 
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(qrSvgText, 'image/svg+xml');
@@ -708,50 +714,63 @@
 <section class="workshop">
 	<div class="workshop-left">
 		<div class="specimen">
-		<div class="dim dim-top" aria-hidden="true">
-			<span class="tick tick-l"></span>
-			<span class="dim-line dim-line-l"></span>
-			<span class="dim-readout">{exportFormat === 'pdf' ? '2048' : exportFormat === 'svg' ? '∞' : '1024'} PX · {exportFormat.toUpperCase()}</span>
-			<span class="dim-line dim-line-r"></span>
-			<span class="tick tick-r"></span>
-		</div>
-		<div class="specimen-frame">
-			<span class="crop crop-tl" aria-hidden="true"></span>
-			<span class="crop crop-tr" aria-hidden="true"></span>
-			<span class="crop crop-bl" aria-hidden="true"></span>
-			<span class="crop crop-br" aria-hidden="true"></span>
-			<div class="specimen-stage">
-				<div
-					class="qr-frame"
-					class:qr-frame-on={frameEnabled}
-					style:--frame-fg={fgColor}
-					style:--frame-bg={bgColor}
+			<div class="dim dim-top" aria-hidden="true">
+				<span class="tick tick-l"></span>
+				<span class="dim-line dim-line-l"></span>
+				<span class="dim-readout"
+					>{exportFormat === 'pdf' ? '2048' : exportFormat === 'svg' ? '∞' : '1024'} PX · {exportFormat.toUpperCase()}</span
 				>
-					<div bind:this={qrContainer} class="qr-mount" role="img" aria-label={`QR code preview · ${TYPE_LABELS[type]} encoding`}></div>
-					{#if frameEnabled}
+				<span class="dim-line dim-line-r"></span>
+				<span class="tick tick-r"></span>
+			</div>
+			<div class="specimen-frame">
+				<span class="crop crop-tl" aria-hidden="true"></span>
+				<span class="crop crop-tr" aria-hidden="true"></span>
+				<span class="crop crop-bl" aria-hidden="true"></span>
+				<span class="crop crop-br" aria-hidden="true"></span>
+				<div class="specimen-stage">
+					<div
+						class="qr-frame"
+						class:qr-frame-on={frameEnabled}
+						style:--frame-fg={fgColor}
+						style:--frame-bg={bgColor}
+					>
 						<div
-							class="qr-frame-label qr-frame-label-{frameLabelSize} qr-frame-label-font-{frameLabelFont}"
-							style:--label-len={Math.max(1, frameLabel.length)}
-						>
-							{frameLabel}
+							bind:this={qrContainer}
+							class="qr-mount"
+							role="img"
+							aria-label={`QR code preview · ${TYPE_LABELS[type]} encoding`}
+						></div>
+						{#if frameEnabled}
+							<div
+								class="qr-frame-label qr-frame-label-{frameLabelSize} qr-frame-label-font-{frameLabelFont}"
+								style:--label-len={Math.max(1, frameLabel.length)}
+							>
+								{frameLabel}
+							</div>
+						{/if}
+					</div>
+					{#if engineError}
+						<div class="engine-error" role="alert">
+							<span class="engine-error-eyebrow">PROTOCOL ERROR</span>
+							<p>{engineError}</p>
 						</div>
 					{/if}
 				</div>
-				{#if engineError}
-					<div class="engine-error" role="alert">
-						<span class="engine-error-eyebrow">PROTOCOL ERROR</span>
-						<p>{engineError}</p>
-					</div>
-				{/if}
 			</div>
-		</div>
 		</div>
 
 		<div class="specimen-actions">
 			<dl class="specimen-meta" aria-label="Specimen specification schedule">
 				<div>
 					<dt>S-01 FORMAT</dt>
-					<dd>{exportFormat.toUpperCase()}{exportFormat === 'png' ? ' · 1024 PX' : exportFormat === 'pdf' ? ' · A4 / 2048' : ' · VECTOR'}</dd>
+					<dd>
+						{exportFormat.toUpperCase()}{exportFormat === 'png'
+							? ' · 1024 PX'
+							: exportFormat === 'pdf'
+								? ' · A4 / 2048'
+								: ' · VECTOR'}
+					</dd>
 				</div>
 				<div>
 					<dt>S-02 DOTS</dt>
@@ -796,12 +815,7 @@
 					</span>
 					<span class="download-arrow" aria-hidden="true">↓</span>
 				</button>
-				<button
-					class="permalink"
-					type="button"
-					onclick={copyPermalink}
-					aria-live="polite"
-				>
+				<button class="permalink" type="button" onclick={copyPermalink} aria-live="polite">
 					<span class="permalink-label">
 						{#if copyState === 'copied'}LINK COPIED
 						{:else if copyState === 'dropped'}COPIED — LOGO NOT IN LINK
@@ -812,15 +826,14 @@
 			</div>
 			{#if copyState === 'dropped'}
 				<p class="permalink-note">
-					Logo is too large to include in the link — recipient will see the QR
-					without it. Re-attaching the logo on their end recreates the design.
+					Logo is too large to include in the link — recipient will see the QR without it.
+					Re-attaching the logo on their end recreates the design.
 				</p>
 			{/if}
 		</div>
 	</div>
 
 	<div class="controls" id="p-01">
-
 		{#if type === 'url'}
 			<fieldset class="control-block">
 				<legend><span class="p-num">P-01</span> DESTINATION</legend>
@@ -880,10 +893,7 @@
 				<div class="field-row" style="padding-top: 0.85rem;">
 					<label class="color-field">
 						<span class="field-label">SECURITY</span>
-						<select
-							class="select"
-							bind:value={content.wifi.auth as WifiAuth}
-						>
+						<select class="select" bind:value={content.wifi.auth as WifiAuth}>
 							<option value="WPA">WPA / WPA2 / WPA3</option>
 							<option value="WEP">WEP</option>
 							<option value="nopass">None (open)</option>
@@ -1083,12 +1093,7 @@
 			<div class="segmented cols-3">
 				{#each dotOptions as opt}
 					<label class="seg" class:active={dotType === opt.value}>
-						<input
-							type="radio"
-							name="dot-type"
-							value={opt.value}
-							bind:group={dotType}
-						/>
+						<input type="radio" name="dot-type" value={opt.value} bind:group={dotType} />
 						{opt.label}
 					</label>
 				{/each}
@@ -1100,12 +1105,7 @@
 			<div class="segmented cols-4">
 				{#each eyeFrameOptions as opt}
 					<label class="seg" class:active={eyeFrame === opt.value}>
-						<input
-							type="radio"
-							name="eye-frame"
-							value={opt.value}
-							bind:group={eyeFrame}
-						/>
+						<input type="radio" name="eye-frame" value={opt.value} bind:group={eyeFrame} />
 						{opt.label}
 					</label>
 				{/each}
@@ -1117,12 +1117,7 @@
 			<div class="segmented cols-3">
 				{#each eyeBallOptions as opt}
 					<label class="seg" class:active={eyeBall === opt.value}>
-						<input
-							type="radio"
-							name="eye-ball"
-							value={opt.value}
-							bind:group={eyeBall}
-						/>
+						<input type="radio" name="eye-ball" value={opt.value} bind:group={eyeBall} />
 						{opt.label}
 					</label>
 				{/each}
@@ -1165,12 +1160,7 @@
 			<div class="segmented cols-5">
 				{#each eccOptions as ecc}
 					<label class="seg" class:active={errorCorrection === ecc}>
-						<input
-							type="radio"
-							name="ecc"
-							value={ecc}
-							bind:group={errorCorrection}
-						/>
+						<input type="radio" name="ecc" value={ecc} bind:group={errorCorrection} />
 						{ecc.toUpperCase()}
 					</label>
 				{/each}
@@ -1268,9 +1258,15 @@
 		.workshop-left {
 			display: contents;
 		}
-		.specimen { order: 1; }
-		.controls { order: 2; }
-		.specimen-actions { order: 3; }
+		.specimen {
+			order: 1;
+		}
+		.controls {
+			order: 2;
+		}
+		.specimen-actions {
+			order: 3;
+		}
 	}
 
 	.specimen {
@@ -1387,10 +1383,22 @@
 		.crop-br {
 			--crop-inset: 9px;
 		}
-		.crop-tl { top: var(--crop-inset); left: var(--crop-inset); }
-		.crop-tr { top: var(--crop-inset); right: var(--crop-inset); }
-		.crop-bl { bottom: var(--crop-inset); left: var(--crop-inset); }
-		.crop-br { bottom: var(--crop-inset); right: var(--crop-inset); }
+		.crop-tl {
+			top: var(--crop-inset);
+			left: var(--crop-inset);
+		}
+		.crop-tr {
+			top: var(--crop-inset);
+			right: var(--crop-inset);
+		}
+		.crop-bl {
+			bottom: var(--crop-inset);
+			left: var(--crop-inset);
+		}
+		.crop-br {
+			bottom: var(--crop-inset);
+			right: var(--crop-inset);
+		}
 	}
 
 	.crop {
@@ -1555,7 +1563,9 @@
 		overflow: hidden;
 		background: var(--paper);
 	}
-	.specimen-meta > div { min-width: 0; }
+	.specimen-meta > div {
+		min-width: 0;
+	}
 	/* Below 640 px the 3-cell row gets too tight for "PNG · 1024 PX"
 	 * to sit on one line, so collapse to a 1-column stack. Each cell
 	 * still has its dt/dd column treatment. */

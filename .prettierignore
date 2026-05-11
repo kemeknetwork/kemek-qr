@@ -1,0 +1,24 @@
+# Package managers
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+bun.lock
+bun.lockb
+
+# Build artifacts
+/build/
+/.svelte-kit/
+/node_modules/
+
+# Static files (treat as opaque — favicons, manifests, hand-tuned SVG)
+/static/
+
+# Claude session state
+.claude/
+
+# Local-only working files (gitignored, no need to format)
+STATE.md
+CLAUDE.md
+spec-*.md
+exploration-*.md
+adrs/

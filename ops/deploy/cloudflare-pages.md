@@ -12,11 +12,13 @@ after step 5: every push to `main` triggers a Pages build.
 ## Steps
 
 ### 1. Cloudflare account
+
 Sign up at cloudflare.com (free). **Do not** add `kemek.com` as a
 "site" — that path moves DNS to Cloudflare, which is the
 end-state but not now.
 
 ### 2. Connect the repo to Pages
+
 - Dashboard → **Workers & Pages** → Create → Pages → **Connect to Git**
 - Authorize the `KeMeK-Network` GitHub org (or just the
   `kemek-QR` repo if scoping access narrowly).
@@ -31,7 +33,9 @@ end-state but not now.
 A temporary URL is issued — `kemek-qr.pages.dev` or similar.
 
 ### 3. Smoke-test the temporary URL
+
 Before pointing the real domain at it, verify on the `*.pages.dev` URL:
+
 - `/`, `/text`, `/wifi`, `/vcard`, `/email`, `/sms`, `/phone`, `/geo`, `/about` all render.
 - Any field edit updates the QR preview live (~80ms debounce).
 - Downloads work for PNG, SVG, PDF — with frame on and off.
@@ -40,11 +44,13 @@ Before pointing the real domain at it, verify on the `*.pages.dev` URL:
 - DevTools network tab on a generator page shows **zero** outbound requests during QR generation (the privacy claim).
 
 ### 4. Add the custom domain in Pages
+
 - Pages project → **Custom domains** → Set up a custom domain → enter `qr.kemek.com`.
 - Cloudflare detects that the parent domain isn't on its DNS and prompts you to add the record manually. Copy the **CNAME target** it shows — looks like `kemek-qr.pages.dev` or a project-specific subdomain.
 - Leave this tab open; status will sit at "Pending DNS" until step 5 lands.
 
 ### 5. Add the CNAME at GoDaddy
+
 - GoDaddy → My Products → DNS for `kemek.com`.
 - Add a record:
   - **Type:** CNAME
@@ -56,14 +62,17 @@ Before pointing the real domain at it, verify on the `*.pages.dev` URL:
 Propagation typically lands in 5–15 minutes.
 
 ### 6. Wait for SSL
+
 Back on the Pages custom-domain tab, status should flip from
 "Pending DNS" → "Active" once propagation completes. Cloudflare
 auto-issues a Let's Encrypt cert; no action needed. If it stalls
 beyond ~30 min:
+
 - Verify the CNAME resolves: `dig qr.kemek.com CNAME +short`.
 - Check there's no conflicting A record for `qr` at GoDaddy.
 
 ### 7. Verify
+
 - `https://qr.kemek.com/` resolves with valid SSL (no browser warnings).
 - All 9 routes work.
 - `https://qr.kemek.com/og.png` returns 200 (OG scrapers fetch it directly).
@@ -71,6 +80,7 @@ beyond ~30 min:
 - A scrape preview against an OG validator (e.g. opengraph.xyz, Twitter card validator) shows the drafting-paper card.
 
 ### 8. Submit to search engines
+
 - **Google Search Console** (search.google.com/search-console): Add property, verify via DNS TXT (add at GoDaddy) or HTML meta. Submit `https://qr.kemek.com/sitemap.xml`.
 - **Bing Webmaster Tools** (bing.com/webmasters): same flow.
 
@@ -86,7 +96,7 @@ beyond ~30 min:
 ## What to do later (not now)
 
 - **Migrate kemek.com nameservers to Cloudflare.** Mostly painless: Cloudflare's "scan existing records" wizard catches almost everything; you confirm and switch nameservers at GoDaddy. The `qr.kemek.com` CNAME survives unchanged. Once migrated, you can orange-cloud the subdomain to gain proxy + WAF + page rules without touching the Pages project. Hold this until the broader composable-stack migration is ready.
-- **Enable Cloudflare Web Analytics — automatic mode (do this right after step 7).** Pages project → Settings → enable Web Analytics with the "Automatic" toggle. This derives pageview / referrer / country data from CF's edge request logs and does **not** inject a client-side beacon, so the "no third-party scripts · zero outbound on generator pages" claim is preserved intact. Verify after enabling by viewing source on a generator page — there should be no `<script>` from `static.cloudflareinsights.com` or similar. If a beacon does appear, the toggle was wrong; switch it off. Skip the standalone "Web Analytics" product (the one outside Pages) — that one is beacon-only and breaks the claim. The about-page copy will eventually carry the disclosure sentence: *"We see what our host sees — aggregate pageview counts, no individual tracking, no cookies, no third-party scripts."*
+- **Enable Cloudflare Web Analytics — automatic mode (do this right after step 7).** Pages project → Settings → enable Web Analytics with the "Automatic" toggle. This derives pageview / referrer / country data from CF's edge request logs and does **not** inject a client-side beacon, so the "no third-party scripts · zero outbound on generator pages" claim is preserved intact. Verify after enabling by viewing source on a generator page — there should be no `<script>` from `static.cloudflareinsights.com` or similar. If a beacon does appear, the toggle was wrong; switch it off. Skip the standalone "Web Analytics" product (the one outside Pages) — that one is beacon-only and breaks the claim. The about-page copy will eventually carry the disclosure sentence: _"We see what our host sees — aggregate pageview counts, no individual tracking, no cookies, no third-party scripts."_
 
 ## Rollback
 

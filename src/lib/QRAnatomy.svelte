@@ -28,8 +28,8 @@
 	const QUIET = 4 * MODULE;
 
 	const FINDERS = [
-		{ x: ORIGIN_X, y: ORIGIN_Y }, /* TL */
-		{ x: ORIGIN_X + 18 * MODULE, y: ORIGIN_Y }, /* TR */
+		{ x: ORIGIN_X, y: ORIGIN_Y } /* TL */,
+		{ x: ORIGIN_X + 18 * MODULE, y: ORIGIN_Y } /* TR */,
 		{ x: ORIGIN_X, y: ORIGIN_Y + 18 * MODULE } /* BL */
 	];
 
@@ -74,15 +74,14 @@
 	>
 		<title id="anatomy-title">QR code anatomy</title>
 		<desc id="anatomy-desc"
-			>Schematic of a QR code with six functional regions called out: three finder patterns at
-			TL, TR and BL for orientation lock; one alignment pattern at BR for perspective
-			correction; the timing patterns running between the finders that tell the scanner the
-			cell pitch; the format-info bits surrounding the TL finder which encode the error-
-			correction level and mask pattern; the data + Reed–Solomon error-correction codewords
-			filling the rest of the grid; and the surrounding 4-module quiet zone (mandatory
-			whitespace). Below the main diagram is a detail blow-up of one finder pattern at twice
-			the scale, with a dimensional strip showing the 1·1·3·1·1 module construction of the
-			ring.</desc
+			>Schematic of a QR code with six functional regions called out: three finder patterns at TL,
+			TR and BL for orientation lock; one alignment pattern at BR for perspective correction; the
+			timing patterns running between the finders that tell the scanner the cell pitch; the
+			format-info bits surrounding the TL finder which encode the error- correction level and mask
+			pattern; the data + Reed–Solomon error-correction codewords filling the rest of the grid; and
+			the surrounding 4-module quiet zone (mandatory whitespace). Below the main diagram is a detail
+			blow-up of one finder pattern at twice the scale, with a dimensional strip showing the
+			1·1·3·1·1 module construction of the ring.</desc
 		>
 
 		<!-- Quiet zone — spec-mandated 4-module dashed margin -->
@@ -256,15 +255,14 @@
 		Every QR code is a part-functional, part-data grid. Three <strong>finder patterns</strong>
 		at the corners let a scanner lock orientation; an <strong>alignment pattern</strong> at the
 		bottom-right corrects perspective skew when the code is photographed at an angle. The
-		<strong>timing patterns</strong> — alternating modules running between the finders — tell
-		the scanner the cell pitch. <strong>Format info</strong> encodes the error-correction level
-		and mask pattern across 15 bits arranged in an L-shape. The rest of the grid is the payload
-		— data plus Reed–Solomon error-correction codewords. The <strong>quiet zone</strong> is
-		mandatory whitespace; without four clear modules of margin, scanners reject the code. The
-		detail below the main figure shows the finder pattern's <strong>1·1·3·1·1 ring
-		construction</strong> — proportions deliberately chosen so a scanner can recognise the
-		pattern at any rotation, with three patterns at three corners triangulating the code's
-		orientation.
+		<strong>timing patterns</strong> — alternating modules running between the finders — tell the
+		scanner the cell pitch. <strong>Format info</strong> encodes the error-correction level and mask
+		pattern across 15 bits arranged in an L-shape. The rest of the grid is the payload — data plus
+		Reed–Solomon error-correction codewords. The <strong>quiet zone</strong> is mandatory
+		whitespace; without four clear modules of margin, scanners reject the code. The detail below the
+		main figure shows the finder pattern's <strong>1·1·3·1·1 ring construction</strong> — proportions
+		deliberately chosen so a scanner can recognise the pattern at any rotation, with three patterns at
+		three corners triangulating the code's orientation.
 	</figcaption>
 </figure>
 
