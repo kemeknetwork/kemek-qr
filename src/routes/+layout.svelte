@@ -67,11 +67,11 @@
 	}
 
 	/* Decorative footer counter, populated post-mount from
-	 * /api/impressions (KV-backed via Pages Function). Null until
+	 * /api/pageviews (KV-backed via Pages Function). Null until
 	 * fetched OR if KV binding is absent / endpoint errors — the
-	 * footer hides the IMPRESSIONS cell while null so users on
+	 * footer hides the Pageviews cell while null so users on
 	 * pre-binding builds see no broken UI. */
-	let impressions = $state<number | null>(null);
+	let pageviews = $state<number | null>(null);
 
 	onMount(() => {
 		/* If hydration finished on a different mode than the inline
@@ -98,10 +98,10 @@
 		/* Page-view counter — first-party fetch to our own Pages
 		 * Function. Same-origin, no third-party. Silent fail; the
 		 * footer cell is decorative, never a load-bearing UI bit. */
-		fetch('/api/impressions')
+		fetch('/api/pageviews')
 			.then((r) => (r.ok ? r.json() : null))
 			.then((data) => {
-				if (data && typeof data.count === 'number') impressions = data.count;
+				if (data && typeof data.count === 'number') pageviews = data.count;
 			})
 			.catch(() => {
 				/* swallow — decorative, never block */
@@ -348,8 +348,8 @@
 				target="_blank"
 				rel="license noopener">MIT</a
 			>
-			{#if impressions !== null}
-				· Impressions: <span class="impressions-count">{impressions.toLocaleString()}</span>
+			{#if pageviews !== null}
+				· Pageviews: <span class="pageviews-count">{pageviews.toLocaleString()}</span>
 			{/if}
 		</p>
 	</footer>
@@ -799,11 +799,11 @@
 	.rights-year {
 		font-feature-settings: 'tnum';
 	}
-	/* Digit treatment for the impressions counter. Tabular figures so
+	/* Digit treatment for the pageviews counter. Tabular figures so
 	 * the number doesn't reflow when the count rolls past a digit
 	 * boundary; accent-red to subtly differentiate from the static
 	 * copyright/license tokens. */
-	.impressions-count {
+	.pageviews-count {
 		font-feature-settings: 'tnum';
 		color: var(--accent);
 		letter-spacing: 0.18em;

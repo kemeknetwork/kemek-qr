@@ -116,9 +116,9 @@ jq -r '.event.cf.country' /tmp/pageviews.jsonl | sort | uniq -c | sort -rn   # t
 
 The middleware also runs on the 404 SPA fallback, so mis-typed URLs appear in the log — useful diagnostic for stale links.
 
-### 10. (Optional) Visible "Impressions" counter — KV setup
+### 10. (Optional) Visible "Pageviews" counter — KV setup
 
-The middleware in step 9 also increments a running page-view counter in KV (Cloudflare's edge key-value store) **if a `PV_COUNTER` binding is configured**. The site's footer renders an `Impressions: N` cell in the `.colophon-rights` line when `/api/impressions` returns a numeric count; otherwise it silently hides the cell. This is the visible "you are visitor #N" pattern from the 1990s, now riding on CF edge KV instead of a CGI script.
+The middleware in step 9 also increments a running page-view counter in KV (Cloudflare's edge key-value store) **if a `PV_COUNTER` binding is configured**. The site's footer renders a `Pageviews: N` cell in the `.colophon-rights` line when `/api/pageviews` returns a numeric count; otherwise it silently hides the cell. This is the visible "you are visitor #N" pattern from the 1990s, now riding on CF edge KV instead of a CGI script.
 
 **One-time setup:**
 
@@ -137,14 +137,14 @@ The middleware in step 9 also increments a running page-view counter in KV (Clou
 2. **Bind the namespace to the Pages project as `PV_COUNTER`:**
 
    Workers & Pages → kemek-qr → **Settings** → **Functions** → **KV namespace bindings** → **Add binding**:
-   - **Variable name:** `PV_COUNTER` (must match what `_middleware.ts` and `api/impressions.ts` read)
+   - **Variable name:** `PV_COUNTER` (must match what `_middleware.ts` and `api/pageviews.ts` read)
    - **KV namespace:** the namespace created in step 1
 
    Save. The binding applies to the **next deployment** — re-trigger the build (push any commit, or click "Retry deployment" on the latest build in the Deployments tab) so the binding takes effect.
 
 3. **Verify:**
 
-   Hit `https://qr.kemek.com/api/impressions` directly in a browser. After at least one page-view has incremented the counter, the response should be `{"count":N}` where N is some positive integer. The footer's `Impressions:` cell should appear on the next page load.
+   Hit `https://qr.kemek.com/api/pageviews` directly in a browser. After at least one page-view has incremented the counter, the response should be `{"count":N}` where N is some positive integer. The footer's `Pageviews:` cell should appear on the next page load.
 
    If the response is `{"count":null}`, the binding isn't set or KV is unreachable — re-check step 2.
 
@@ -157,6 +157,38 @@ The CF free tier allows 1,000 writes/day across all KV namespaces. Every page-vi
 - **Durable Object counter** — for strictly-accurate atomic counting (KV is eventually consistent so simultaneous reads can both write the same incremented value, losing one count).
 
 Cost-of-counting is real but currently small. The counter is decorative — accurate to order-of-magnitude, not real-time precision. Don't redesign the footer around it.
+
+**Data persistence:**
+
+KV holds pageview history indefinitely. The count is a single key (`total`) holding a stringified integer. Persistence is independent of:
+
+- Deploys, rollbacks, or rebuilds (KV is untouched)
+- Code changes (KV is untouched)
+- Free-tier write-limit overruns (new writes get rejected; existing data stays)
+
+The count survives **everything except explicit deletion** of the KV namespace, the `total` key, or the CF account. Removing the binding from Pages settings pauses incrementing but data stays in KV; re-add the binding to resume. Repointing the binding to a different namespace appears as a reset but the original data still exists in the original namespace.
+
+For paranoia-grade backups, `npx wrangler kv key get total --namespace-id=<id>` dumps the current value to stdout — trivially scriptable as a daily cron snapshot. Not currently set up; not currently needed.
+
+### 11. (Tip) Test middleware locally before promoting
+
+The `npm run dev` Vite server **does not run `functions/`** — it only serves the SvelteKit routes from `src/`. Middleware logic (page-view counting, KV writes, the impressions endpoint) only activates when CF Pages serves the project, which means production or `wrangler pages dev`.
+
+Before promoting `functions/` changes, run the full CF Pages emulator locally:
+
+```sh
+npm run build                                 # build the static artifact
+npx wrangler pages dev build                  # boot the Pages emulator
+```
+
+`wrangler pages dev` boots a local server that:
+
+- Serves `build/` as static assets
+- Executes `functions/_middleware.ts` and any `functions/api/*.ts` handlers
+- Honors KV bindings if you pass them: `--kv PV_COUNTER` (creates a local-only KV namespace; data survives across runs in `.wrangler/`)
+- Logs `console.log` output to your terminal in real time — same shape as the production deployment tail
+
+This would have caught the self-loop bug in 0.26.16 (the `/api/pageviews` endpoint inadvertently being counted as a page-view) before it shipped to production. Worth adding to the pre-promote checklist for any commit touching `functions/`.
 
 ## Operational notes
 

@@ -96,7 +96,7 @@ export async function onRequest(context: EventContext): Promise<Response> {
 /* Best-effort counter. KV writes are eventually consistent and
  * not atomic — two simultaneous reads can both write the same
  * incremented value, losing one count. Acceptable for a decorative
- * "IMPRESSIONS" footer cell where order-of-magnitude is what
+ * "Pageviews" footer cell where order-of-magnitude is what
  * matters, not precision. Strictly accurate counting would need
  * Durable Objects; that's Tier 3 territory.
  *
@@ -118,7 +118,7 @@ async function incrementCounter(kv: KVNamespace): Promise<void> {
  * doesn't sit under `/api/`. Intentionally excludes `/llms.txt`,
  * `/robots.txt`, `/sitemap.xml`, `/og.png`, the entire
  * `_app/immutable/...` tree, the favicon family, and the
- * `/api/impressions` endpoint (which is fetched by the footer cell
+ * `/api/pageviews` endpoint (which is fetched by the footer cell
  * on every page mount — would otherwise self-loop and inflate the
  * counter ~1 per unique visitor per minute). The 404 SPA fallback
  * at `/404.html` IS a page-view (path ends in .html) so we'll see

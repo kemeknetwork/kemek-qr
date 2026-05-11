@@ -1,5 +1,5 @@
-/* GET /api/impressions — returns the running page-view counter for
- * the footer "IMPRESSIONS" cell.
+/* GET /api/pageviews — returns the running page-view counter for
+ * the footer "Pageviews" cell.
  *
  * The counter is maintained by `functions/_middleware.ts` (writes
  * to the same KV namespace bound as `PV_COUNTER`). This endpoint is
