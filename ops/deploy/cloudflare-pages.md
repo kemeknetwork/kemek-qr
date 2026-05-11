@@ -84,6 +84,38 @@ beyond ~30 min:
 - **Google Search Console** (search.google.com/search-console): Add property, verify via DNS TXT (add at GoDaddy) or HTML meta. Submit `https://qr.kemek.com/sitemap.xml`.
 - **Bing Webmaster Tools** (bing.com/webmasters): same flow.
 
+### 9. Page-view visibility (via `functions/_middleware.ts`)
+
+The Pages "Metrics" tab is Functions-only — a static-only project with zero Functions deployed shows zero traffic there (this is confirmed in the CF Pages docs; the tab measures Functions executions, not edge asset requests). The standalone "Web Analytics" toggle injects a client-side beacon at deploy time, which would contradict the about §02 ¶02 claim of "no third-party scripts on generator pages."
+
+The chosen workaround: a tiny CF Pages middleware at `functions/_middleware.ts` that emits one structured JSON log line per page-view server-side. Captures `path`, `country`, CF colo, truncated user-agent, and referer — no IP, no cookies, no unique IDs, no client code. Asset fetches (CSS/JS/fonts/favicons/sitemap/robots/llms) are filtered out so the log is a clean page-view stream.
+
+**To stream live logs from your terminal:**
+
+```sh
+npx wrangler login                       # one-time browser auth flow
+npx wrangler pages deployment tail kemek-qr
+```
+
+The tail runs until you Ctrl+C. Each line is the JSON object the middleware emitted, plus the HTTP request/response summary CF wraps it in.
+
+**To inspect logs from the CF dashboard instead:**
+
+Workers & Pages → kemek-qr → Deployments → click into the active deployment → **Real-time logs** panel. Same data, viewable for ~7 days (free-tier retention).
+
+**Aggregating logs manually** (until a Tier 2 KV counter or Tier 3 Analytics Engine setup is added):
+
+```sh
+# Save tail output to a file:
+npx wrangler pages deployment tail kemek-qr > /tmp/pageviews.jsonl
+
+# Quick stats:
+jq -r '.event.request.url' /tmp/pageviews.jsonl | sort | uniq -c | sort -rn  # top paths
+jq -r '.event.cf.country' /tmp/pageviews.jsonl | sort | uniq -c | sort -rn   # top countries
+```
+
+The middleware also runs on the 404 SPA fallback, so mis-typed URLs appear in the log — useful diagnostic for stale links.
+
 ## Operational notes
 
 - **No Cloudflare proxy / orange-cloud / WAF / page rules for this subdomain**, because DNS is at GoDaddy. Pages still serves from Cloudflare's global edge — the CDN benefit is intact. The proxy-layer features (rate limiting, bot management, cache rules) require DNS at Cloudflare; deferred.
@@ -96,7 +128,7 @@ beyond ~30 min:
 ## What to do later (not now)
 
 - **Migrate kemek.com nameservers to Cloudflare.** Mostly painless: Cloudflare's "scan existing records" wizard catches almost everything; you confirm and switch nameservers at GoDaddy. The `qr.kemek.com` CNAME survives unchanged. Once migrated, you can orange-cloud the subdomain to gain proxy + WAF + page rules without touching the Pages project. Hold this until the broader composable-stack migration is ready.
-- **Enable Cloudflare Web Analytics — automatic mode (do this right after step 7).** Pages project → Settings → enable Web Analytics with the "Automatic" toggle. This derives pageview / referrer / country data from CF's edge request logs and does **not** inject a client-side beacon, so the "no third-party scripts · zero outbound on generator pages" claim is preserved intact. Verify after enabling by viewing source on a generator page — there should be no `<script>` from `static.cloudflareinsights.com` or similar. If a beacon does appear, the toggle was wrong; switch it off. Skip the standalone "Web Analytics" product (the one outside Pages) — that one is beacon-only and breaks the claim. The about-page copy will eventually carry the disclosure sentence: _"We see what our host sees — aggregate pageview counts, no individual tracking, no cookies, no third-party scripts."_
+- **Do not enable Cloudflare Web Analytics.** Earlier runbook drafts described it as automatic / edge-derived; that turned out to be wrong (verified via CF docs 2026-05-11). The Pages-integrated Web Analytics toggle injects a client-side `<script>` from `static.cloudflareinsights.com` at deploy time — there is no automatic mode for Pages projects. Enabling it would contradict the about §02 ¶02 "no third-party scripts on generator pages" claim. The chosen alternative is the `functions/_middleware.ts` server-side log emitter described in step 9, which gives us page-view visibility without any client code. If we later want a dashboard rather than tail-log inspection, upgrade to CF Analytics Engine ($5/mo Workers Paid plan) — same middleware writes there instead of just `console.log`.
 
 ## Rollback
 
