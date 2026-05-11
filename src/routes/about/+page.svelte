@@ -104,10 +104,11 @@
 	<div class="prose">
 		<p>
 			<span class="dropmark" aria-hidden="true">01</span>
-			<strong>No analytics on the generator pages.</strong> No Google
-			Analytics, no Plausible, no Umami, no Cloudflare Web Analytics. The
-			tool itself is observed only by Cloudflare’s standard request logs at
-			the edge, which we don’t aggregate.
+			<strong>No client-side analytics, no tracking scripts.</strong> No
+			Google Analytics, no Plausible, no Umami — anything that injects a
+			script tag and pings a server while you generate. We see what our
+			host sees — aggregate pageview counts, no individual tracking, no
+			cookies, no third-party scripts.
 		</p>
 		<p>
 			<span class="dropmark" aria-hidden="true">02</span>

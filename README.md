@@ -8,9 +8,9 @@ Part of the [KeMeK Network](https://kemek.com) family of free utilities. Generat
 
 - **8 content types:** URL, text, WiFi, vCard, email, SMS, phone, geo location.
 - **Styling:** foreground / background color, linear gradient, six dot styles, four eye-frame variants, three eye-ball variants, logo embedding, optional outer frame with custom label.
-- **Exports:** PNG (1024 px), SVG (true vector), PDF (A4, vector frame + high-res QR).
+- **Exports:** PNG (1024 px raster), SVG (vector), PDF (A4 page, embeds the framed QR as a 2048 px raster).
 - **Permalinks:** state encoded into the URL hash; share a configured QR by sharing the link. No server, no shortener.
-- **Privacy:** zero outbound network requests during QR generation. Logo files read with FileReader and composited locally.
+- **Privacy:** zero outbound network requests during QR generation. Logo files read with `FileReader` and composited locally. We see what our host sees — aggregate pageview counts, no individual tracking, no cookies, no third-party scripts.
 
 ## Stack
 

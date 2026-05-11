@@ -67,7 +67,7 @@ beyond ~30 min:
 - `https://qr.kemek.com/` resolves with valid SSL (no browser warnings).
 - All 9 routes work.
 - `https://qr.kemek.com/og.png` returns 200 (OG scrapers fetch it directly).
-- `https://qr.kemek.com/sitemap.xml` and `/robots.txt` return 200.
+- `https://qr.kemek.com/sitemap.xml`, `/robots.txt`, and `/llms.txt` all return 200.
 - A scrape preview against an OG validator (e.g. opengraph.xyz, Twitter card validator) shows the drafting-paper card.
 
 ### 8. Submit to search engines
@@ -77,6 +77,7 @@ beyond ~30 min:
 ## Operational notes
 
 - **No Cloudflare proxy / orange-cloud / WAF / page rules for this subdomain**, because DNS is at GoDaddy. Pages still serves from Cloudflare's global edge — the CDN benefit is intact. The proxy-layer features (rate limiting, bot management, cache rules) require DNS at Cloudflare; deferred.
+- **Subdomain-as-zone NS delegation was attempted first and is blocked on the Free/Pro plan** (validation rejects subdomain-only zone adds; that path now requires Business at $200/mo). CNAME-only at GoDaddy is the right call for v1; when `kemek.com` apex eventually migrates to Cloudflare (composable-stack track), `qr.*` inherits zone-level CF features automatically.
 - **Atomic deploys** are built in: every `git push` to `main` triggers a build; the new build replaces the old one only on success. Pages keeps every prior build accessible at a unique URL — one click to roll back from the dashboard.
 - **PR previews** auto-deploy any branch (including `dev`) at `<branch>.kemek-qr.pages.dev`. Useful for sharing pre-promote work.
 - **No environment variables** needed — kemek-qr is fully static, no API keys, no runtime config.
@@ -85,7 +86,7 @@ beyond ~30 min:
 ## What to do later (not now)
 
 - **Migrate kemek.com nameservers to Cloudflare.** Mostly painless: Cloudflare's "scan existing records" wizard catches almost everything; you confirm and switch nameservers at GoDaddy. The `qr.kemek.com` CNAME survives unchanged. Once migrated, you can orange-cloud the subdomain to gain proxy + WAF + page rules without touching the Pages project. Hold this until the broader composable-stack migration is ready.
-- **Add Cloudflare Web Analytics.** Privacy-respecting, no-cookie page-view counter. Per CLAUDE.md the generator pages must stay clean (zero outbound during generation), but `/about` and the per-type landing-page hero/explainer fold are fine. Add later if SEO performance benchmarking matters.
+- **Enable Cloudflare Web Analytics — automatic mode (do this right after step 7).** Pages project → Settings → enable Web Analytics with the "Automatic" toggle. This derives pageview / referrer / country data from CF's edge request logs and does **not** inject a client-side beacon, so the "no third-party scripts · zero outbound on generator pages" claim is preserved intact. Verify after enabling by viewing source on a generator page — there should be no `<script>` from `static.cloudflareinsights.com` or similar. If a beacon does appear, the toggle was wrong; switch it off. Skip the standalone "Web Analytics" product (the one outside Pages) — that one is beacon-only and breaks the claim. The about-page copy will eventually carry the disclosure sentence: *"We see what our host sees — aggregate pageview counts, no individual tracking, no cookies, no third-party scripts."*
 
 ## Rollback
 

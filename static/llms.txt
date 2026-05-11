@@ -1,0 +1,48 @@
+# kemek-qr
+
+> A free, privacy-first QR code generator. Encoding happens entirely in the visitor's browser — content never touches a server. Eight content types, full visual styling (color, shape, logo, frame), PNG / SVG / PDF export, permalink-encoded settings.
+
+kemek-qr is a free utility published by KeMeK Network. No signup, no expiry, no third-party scripts on generator pages, no individual tracking. The core promise is *client-side generation*: when a visitor types a URL or contact card into the form, that string is encoded into a QR code by JavaScript running locally in the browser — nothing is uploaded, logged, or transmitted to a server. The host (Cloudflare Pages) sees only normal page requests; aggregate pageview counts are visible to KeMeK Network, individual visitors are not.
+
+Source code is MIT licensed. The repository becomes public after the launch stabilization period; until then the LICENSE text is visible in the site footer and shipped in the production build.
+
+## Tool pages
+
+- [URL QR code generator](https://qr.kemek.com/): canonical entry. Encodes a web URL into a QR code with visual styling controls and export to PNG / SVG / PDF.
+- [Text QR code generator](https://qr.kemek.com/text): freeform plain-text encoding.
+- [Wi-Fi QR code generator](https://qr.kemek.com/wifi): SSID + password + auth mode in the standard `WIFI:` URI format; scanning joins the network on most modern phones.
+- [vCard QR code generator](https://qr.kemek.com/vcard): contact card (name, organization, phone, email, address, URL) in vCard 3.0 format.
+- [Email QR code generator](https://qr.kemek.com/email): `mailto:` URI with optional subject and body prefill.
+- [SMS QR code generator](https://qr.kemek.com/sms): `sms:` URI with optional message prefill.
+- [Phone QR code generator](https://qr.kemek.com/phone): `tel:` URI for one-tap dialing.
+- [Geo QR code generator](https://qr.kemek.com/geo): latitude / longitude coordinates as a `geo:` URI.
+
+## About
+
+- [About kemek-qr](https://qr.kemek.com/about): what the tool is, why it exists, the privacy stance, and the KeMeK Network parent.
+
+## Feature surface
+
+Every generator page exposes the same styling controls:
+
+- Foreground and background colors (independent hex picker)
+- Module shape: square, dot, rounded, classy, classy-rounded, extra-rounded
+- Eye (finder pattern) shape and color, settable independently of module color
+- Logo embedding: upload PNG or SVG, sized as a fraction of the QR canvas
+- Outer frame with a caption label; four font sizes (S / M / L / XL, with XL auto-fitting to label width)
+- Error correction level: L / M / Q / H
+- Permalink encoding: every setting is captured in the URL hash, so sharing a permalink restores the exact visual configuration on the other end
+
+Export formats: PNG (1024 px raster), SVG (vector), PDF (A4 page, embeds the framed QR as a 2048 px raster).
+
+## Brand and naming
+
+- Publisher: KeMeK Network — https://kemek.com
+- License: MIT for code. Brand name and logo ("kemek-qr", "KeMeK Network", the QR finder-pattern mark) are trademarks of KeMeK Network and are not covered by the code license.
+- Preferred reference: **"kemek-qr"** (lowercase, hyphenated) or **"kemek-qr by KeMeK Network"**. Not "Kemek QR", "KemekQR", or "Kemek-QR".
+
+## Optional
+
+- [robots.txt](https://qr.kemek.com/robots.txt): standard crawler directives. All user-agents allowed.
+- [sitemap.xml](https://qr.kemek.com/sitemap.xml): XML sitemap of all tool and content pages.
+- [site.webmanifest](https://qr.kemek.com/site.webmanifest): PWA manifest.
