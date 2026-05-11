@@ -85,6 +85,10 @@ const EYE_BALL_VALUES: ReadonlySet<EyeBallType> = new Set(['square', 'dot', 'rou
 const FRAME_LABEL_SIZE_VALUES: ReadonlySet<FrameLabelSize> = new Set(['S', 'M', 'L', 'XL']);
 const FRAME_LABEL_FONT_VALUES: ReadonlySet<FrameLabelFont> = new Set(['mono', 'display']);
 
+/* Mixed-case because the permalink decoder sees raw user input
+ * from the URL hash, which may have been shared with either case.
+ * Generator.svelte carries a parallel HEX_RE that's uppercase-only —
+ * deliberately different, runs after sanitizeHex's toUpperCase(). */
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
 const TYPES_SET: ReadonlySet<ContentType> = new Set(CONTENT_TYPES);

@@ -153,7 +153,7 @@
 		</p>
 		<p>
 			<span class="dropmark" aria-hidden="true">03</span>
-			Your last inputs persist between sessions via{' '}
+			Your last inputs persist between sessions via
 			<code>localStorage</code> on the same device — also local, also
 			under your control. Clearing site data clears the saved session.
 			Loading a permalink (a URL with a <code>#s=…</code> hash) overrides
@@ -165,15 +165,15 @@
 	<div class="prose">
 		<p>
 			<span class="dropmark" aria-hidden="true">01</span>
-			The kemek/qr source is{' '}
-			<a href="https://github.com/KeMeK-Network/kemek-QR">on GitHub</a>{' '}
+			The kemek/qr source is
+			<a href="https://github.com/KeMeK-Network/kemek-QR">on GitHub</a>
 			under the MIT license. Read the code, fork it, run your own copy
 			if you’d prefer. The privacy claims on this page reduce to "we
 			ship no telemetry code"; the source is the proof.
 		</p>
 		<p>
 			<span class="dropmark" aria-hidden="true">02</span>
-			kemek/qr is part of the{' '}
+			kemek/qr is part of the
 			<a href="https://kemek.com">KeMeK Network</a> family of
 			utilities. KeMeK Network builds privacy-first, local-first tools
 			and full-stack apps — each one drawn to spec, opinionated in

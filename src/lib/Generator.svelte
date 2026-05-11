@@ -12,7 +12,13 @@
 		type FrameLabelFont
 	} from '$lib/permalink';
 	import { encode } from '$lib/encoders';
-	import { DEFAULT_CONTENT, type ContentMap, type ContentType, type WifiAuth } from '$lib/types';
+	import {
+		DEFAULT_CONTENT,
+		TYPE_LABELS,
+		type ContentMap,
+		type ContentType,
+		type WifiAuth
+	} from '$lib/types';
 
 	/* The content type is fixed by the route (prop). Cross-type
 	 * navigation is anchor-link nav in the layout, not in-page tabs. */
@@ -333,13 +339,6 @@
 		copyTimer = setTimeout(() => (copyState = 'idle'), 2400);
 	}
 
-	/* Compute label font size + reserved label-band height for the
-	 * given size. For S/M/L the font is a fixed fraction of the QR
-	 * width. For XL the font is measured (via canvas measureText) to
-	 * fill 88 % of the framed image's total width regardless of
-	 * label length — short labels get a huge font, long ones get a
-	 * smaller font. The band grows proportionally so the layout
-	 * stays balanced. */
 	/* Font-family strings used by all three frame-label renderers
 	 * (preview CSS class, canvas/PNG, SVG). Keeping them in one
 	 * place stops the three surfaces from drifting. */
@@ -348,6 +347,13 @@
 		display: '"Fraunces Variable", "Fraunces", Georgia, serif'
 	};
 
+	/* Compute label font size + reserved label-band height for the
+	 * given size. For S/M/L the font is a fixed fraction of the QR
+	 * width. For XL the font is measured (via canvas measureText) to
+	 * fill 88 % of the framed image's total width regardless of
+	 * label length — short labels get a huge font, long ones get a
+	 * smaller font. The band grows proportionally so the layout
+	 * stays balanced. */
 	function frameLabelMetrics(
 		qrSize: number,
 		label: string,
@@ -639,6 +645,10 @@
 		}
 	});
 
+	/* Uppercase-only because this runs after sanitizeHex's
+	 * toUpperCase() — never sees mixed-case at runtime. permalink.ts
+	 * carries a parallel HEX_RE that accepts both cases for raw URL
+	 * hash input; the two are deliberately scoped to their context. */
 	const HEX_RE = /^#[0-9A-F]{6}$/;
 
 	/* Sanitize → trim, strip junk, prepend #, uppercase, expand 3-digit
@@ -716,7 +726,7 @@
 					style:--frame-fg={fgColor}
 					style:--frame-bg={bgColor}
 				>
-					<div bind:this={qrContainer} class="qr-mount" role="img" aria-label="QR code preview"></div>
+					<div bind:this={qrContainer} class="qr-mount" role="img" aria-label={`QR code preview · ${TYPE_LABELS[type]} encoding`}></div>
 					{#if frameEnabled}
 						<div
 							class="qr-frame-label qr-frame-label-{frameLabelSize} qr-frame-label-font-{frameLabelFont}"
