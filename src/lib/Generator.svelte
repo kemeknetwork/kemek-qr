@@ -4,6 +4,7 @@
 	import {
 		decodePermalink,
 		encodePermalink,
+		type DecodedPermalink,
 		type DotType,
 		type ECC,
 		type EyeBallType,
@@ -149,7 +150,7 @@
 		};
 	}
 
-	function applyDecoded(decoded: ReturnType<typeof decodePermalink>) {
+	function applyDecoded(decoded: DecodedPermalink | null) {
 		if (!decoded) return;
 		/* The route fixes type, so we only restore the content
 		 * payload when the source's type matches this route's type.
@@ -1781,6 +1782,14 @@
 	.permalink:active {
 		transform: translateY(1px);
 	}
+	/* Keyboard focus rings — same accent-outline language as
+	 * .theme-toggle:focus-visible in the layout, so tabbing through
+	 * the primary action surfaces has consistent affordance. */
+	.download:focus-visible,
+	.permalink:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
 	.permalink-label {
 		text-align: left;
 		line-height: 1.2;
@@ -2096,6 +2105,11 @@
 	.logo-clear:hover {
 		color: var(--accent);
 		border-color: var(--accent);
+	}
+	.logo-upload:focus-visible,
+	.logo-clear:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
 	}
 
 	.slider-field {

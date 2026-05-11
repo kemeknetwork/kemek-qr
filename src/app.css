@@ -245,6 +245,15 @@ select {
 }
 
 
+/* Reduced-motion override. Uses 0.01ms rather than 0ms or `none`
+ * deliberately: Svelte's transition system reads the computed
+ * transition-duration to know when a transition is "active." A literal
+ * 0 (or `none`) can cause Svelte's run/end events to skip — handlers
+ * that rely on them (focus restoration on the theme toggle, the
+ * specimen fade-in completing before the next QR render fires) then
+ * miss their cleanup beat. 0.01ms is instantaneous to the user but
+ * still counts as a real transition to the engine, so the events fire
+ * normally while motion is effectively eliminated. */
 @media (prefers-reduced-motion: reduce) {
 	html {
 		scroll-behavior: auto;
