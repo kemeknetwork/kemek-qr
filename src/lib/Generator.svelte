@@ -17,7 +17,6 @@
 	/* The content type is fixed by the route (prop). Cross-type
 	 * navigation is anchor-link nav in the layout, not in-page tabs. */
 	let { type = 'url' as ContentType }: { type?: ContentType } = $props();
-	const contentType = $derived(type);
 	let content = $state<ContentMap>(structuredClone(DEFAULT_CONTENT));
 	let fgColor = $state('#1A1815');
 	let bgColor = $state('#F2EBDD');
@@ -31,6 +30,8 @@
 	let gradientEnabled = $state(false);
 	let gradientFrom = $state('#1A1815');
 	let gradientTo = $state('#C53A1F');
+	let gradientFromInput = $state('#1A1815');
+	let gradientToInput = $state('#C53A1F');
 	let gradientAngle = $state(45);
 	let eyeFrame = $state<EyeFrameType>('square');
 	let eyeBall = $state<EyeBallType>('square');
@@ -90,7 +91,7 @@
 	function buildOpts() {
 		const ecc: 'L' | 'M' | 'Q' | 'H' =
 			errorCorrection === 'auto' ? (logoDataUrl ? 'H' : 'M') : errorCorrection;
-		const encoded = encode(contentType, content[contentType]);
+		const encoded = encode(type, content[type]);
 		const gradient = buildGradient();
 		return {
 			width: 480,
@@ -144,7 +145,7 @@
 
 	function applyDecoded(decoded: ReturnType<typeof decodePermalink>) {
 		if (!decoded) return;
-		/* The route fixes contentType, so we only restore the content
+		/* The route fixes type, so we only restore the content
 		 * payload when the source's type matches this route's type.
 		 * Mismatches keep the styling but ignore the content (which
 		 * is shaped for the wrong form). */
@@ -625,7 +626,7 @@
 	 * like a URL" — that's by design. We never gate encoding either way:
 	 * QR codes happily encode any text. */
 	let urlWarning = $derived.by(() => {
-		if (contentType !== 'url') return null;
+		if (type !== 'url') return null;
 		const v = content.url.url.trim();
 		if (!v) return null;
 		const looksUrlish = v.includes('.') && !/\s/.test(v);
@@ -663,16 +664,33 @@
 		bgColor = next;
 		bgInput = next;
 	}
+	function commitGradientFromHex() {
+		const next = sanitizeHex(gradientFromInput, gradientFrom);
+		gradientFrom = next;
+		gradientFromInput = next;
+	}
+	function commitGradientToHex() {
+		const next = sanitizeHex(gradientToInput, gradientTo);
+		gradientTo = next;
+		gradientToInput = next;
+	}
 
-	/* Color picker writes directly to fgColor/bgColor; mirror into the
-	 * text input so the two views stay in sync without binding the same
-	 * variable twice (which would let typed-in-progress text fight the
-	 * picker's lowercased output). */
+	/* Color picker writes directly to fgColor/bgColor/gradientFrom/To;
+	 * mirror into the text input so the two views stay in sync without
+	 * binding the same variable twice (which would let typed-in-progress
+	 * text fight the picker's lowercased output, or feed invalid hex
+	 * mid-type to qr-code-styling which silently falls back). */
 	$effect(() => {
 		fgInput = fgColor;
 	});
 	$effect(() => {
 		bgInput = bgColor;
+	});
+	$effect(() => {
+		gradientFromInput = gradientFrom;
+	});
+	$effect(() => {
+		gradientToInput = gradientTo;
 	});
 </script>
 
@@ -792,7 +810,7 @@
 
 	<div class="controls" id="p-01">
 
-		{#if contentType === 'url'}
+		{#if type === 'url'}
 			<fieldset class="control-block">
 				<legend><span class="p-num">P-01</span> DESTINATION</legend>
 				<label class="field">
@@ -810,7 +828,7 @@
 					<p id="url-warning" class="field-warning">{urlWarning}</p>
 				{/if}
 			</fieldset>
-		{:else if contentType === 'text'}
+		{:else if type === 'text'}
 			<fieldset class="control-block">
 				<legend><span class="p-num">P-01</span> TEXT</legend>
 				<label class="field">
@@ -824,7 +842,7 @@
 					></textarea>
 				</label>
 			</fieldset>
-		{:else if contentType === 'wifi'}
+		{:else if type === 'wifi'}
 			<fieldset class="control-block">
 				<legend><span class="p-num">P-01</span> WIFI NETWORK</legend>
 				<label class="field">
@@ -866,7 +884,7 @@
 					</label>
 				</div>
 			</fieldset>
-		{:else if contentType === 'vcard'}
+		{:else if type === 'vcard'}
 			<fieldset class="control-block">
 				<legend><span class="p-num">P-01</span> CONTACT</legend>
 				<div class="field-row" style="padding-top: 0.45rem;">
@@ -906,7 +924,7 @@
 					<input type="text" bind:value={content.vcard.address} autocomplete="street-address" />
 				</label>
 			</fieldset>
-		{:else if contentType === 'email'}
+		{:else if type === 'email'}
 			<fieldset class="control-block">
 				<legend><span class="p-num">P-01</span> EMAIL</legend>
 				<label class="field">
@@ -922,7 +940,7 @@
 					<textarea class="textarea" bind:value={content.email.body} rows="3"></textarea>
 				</label>
 			</fieldset>
-		{:else if contentType === 'sms'}
+		{:else if type === 'sms'}
 			<fieldset class="control-block">
 				<legend><span class="p-num">P-01</span> SMS</legend>
 				<label class="field">
@@ -934,7 +952,7 @@
 					<textarea class="textarea" bind:value={content.sms.body} rows="3"></textarea>
 				</label>
 			</fieldset>
-		{:else if contentType === 'phone'}
+		{:else if type === 'phone'}
 			<fieldset class="control-block">
 				<legend><span class="p-num">P-01</span> PHONE</legend>
 				<label class="field">
@@ -947,7 +965,7 @@
 					/>
 				</label>
 			</fieldset>
-		{:else if contentType === 'geo'}
+		{:else if type === 'geo'}
 			<fieldset class="control-block">
 				<legend><span class="p-num">P-01</span> GEO</legend>
 				<div class="field-row" style="padding-top: 0.45rem;">
@@ -1017,7 +1035,8 @@
 							<input type="color" bind:value={gradientFrom} aria-label="Gradient start" />
 							<input
 								type="text"
-								bind:value={gradientFrom}
+								bind:value={gradientFromInput}
+								onblur={commitGradientFromHex}
 								class="hex"
 								maxlength="7"
 								spellcheck="false"
@@ -1031,7 +1050,8 @@
 							<input type="color" bind:value={gradientTo} aria-label="Gradient end" />
 							<input
 								type="text"
-								bind:value={gradientTo}
+								bind:value={gradientToInput}
+								onblur={commitGradientToHex}
 								class="hex"
 								maxlength="7"
 								spellcheck="false"
@@ -2220,14 +2240,5 @@
 		line-height: 1.5;
 	}
 
-	@keyframes fade-up {
-		from {
-			opacity: 0;
-			transform: translateY(12px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
+	/* @keyframes fade-up lives in app.css — see comment there. */
 </style>

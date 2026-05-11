@@ -48,11 +48,10 @@ export function encodeText(c: TextContent): string {
 }
 
 export function encodeWifi(c: WifiContent): string {
-	const auth = c.auth === 'nopass' ? 'nopass' : c.auth;
 	const ssid = escapeWifi(c.ssid);
 	const password = c.auth === 'nopass' ? '' : escapeWifi(c.password);
 	const hidden = c.hidden ? 'true' : '';
-	return `WIFI:T:${auth};S:${ssid};P:${password};H:${hidden};;`;
+	return `WIFI:T:${c.auth};S:${ssid};P:${password};H:${hidden};;`;
 }
 
 /* vCard line escape: backslash, semicolon, comma, newlines per RFC 6350.
