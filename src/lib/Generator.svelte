@@ -13,6 +13,7 @@
 		type FrameLabelFont
 	} from '$lib/permalink';
 	import { encode } from '$lib/encoders';
+	import { contrastBand, contrastRatio, effectiveFg, isInverted } from '$lib/contrast';
 	import {
 		DEFAULT_CONTENT,
 		TYPE_LABELS,
@@ -643,6 +644,20 @@
 	};
 	let eccHint = $derived(ECC_HINTS[errorCorrection]);
 
+	/* Contrast readout for QR-scannability guidance. Informational only
+	 * — never gates download. See `contrast.ts` for the WCAG math and
+	 * the gradient worst-case picker. */
+	let contrastFg = $derived(
+		effectiveFg(fgColor, gradientEnabled, gradientFrom, gradientTo, bgColor)
+	);
+	let contrastValue = $derived(contrastRatio(contrastFg, bgColor));
+	let contrastInverted = $derived(isInverted(contrastFg, bgColor));
+	let contrastState = $derived(contrastBand(contrastValue, contrastInverted));
+	let contrastLabel = $derived(
+		contrastState === 'inverted' ? 'INVERTED' : contrastState === 'low' ? 'LOW' : 'DARK ON LIGHT'
+	);
+	let contrastDisplay = $derived(contrastValue !== null ? contrastValue.toFixed(1) : '—');
+
 	/* Soft, non-blocking URL warning. Only fires on the URL type; other
 	 * types have their own shape and shouldn't be told they "don't look
 	 * like a URL" — that's by design. We never gate encoding either way:
@@ -1049,6 +1064,12 @@
 					</span>
 				</label>
 			</div>
+			<p class="contrast-readout" data-state={contrastState} aria-live="polite">
+				<span class="contrast-rubric">CONTRAST</span>
+				<span class="contrast-value">{contrastDisplay}:1</span>
+				<span class="contrast-sep">·</span>
+				<span class="contrast-label">{contrastLabel}</span>
+			</p>
 		</fieldset>
 
 		<fieldset class="control-block">
@@ -1840,6 +1861,41 @@
 		letter-spacing: 0.02em;
 		margin: 0.55rem 0 0;
 		padding: 0;
+	}
+	.contrast-readout {
+		display: flex;
+		align-items: baseline;
+		gap: 0.45rem;
+		font-family: var(--font-mono);
+		font-size: var(--fs-help);
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--ghost);
+		margin: 0.7rem 0 0;
+		padding: 0;
+	}
+	.contrast-rubric {
+		color: var(--micro);
+	}
+	.contrast-value {
+		color: var(--ink);
+		font-variant-numeric: tabular-nums;
+		font-weight: 500;
+	}
+	.contrast-sep {
+		color: var(--rule);
+	}
+	.contrast-label {
+		color: var(--ghost);
+	}
+	.contrast-readout[data-state='low'] .contrast-value,
+	.contrast-readout[data-state='low'] .contrast-label {
+		color: var(--accent);
+	}
+	.contrast-readout[data-state='inverted'] .contrast-value,
+	.contrast-readout[data-state='inverted'] .contrast-label {
+		color: var(--accent);
+		font-weight: 600;
 	}
 
 	.controls {
