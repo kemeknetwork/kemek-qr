@@ -29,6 +29,17 @@ export type EyeFrameType = 'square' | 'extra-rounded' | 'dot' | 'rounded';
 export type EyeBallType = 'square' | 'dot' | 'rounded';
 export type FrameLabelSize = 'S' | 'M' | 'L' | 'XL';
 export type FrameLabelFont = 'mono' | 'display';
+export type PngSize = '1K' | '2K' | '4K';
+
+/* Pixel width for each PngSize bucket. 4K sits right at the iOS Safari
+ * canvas-area limit (16,777,216 px) — framed 4K exceeds it, so the
+ * download path falls back to the existing engineError surface if
+ * canvas.toBlob returns null. Desktop and Android handle all three. */
+export const PNG_SIZE_PX: Record<PngSize, number> = {
+	'1K': 1024,
+	'2K': 2048,
+	'4K': 4096
+};
 
 export type StylingState = {
 	fg: string;
@@ -47,6 +58,7 @@ export type StylingState = {
 	frameLabel: string;
 	frameLabelSize: FrameLabelSize;
 	frameLabelFont: FrameLabelFont;
+	pngSize: PngSize;
 };
 
 export type PermalinkState<T extends ContentType = ContentType> = StylingState & {
@@ -78,6 +90,7 @@ const EYE_BALL_VALUES: ReadonlySet<EyeBallType> = new Set(['square', 'dot', 'rou
 
 const FRAME_LABEL_SIZE_VALUES: ReadonlySet<FrameLabelSize> = new Set(['S', 'M', 'L', 'XL']);
 const FRAME_LABEL_FONT_VALUES: ReadonlySet<FrameLabelFont> = new Set(['mono', 'display']);
+const PNG_SIZE_VALUES: ReadonlySet<PngSize> = new Set(['1K', '2K', '4K']);
 
 /* Mixed-case because the permalink decoder sees raw user input
  * from the URL hash, which may have been shared with either case.
@@ -131,6 +144,9 @@ type WireV1 = {
 	fl?: string;
 	fls?: FrameLabelSize;
 	flf?: FrameLabelFont;
+	/* PNG export resolution: '1K' default, '2K' or '4K' for print/poster.
+	 * Default '1K' is stripped from the wire (mirrors fls/flf pattern). */
+	pnp?: PngSize;
 };
 
 function toBase64Url(s: string): string {
@@ -177,6 +193,8 @@ function buildWire<T extends ContentType>(state: PermalinkState<T>, includeLogo:
 		if (state.frameLabelSize !== 'M') w.fls = state.frameLabelSize;
 		if (state.frameLabelFont !== 'mono') w.flf = state.frameLabelFont;
 	}
+	/* Strip default 1K PNG size; only emit '2K' / '4K'. */
+	if (state.pngSize !== '1K') w.pnp = state.pngSize;
 	return w;
 }
 
@@ -267,6 +285,7 @@ export function decodePermalink(hash: string): DecodedPermalink | null {
 		if (isOneOf(w.fls, FRAME_LABEL_SIZE_VALUES)) out.frameLabelSize = w.fls;
 		if (isOneOf(w.flf, FRAME_LABEL_FONT_VALUES)) out.frameLabelFont = w.flf;
 	}
+	if (isOneOf(w.pnp, PNG_SIZE_VALUES)) out.pngSize = w.pnp;
 
 	return out;
 }

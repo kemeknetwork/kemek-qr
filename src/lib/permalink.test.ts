@@ -17,7 +17,8 @@ const baseStyling = {
 	frameEnabled: false,
 	frameLabel: 'SCAN ME',
 	frameLabelSize: 'M' as const,
-	frameLabelFont: 'mono' as const
+	frameLabelFont: 'mono' as const,
+	pngSize: '1K' as const
 };
 
 describe('encode → decode round trip', () => {
@@ -121,6 +122,29 @@ describe('styling fields', () => {
 		const enc = encodePermalink(state, 'https://qr.kemek.com/');
 		const dec = decodePermalink(enc.hash);
 		expect(dec?.frameLabelSize).toBe('XL');
+	});
+	it('round-trips pngSize when set to a non-default bucket', () => {
+		const state: PermalinkState<'url'> = {
+			...baseStyling,
+			type: 'url',
+			content: { url: 'https://kemek.com' },
+			pngSize: '4K'
+		};
+		const enc = encodePermalink(state, 'https://qr.kemek.com/');
+		const dec = decodePermalink(enc.hash);
+		expect(dec?.pngSize).toBe('4K');
+	});
+	it('omits pngSize when default (1K) to keep links short', () => {
+		const state: PermalinkState<'url'> = {
+			...baseStyling,
+			type: 'url',
+			content: { url: 'x' },
+			pngSize: '1K'
+		};
+		const enc = encodePermalink(state, 'https://qr.kemek.com/');
+		expect(enc.hash).not.toContain('pnp');
+		const dec = decodePermalink(enc.hash);
+		expect(dec?.pngSize).toBeUndefined();
 	});
 	it('omits frameLabelSize when default (M) to keep links short', () => {
 		const state: PermalinkState<'url'> = {

@@ -4,13 +4,15 @@
 	import {
 		decodePermalink,
 		encodePermalink,
+		PNG_SIZE_PX,
 		type DecodedPermalink,
 		type DotType,
 		type ECC,
 		type EyeBallType,
 		type EyeFrameType,
 		type FrameLabelSize,
-		type FrameLabelFont
+		type FrameLabelFont,
+		type PngSize
 	} from '$lib/permalink';
 	import { encode } from '$lib/encoders';
 	import { contrastBand, contrastRatio, effectiveFg, isInverted } from '$lib/contrast';
@@ -47,6 +49,7 @@
 	let frameLabel = $state('SCAN ME');
 	let frameLabelSize = $state<FrameLabelSize>('M');
 	let frameLabelFont = $state<FrameLabelFont>('mono');
+	let pngSize = $state<PngSize>('1K');
 	let exportFormat = $state<'png' | 'svg' | 'pdf'>('png');
 	let exporting = $state(false);
 	let engineError = $state<string | null>(null);
@@ -147,7 +150,8 @@
 			frameEnabled,
 			frameLabel,
 			frameLabelSize,
-			frameLabelFont
+			frameLabelFont,
+			pngSize
 		};
 	}
 
@@ -182,6 +186,7 @@
 		if (decoded.frameLabel !== undefined) frameLabel = decoded.frameLabel;
 		if (decoded.frameLabelSize !== undefined) frameLabelSize = decoded.frameLabelSize;
 		if (decoded.frameLabelFont !== undefined) frameLabelFont = decoded.frameLabelFont;
+		if (decoded.pngSize !== undefined) pngSize = decoded.pngSize;
 	}
 
 	let restored = false;
@@ -486,7 +491,7 @@
 
 	async function downloadPNG() {
 		if (!QRCodeStylingClass) return;
-		const exportSize = 1024;
+		const exportSize = PNG_SIZE_PX[pngSize];
 		const exporter = new QRCodeStylingClass({
 			...buildOpts(),
 			width: exportSize,
@@ -742,7 +747,8 @@
 				<span class="tick tick-l"></span>
 				<span class="dim-line dim-line-l"></span>
 				<span class="dim-readout"
-					>{exportFormat === 'pdf' ? '2048' : exportFormat === 'svg' ? '∞' : '1024'} PX · {exportFormat.toUpperCase()}</span
+					>{exportFormat === 'pdf' ? '2048' : exportFormat === 'svg' ? '∞' : PNG_SIZE_PX[pngSize]} PX
+					· {exportFormat.toUpperCase()}</span
 				>
 				<span class="dim-line dim-line-r"></span>
 				<span class="tick tick-r"></span>
@@ -790,7 +796,7 @@
 					<dt>S-01 FORMAT</dt>
 					<dd>
 						{exportFormat.toUpperCase()}{exportFormat === 'png'
-							? ' · 1024 PX'
+							? ` · ${pngSize}`
 							: exportFormat === 'pdf'
 								? ' · A4 / 2048'
 								: ' · VECTOR'}
@@ -821,6 +827,21 @@
 				{/each}
 			</div>
 
+			{#if exportFormat === 'png'}
+				<div
+					class="export-png-size segmented cols-3"
+					role="radiogroup"
+					aria-label="PNG export size"
+				>
+					{#each ['1K', '2K', '4K'] as const as sz}
+						<label class="seg" class:active={pngSize === sz}>
+							<input type="radio" name="png-size" value={sz} bind:group={pngSize} />
+							{sz}
+						</label>
+					{/each}
+				</div>
+			{/if}
+
 			<div class="action-row">
 				<button
 					class="download"
@@ -833,7 +854,7 @@
 						{exporting ? 'PREPARING…' : `DOWNLOAD ${exportFormat.toUpperCase()}`}
 					</span>
 					<span class="download-size">
-						{#if exportFormat === 'png'}1024 PX
+						{#if exportFormat === 'png'}{PNG_SIZE_PX[pngSize]} PX
 						{:else if exportFormat === 'svg'}VECTOR
 						{:else}A4 / 2048 PX{/if}
 					</span>
