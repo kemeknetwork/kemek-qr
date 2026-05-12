@@ -193,7 +193,8 @@ function buildWire<T extends ContentType>(state: PermalinkState<T>, includeLogo:
 		if (state.frameLabelSize !== 'M') w.fls = state.frameLabelSize;
 		if (state.frameLabelFont !== 'mono') w.flf = state.frameLabelFont;
 	}
-	/* Strip default 1K PNG size; only emit '2K' / '4K'. */
+	/* Default '1K' stripped on the wire to keep permalinks short
+	 * (mirrors the fls / flf default-stripping pattern). */
 	if (state.pngSize !== '1K') w.pnp = state.pngSize;
 	return w;
 }
