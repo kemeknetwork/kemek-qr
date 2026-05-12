@@ -634,6 +634,15 @@
 	);
 	let dotLabel = $derived(dotOptions.find((d) => d.value === dotType)?.label ?? '—');
 
+	const ECC_HINTS: Record<ECC, string> = {
+		auto: 'M when plain · H when logo embedded',
+		L: '7% recovery · smallest code · indoor screen use',
+		M: '15% recovery · the everyday default',
+		Q: '25% recovery · holds up to scuffs and print wear',
+		H: '30% recovery · required when adding a logo'
+	};
+	let eccHint = $derived(ECC_HINTS[errorCorrection]);
+
 	/* Soft, non-blocking URL warning. Only fires on the URL type; other
 	 * types have their own shape and shouldn't be told they "don't look
 	 * like a URL" — that's by design. We never gate encoding either way:
@@ -1165,6 +1174,7 @@
 					</label>
 				{/each}
 			</div>
+			<p class="ecc-hint" aria-live="polite">{eccHint}</p>
 		</fieldset>
 
 		<fieldset class="control-block">
@@ -1821,6 +1831,15 @@
 		background: var(--paper);
 		border: 1px dashed var(--rule);
 		border-radius: var(--radius-sm);
+	}
+	.ecc-hint {
+		font-family: var(--font-mono);
+		font-size: var(--fs-help);
+		color: var(--ghost);
+		line-height: 1.4;
+		letter-spacing: 0.02em;
+		margin: 0.55rem 0 0;
+		padding: 0;
 	}
 
 	.controls {
