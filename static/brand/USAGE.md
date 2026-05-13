@@ -27,21 +27,35 @@ ship.
 
 ---
 
+## The canonical mark
+
+The kemek-qr mark is a **bare 7 × 7 grid** of finder-pattern eyes (TL,
+TR, BL) plus a 5-cell quincunx in the BR quadrant. **One color, no
+background, no frame, no padding** — same shape definition as
+`src/routes/+layout.svelte`'s `.brand-mark`. The mark inherits its
+surface from whatever it sits on; brand identity is in the *shape*,
+not in a paper rectangle around it.
+
+The favicon (shipped at `static/favicon.svg`) is a different
+artifact — it carries a cream paper rectangle + ink frame because
+favicons need an opaque surface for browser tabs. That's
+favicon-specific styling, not part of the mark.
+
 ## Files in this folder
 
 | File | Use |
 |---|---|
-| `mark.svg` | Primary mark. Cream paper · ink frame · accent-red marks. |
-| `mark-dark.svg` | Dark-mode variant. Graphite paper · cream frame · accent-warm marks. |
-| `mark-mono-ink.svg` | Monochrome ink on transparent. For light surfaces where color isn't appropriate. |
-| `mark-mono-cream.svg` | Monochrome cream on transparent. For dark surfaces. |
-| `mark-mono-accent.svg` | Monochrome accent-red on transparent. For neutral surfaces. |
-| `lockup-light.svg` | Horizontal lockup — mark + wordmark, for light surfaces. |
-| `lockup-dark.svg` | Horizontal lockup — mark + wordmark, for dark surfaces. |
-| `mark-256.png` | Mark rasterized at 256 × 256. |
-| `mark-512.png` | Mark rasterized at 512 × 512. |
-| `mark-1024.png` | Mark rasterized at 1024 × 1024. |
-| `mark-2048.png` | Mark rasterized at 2048 × 2048. Use for print. |
+| `mark.svg` | Primary mark. Accent red (`#c53a1f`) on transparent. |
+| `mark-dark.svg` | Dark-mode variant. Accent warm (`#e0492c`) on transparent — slightly brighter for dark surfaces. |
+| `mark-mono-ink.svg` | Monochrome ink (`#0e0b06`) on transparent. For light surfaces where color isn't appropriate. |
+| `mark-mono-cream.svg` | Monochrome cream (`#f9eedb`) on transparent. For dark surfaces where color isn't appropriate. |
+| `mark-mono-accent.svg` | Accent red on transparent. Same as `mark.svg`; named alias for clarity at consumption sites. |
+| `lockup-light.svg` | Horizontal lockup — accent mark + ink wordmark + accent slash, for light surfaces. |
+| `lockup-dark.svg` | Horizontal lockup — accent mark + cream wordmark + accent slash, for dark surfaces. |
+| `mark-256.png` | Mark rasterized at 256 × 256, transparent ground. |
+| `mark-512.png` | Mark rasterized at 512 × 512, transparent ground. |
+| `mark-1024.png` | Mark rasterized at 1024 × 1024, transparent ground. |
+| `mark-2048.png` | Mark rasterized at 2048 × 2048, transparent ground. Use for print. |
 
 PNG rasters are generated from the SVG masters via
 `npm run build:images`. Don't edit the PNGs by hand; edit the SVG
@@ -100,13 +114,13 @@ visual hinge between the umbrella brand (`kemek`) and the product
 
 ## Clear space
 
-Minimum clear space around the mark = the height of one finder eye
-(8 px in the 64 × 64 viewBox grid, i.e. 12.5% of the mark width).
+Minimum clear space around the mark = the width of one cell in the
+7 × 7 grid (i.e. ~ 14% of the mark width). Treat that perimeter as
+inviolable — no other type or shape inside it.
 
-Don't crop into the mark's outer 1 px frame stroke — it's part of
-the mark, not decoration around it. The frame is intentional: it
-echoes the QR code's quiet zone in a way the rest of the brand voice
-reads as drafting / engineering specimen.
+The mark itself has no frame or quiet-zone border — that's
+intentional. The 5-cell quincunx in the BR quadrant IS the quiet
+zone in spirit; the silhouette is the mark.
 
 ---
 
@@ -128,6 +142,9 @@ mark (not currently shipped — file an issue if you need it).
 
 - **Don't recolor the mark with custom hex values.** Use one of the
   pre-built variants. The palette is locked.
+- **Don't add a frame or background box around the mark.** The mark
+  is the silhouette of the 7 × 7 grid — the surface around it is
+  whatever it sits on, not part of the mark.
 - **Don't rotate the mark.** It's a QR-shaped mark; rotation breaks
   the visual "this is QR" cue.
 - **Don't add drop shadows, glows, or bevels.** Brand voice is flat
