@@ -27,15 +27,33 @@ import { decompress as decompressWoff2 } from 'wawoff2';
 
 const ROOT = resolve(import.meta.dirname, '..');
 
-/* opsz axis fixed at 14 (small-optical) to match the masthead's
- * `font-size: 31` rendering character. wght at 500 (the masthead's
- * `.brand` weight). letter-spacing -0.015em handled per-glyph via
- * advance tweak. */
+/* Axis values match what the browser actually applies on the live
+ * masthead, NOT what looked right in isolation. The masthead uses:
+ *
+ *   font-family: var(--font-display);   // Fraunces Variable
+ *   font-weight: 500;
+ *   font-size: 31px;                     // and font-optical-sizing
+ *                                         // defaults to `auto`, which
+ *                                         // pins opsz ≈ font-size.
+ *
+ * Forcing opsz to a different value (e.g. 14 for "small optical /
+ * heavier strokes") makes the outlined glyphs visibly diverge from
+ * the live rendering — most noticeably the `m` leg angles and the
+ * `q` descender curl. Stay on opsz=31 so the outlined SVG matches
+ * what the browser actually paints.
+ *
+ * The `.brand-name` rule pins `font-feature-settings: 'ss01'`, but
+ * the @fontsource Fraunces subsets only ship `liga` + `rvrn` (no
+ * ss01), so the browser silently ignores the feature setting and
+ * we don't need to apply it here either — the result is the same.
+ *
+ * Slash uses the italic font (`.brand-slash { font-style: italic
+ * }`), no feature settings. Margin mirrors `margin: 0 0.06em`. */
 const FONT_SIZE = 31;
 const WEIGHT = 500;
-const OPSZ = 14;
+const OPSZ = 31;
 const LETTER_SPACING_EM = -0.015;
-const SLASH_MARGIN_EM = 0.06; /* mirrors `.brand-slash { margin: 0 0.06em }` */
+const SLASH_MARGIN_EM = 0.06;
 
 /* Load + parse a woff2 font file. opentype.js doesn't natively read
  * woff2 — wawoff2 decompresses to TTF first. */
@@ -50,13 +68,25 @@ async function loadFont(woff2Path) {
 }
 
 /* Returns the SVG `d` attribute for a single glyph at the target
- * size + variable-axis values + position. opentype.js's getPath()
- * returns a Path object; toPathData() emits SVG path syntax. */
-function glyphPath(font, char, x, y, size, variation) {
-	const path = font.getPath(char, x, y, size, { variation });
+ * size + variable-axis values + OpenType features + position.
+ * opentype.js's getPath() returns a Path object; toPathData() emits
+ * SVG path syntax. `getPath`'s `bbox` is also captured here so the
+ * caller can size the canvas to fit ascenders / descenders / italic
+ * overshoot.
+ *
+ * OpenType features must be passed explicitly — opentype.js does
+ * NOT apply lookups like `ss01` or `kern` by default. Without
+ * `ss01: true` the wordmark renders Fraunces's default forms; with
+ * it, the alternate forms the masthead's `.brand-name` rule pins
+ * via `font-feature-settings: 'ss01'`. */
+function glyphPath(font, char, x, y, size, variation, features = {}) {
+	const path = font.getPath(char, x, y, size, { variation, features });
+	const bbox = path.getBoundingBox();
 	return {
 		d: path.toPathData(3),
-		advance: font.charToGlyph(char).advanceWidth * (size / font.unitsPerEm)
+		advance: font.charToGlyph(char).advanceWidth * (size / font.unitsPerEm),
+		yMin: bbox.y1,
+		yMax: bbox.y2
 	};
 }
 
@@ -76,12 +106,13 @@ async function buildLockup({ wordmarkColor, accentColor, outPath }) {
 
 	const variation = { wght: WEIGHT, opsz: OPSZ };
 
-	/* Lay out "kemek/qr" from left to right. Wordmark baseline
-	 * sits at y=24 (mirrors the masthead's vertical-center alignment
-	 * with the 30 × 30 mark; baseline 24 puts the cap-line near the
-	 * mark's optical center y=15). */
+	/* No features applied — the @fontsource Fraunces subsets don't
+	 * ship `ss01`, so the masthead's `font-feature-settings: 'ss01'`
+	 * is a no-op at runtime; matching that no-op here. */
+	const wordmarkFeatures = {};
+	const slashFeatures = {};
+
 	const WORDMARK_X_START = 42;
-	const WORDMARK_Y_BASELINE = 24;
 	const letterSpacingPx = LETTER_SPACING_EM * FONT_SIZE;
 	const slashMarginPx = SLASH_MARGIN_EM * FONT_SIZE;
 
@@ -90,19 +121,52 @@ async function buildLockup({ wordmarkColor, accentColor, outPath }) {
 	const accentSlashPaths = [];
 
 	const sequence = [
-		{ char: 'k', font: fontRoman, fill: wordmarkColor },
-		{ char: 'e', font: fontRoman, fill: wordmarkColor },
-		{ char: 'm', font: fontRoman, fill: wordmarkColor },
-		{ char: 'e', font: fontRoman, fill: wordmarkColor },
-		{ char: 'k', font: fontRoman, fill: wordmarkColor },
-		{ char: '/', font: fontItalic, fill: accentColor, marginPx: slashMarginPx },
-		{ char: 'q', font: fontRoman, fill: wordmarkColor },
-		{ char: 'r', font: fontRoman, fill: wordmarkColor }
+		{ char: 'k', font: fontRoman, fill: wordmarkColor, features: wordmarkFeatures },
+		{ char: 'e', font: fontRoman, fill: wordmarkColor, features: wordmarkFeatures },
+		{ char: 'm', font: fontRoman, fill: wordmarkColor, features: wordmarkFeatures },
+		{ char: 'e', font: fontRoman, fill: wordmarkColor, features: wordmarkFeatures },
+		{ char: 'k', font: fontRoman, fill: wordmarkColor, features: wordmarkFeatures },
+		{
+			char: '/',
+			font: fontItalic,
+			fill: accentColor,
+			marginPx: slashMarginPx,
+			features: slashFeatures
+		},
+		{ char: 'q', font: fontRoman, fill: wordmarkColor, features: wordmarkFeatures },
+		{ char: 'r', font: fontRoman, fill: wordmarkColor, features: wordmarkFeatures }
 	];
+
+	/* First pass: lay out glyphs at a temporary baseline (y=0) just to
+	 * harvest each glyph's vertical extent. Then size the canvas to
+	 * fit the deepest descender + tallest ascender + a small margin,
+	 * and re-emit at the final baseline. */
+	let glyphYMin = 0;
+	let glyphYMax = 0;
+	for (const g of sequence) {
+		const probe = glyphPath(g.font, g.char, 0, 0, FONT_SIZE, variation, g.features);
+		glyphYMin = Math.min(glyphYMin, probe.yMin);
+		glyphYMax = Math.max(glyphYMax, probe.yMax);
+	}
+
+	const margin = 2;
+	const canvasHeight = Math.ceil(glyphYMax - glyphYMin + margin * 2);
+	/* The mark's natural footprint is 32 tall (30 mark + 2 lift +
+	 * margin). Make sure the canvas can fit it too. */
+	const HEIGHT = Math.max(canvasHeight, 32);
+	const WORDMARK_Y_BASELINE = Math.round(-glyphYMin + margin);
 
 	for (const g of sequence) {
 		if (g.marginPx) x += g.marginPx;
-		const { d, advance } = glyphPath(g.font, g.char, x, WORDMARK_Y_BASELINE, FONT_SIZE, variation);
+		const { d, advance } = glyphPath(
+			g.font,
+			g.char,
+			x,
+			WORDMARK_Y_BASELINE,
+			FONT_SIZE,
+			variation,
+			g.features
+		);
 		if (g.fill === accentColor) {
 			accentSlashPaths.push(d);
 		} else {
@@ -113,10 +177,15 @@ async function buildLockup({ wordmarkColor, accentColor, outPath }) {
 	}
 
 	const totalWidth = Math.ceil(x + 4);
+	/* Vertically center the mark in the (possibly-taller) canvas, so
+	 * the mark's optical center still aligns with the wordmark's
+	 * x-height region the way the masthead does it. */
+	const markTop = Math.round((HEIGHT - 30) / 2);
 
 	/* Mark — same 7-unit shape as src/routes/+layout.svelte's
-	 * `.brand-mark`, scaled to 30 × 30 and translated (3, 1). */
-	const markGroup = `\t<g transform="translate(3 1) scale(4.2857)" fill="${accentColor}">
+	 * `.brand-mark`, scaled to 30 × 30 and translated to fit the
+	 * (possibly taller-than-mark) canvas. */
+	const markGroup = `\t<g transform="translate(3 ${markTop}) scale(4.2857)" fill="${accentColor}">
 \t\t<path d="M0 0h3v1H0zM0 2h3v1H0zM0 1h1v1H0zM2 1h1v1H2z" />
 \t\t<path d="M4 0h3v1H4zM4 2h3v1H4zM4 1h1v1H4zM6 1h1v1H6z" />
 \t\t<path d="M0 4h3v1H0zM0 6h3v1H0zM0 5h1v1H0zM2 5h1v1H2z" />
@@ -135,7 +204,7 @@ ${wordmarkPaths.map((d) => `\t\t<path d="${d}" />`).join('\n')}
 ${accentSlashPaths.map((d) => `\t\t<path d="${d}" />`).join('\n')}
 \t</g>`;
 
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalWidth} 32" width="${totalWidth}" height="32" role="img" aria-label="kemek/qr lockup (outlined)">
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalWidth} ${HEIGHT}" width="${totalWidth}" height="${HEIGHT}" role="img" aria-label="kemek/qr lockup (outlined)">
 \t<title>kemek-qr horizontal lockup — outlined glyphs, font-independent</title>
 ${markGroup}
 ${wordmarkGroup}
@@ -144,7 +213,7 @@ ${slashGroup}
 `;
 
 	await writeFile(resolve(ROOT, outPath), svg, 'utf8');
-	console.log(`${outPath}: built (${totalWidth} × 32, all paths)`);
+	console.log(`${outPath}: built (${totalWidth} × ${HEIGHT}, all paths)`);
 }
 
 await buildLockup({
