@@ -40,12 +40,16 @@
 	const SAVED_KEY = 'kemek-qr:color-saved';
 	const SAVED_MAX = 6;
 
-	/* Panel coords are always set; defaults are a safe top-centered
+	/* Panel coords are always set; defaults are a safe top-left
 	 * position so the panel is visible even before computePosition()
 	 * has measured the trigger. computePosition() runs after the
-	 * panel mounts and re-anchors near the click. */
+	 * panel mounts and re-anchors near the click. `panelMaxH` is
+	 * null in the common case (CSS `max-height: calc(100dvh - 24px)`
+	 * wins) and a px number in the "neither side fully fits" case
+	 * (anchored near the click with body scroll handling overflow). */
 	let panelLeft = $state(MARGIN);
 	let panelTop = $state(MARGIN);
+	let panelMaxH = $state<number | null>(null);
 
 	let hue = $state(0);
 	let sat = $state(0);
@@ -149,9 +153,21 @@
 
 	/* Anchor the panel near the trigger at every viewport size. Width
 	 * is the same `min(420, innerWidth - 24)` that the CSS uses so JS
-	 * and CSS stay in lockstep on narrow phones. Position prefers
-	 * below the trigger; flips above if no room; pins to top with
-	 * margin if neither fits and lets the body wrapper scroll. */
+	 * and CSS stay in lockstep on narrow phones.
+	 *
+	 * Vertical placement is a four-step preference chain:
+	 *   1. Fits fully below the trigger    → anchor below (most common)
+	 *   2. Fits fully above the trigger    → flip above
+	 *   3. Doesn't fit either side; below  → anchor below, clamp
+	 *      has more space than above           max-height to spaceBelow
+	 *   4. Doesn't fit either side; above  → pin near top, clamp
+	 *      has more space than below           max-height to spaceAbove
+	 *
+	 * Steps 3 + 4 are why `panelMaxH` exists — the body wrapper's
+	 * internal scroll handles overflow when the natural panel height
+	 * exceeds the chosen side's available space. The previous "pin to
+	 * top of viewport" fallback (which left the modal far from the
+	 * click site when neither side fully fit) is gone. */
 	function computePosition() {
 		if (typeof window === 'undefined') return;
 		const panelW = Math.min(PANEL_WIDTH, window.innerWidth - MARGIN * 2);
@@ -160,6 +176,7 @@
 		if (!triggerEl) {
 			panelLeft = Math.max(MARGIN, window.innerWidth / 2 - panelW / 2);
 			panelTop = MARGIN;
+			panelMaxH = null;
 			return;
 		}
 		const trigRect = triggerEl.getBoundingClientRect();
@@ -169,15 +186,21 @@
 		const spaceBelow = window.innerHeight - trigRect.bottom - MARGIN;
 		const spaceAbove = trigRect.top - MARGIN;
 		let top: number;
+		let maxH: number | null = null;
 		if (panelH + GAP <= spaceBelow) {
 			top = trigRect.bottom + GAP;
 		} else if (panelH + GAP <= spaceAbove) {
 			top = trigRect.top - panelH - GAP;
+		} else if (spaceBelow >= spaceAbove) {
+			top = trigRect.bottom + GAP;
+			maxH = spaceBelow;
 		} else {
 			top = MARGIN;
+			maxH = spaceAbove;
 		}
 		panelLeft = left;
 		panelTop = top;
+		panelMaxH = maxH;
 	}
 
 	async function openPicker() {
@@ -346,6 +369,7 @@
 			class="panel"
 			style:left="{panelLeft}px"
 			style:top="{panelTop}px"
+			style:max-height={panelMaxH !== null ? `${panelMaxH}px` : ''}
 			role="dialog"
 			aria-modal="true"
 			aria-label={label}
