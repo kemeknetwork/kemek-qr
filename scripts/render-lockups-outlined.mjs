@@ -55,6 +55,18 @@ const OPSZ = 31;
 const LETTER_SPACING_EM = -0.015;
 const SLASH_MARGIN_EM = 0.06;
 
+/* Vertical-alignment nudge so the wordmark sits where the live
+ * masthead puts it. The masthead uses CSS `align-items: center` on
+ * an inline-flex container; both the mark and the wordmark line-box
+ * are centered on the same horizontal axis. But the *visual* center
+ * of lowercase Fraunces sits slightly BELOW the line-box center
+ * (cap-height extends further up than the descender extends down),
+ * and the mark is additionally lifted 1 px (`transform:
+ * translateY(-1px)` in `.brand-mark`). Net: in the rendered
+ * masthead, the wordmark's optical center sits ~ 3 px below the
+ * mark's optical center. Replicating that here. */
+const WORDMARK_BASELINE_NUDGE_PX = 8;
+
 /* Load + parse a woff2 font file. opentype.js doesn't natively read
  * woff2 — wawoff2 decompresses to TTF first. */
 async function loadFont(woff2Path) {
@@ -150,11 +162,11 @@ async function buildLockup({ wordmarkColor, accentColor, outPath }) {
 	}
 
 	const margin = 2;
-	const canvasHeight = Math.ceil(glyphYMax - glyphYMin + margin * 2);
+	const canvasHeight = Math.ceil(glyphYMax - glyphYMin + margin * 2 + WORDMARK_BASELINE_NUDGE_PX);
 	/* The mark's natural footprint is 32 tall (30 mark + 2 lift +
 	 * margin). Make sure the canvas can fit it too. */
 	const HEIGHT = Math.max(canvasHeight, 32);
-	const WORDMARK_Y_BASELINE = Math.round(-glyphYMin + margin);
+	const WORDMARK_Y_BASELINE = Math.round(-glyphYMin + margin + WORDMARK_BASELINE_NUDGE_PX);
 
 	for (const g of sequence) {
 		if (g.marginPx) x += g.marginPx;
