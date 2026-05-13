@@ -570,16 +570,18 @@
 	}
 	@media (max-width: 720px) {
 		.panel {
-			/* Bottom-sheet on mobile — !important beats the inline
-			 * left/top set by computePosition(). */
-			left: 0 !important;
-			right: 0;
+			/* Bottom-sheet on mobile — floats with margin on all four
+			 * sides instead of full-bleed, so the modal reads as a
+			 * floating card and the viewport edges stay legible.
+			 * !important beats the inline left/top set by
+			 * computePosition(). */
+			left: 12px !important;
+			right: 12px;
 			top: auto !important;
-			bottom: 0;
-			max-width: 100%;
-			max-height: 94dvh;
-			border-radius: 8px 8px 0 0;
-			border-bottom: none;
+			bottom: 12px;
+			max-width: calc(100% - 24px);
+			max-height: calc(100dvh - 24px);
+			border-radius: 6px;
 		}
 	}
 
