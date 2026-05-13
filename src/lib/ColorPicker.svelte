@@ -344,13 +344,7 @@
 ></button>
 
 {#if open}
-	<div
-		use:portal
-		class="overlay"
-		role="presentation"
-		onclick={onOverlayClick}
-		onkeydown={(e) => e.key === 'Enter' && closePicker()}
-	>
+	<div use:portal class="overlay" role="presentation" onclick={onOverlayClick}>
 		<div
 			bind:this={panelEl}
 			class="panel"
@@ -599,7 +593,6 @@
 		border: 1px solid var(--rule-strong);
 		border-radius: 1px;
 		background: var(--swatch-fill);
-		flex-shrink: 0;
 	}
 	.head-hex {
 		font-size: 12px;
