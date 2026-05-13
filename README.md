@@ -1,18 +1,21 @@
 <div align="center">
-  <img src="static/brand/lockup-light.svg" alt="kemek/qr" width="320" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="static/brand/lockup-dark.svg">
+    <img src="static/brand/lockup-light.svg" alt="kemek/qr" width="320" />
+  </picture>
 
 ### the QR code generator that doesn't want anything from you
 
 No signup. No tracking. No upload. Logo + styling included.
 Runs in your browser — your data never leaves your machine.
 
-[![Live](https://img.shields.io/badge/live-qr.kemek.com-c53a1f?style=flat-square&labelColor=0e0b06)](https://qr.kemek.com)
-[![License: MIT](https://img.shields.io/badge/license-MIT-0e0b06?style=flat-square&labelColor=f4eee0)](LICENSE)
-[![Svelte 5](https://img.shields.io/badge/svelte-5-ff3e00?style=flat-square&labelColor=0e0b06)](https://svelte.dev)
-[![SvelteKit](https://img.shields.io/badge/sveltekit-2-ff3e00?style=flat-square&labelColor=0e0b06)](https://kit.svelte.dev)
-[![TypeScript](https://img.shields.io/badge/typescript-strict-3178c6?style=flat-square&labelColor=0e0b06)](https://www.typescriptlang.org)
-[![Tests](https://img.shields.io/badge/tests-passing-3dcc7d?style=flat-square&labelColor=0e0b06)](#develop)
-[![Lighthouse](https://img.shields.io/badge/lighthouse-mobile%20audit%20clean-3dcc7d?style=flat-square&labelColor=0e0b06)](#performance)
+[![Live](https://img.shields.io/badge/live-qr.kemek.com-c53a1f?style=flat-square)](https://qr.kemek.com)
+[![License: MIT](https://img.shields.io/badge/license-MIT-c53a1f?style=flat-square)](LICENSE)
+[![Svelte 5](https://img.shields.io/badge/svelte-5-ff3e00?style=flat-square)](https://svelte.dev)
+[![SvelteKit](https://img.shields.io/badge/sveltekit-2-ff3e00?style=flat-square)](https://kit.svelte.dev)
+[![TypeScript](https://img.shields.io/badge/typescript-strict-3178c6?style=flat-square)](https://www.typescriptlang.org)
+[![Tests](https://img.shields.io/badge/tests-passing-3dcc7d?style=flat-square)](#develop)
+[![Lighthouse](https://img.shields.io/badge/lighthouse-mobile%20audit%20clean-3dcc7d?style=flat-square)](#performance)
 
 [**→ open the generator**](https://qr.kemek.com) &nbsp;·&nbsp;
 [the why](#why) &nbsp;·&nbsp;
