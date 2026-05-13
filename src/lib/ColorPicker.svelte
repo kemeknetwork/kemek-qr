@@ -37,7 +37,6 @@
 	const PANEL_WIDTH = 420;
 	const MARGIN = 12;
 	const GAP = 8;
-	const MOBILE_BREAKPOINT = 720;
 	const SAVED_KEY = 'kemek-qr:color-saved';
 	const SAVED_MAX = 6;
 
@@ -148,20 +147,17 @@
 		value = hex;
 	}
 
+	/* Anchor the panel near the trigger at every viewport size. Width
+	 * is the same `min(420, innerWidth - 24)` that the CSS uses so JS
+	 * and CSS stay in lockstep on narrow phones. Position prefers
+	 * below the trigger; flips above if no room; pins to top with
+	 * margin if neither fits and lets the body wrapper scroll. */
 	function computePosition() {
 		if (typeof window === 'undefined') return;
-		/* Mobile uses CSS bottom-sheet positioning that the media query
-		 * forces with !important — these coords are ignored. */
-		if (window.innerWidth <= MOBILE_BREAKPOINT) {
-			panelLeft = 0;
-			panelTop = 0;
-			return;
-		}
 		const panelW = Math.min(PANEL_WIDTH, window.innerWidth - MARGIN * 2);
 		const panelH = panelEl?.offsetHeight ?? 460;
 
 		if (!triggerEl) {
-			/* Fallback: top-center if we have no trigger to anchor to. */
 			panelLeft = Math.max(MARGIN, window.innerWidth / 2 - panelW / 2);
 			panelTop = MARGIN;
 			return;
@@ -541,15 +537,20 @@
 	.panel {
 		position: fixed;
 		width: 100%;
-		max-width: 420px;
-		max-height: calc(100dvh - 1.5rem);
+		/* Auto-shrink the panel to keep a 12-px gutter on both sides
+		 * at narrow viewports. `min(420px, 100vw - 24px)` caps width
+		 * at 420 px on roomy screens and clamps to viewport-minus-
+		 * gutter on phones — picker is trigger-anchored at every
+		 * size with consistent edge breathing room. */
+		max-width: min(420px, calc(100vw - 24px));
+		max-height: calc(100dvh - 24px);
 		overflow: hidden;
 		display: flex;
 		flex-direction: column;
 		background: var(--paper);
 		color: var(--ink);
 		border: 1px solid var(--ink);
-		border-radius: 2px;
+		border-radius: 6px;
 		box-shadow:
 			0 14px 36px rgb(0 0 0 / 0.3),
 			0 2px 6px rgb(0 0 0 / 0.18);
@@ -567,22 +568,6 @@
 		overflow-y: auto;
 		min-height: 0;
 		-webkit-overflow-scrolling: touch;
-	}
-	@media (max-width: 720px) {
-		.panel {
-			/* Bottom-sheet on mobile — floats with margin on all four
-			 * sides instead of full-bleed, so the modal reads as a
-			 * floating card and the viewport edges stay legible.
-			 * !important beats the inline left/top set by
-			 * computePosition(). */
-			left: 12px !important;
-			right: 12px;
-			top: auto !important;
-			bottom: 12px;
-			max-width: calc(100% - 24px);
-			max-height: calc(100dvh - 24px);
-			border-radius: 6px;
-		}
 	}
 
 	.head {
