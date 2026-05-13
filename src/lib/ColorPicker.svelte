@@ -580,7 +580,7 @@
 		background: var(--paper);
 	}
 	.head-rubric {
-		font-size: 11px;
+		font-size: 12px;
 		letter-spacing: 0.14em;
 		color: var(--micro, #8a8478);
 		text-transform: uppercase;
@@ -596,7 +596,7 @@
 		background: var(--swatch-fill);
 	}
 	.head-hex {
-		font-size: 12px;
+		font-size: 13px;
 		letter-spacing: 0.06em;
 		color: var(--ink);
 		font-variant-numeric: tabular-nums;
@@ -611,7 +611,7 @@
 		border: 1px solid var(--rule);
 		border-radius: 2px;
 		font-family: var(--font-mono);
-		font-size: 16px;
+		font-size: 17px;
 		line-height: 1;
 		color: var(--ink);
 		cursor: pointer;
@@ -769,7 +769,7 @@
 		gap: 0.35rem 0.4rem;
 		padding: 0.55rem 0.85rem;
 		border-bottom: 1px dashed var(--rule);
-		font-size: 11px;
+		font-size: 12px;
 	}
 	.readout-rubric {
 		letter-spacing: 0.18em;
@@ -796,19 +796,19 @@
 		margin-bottom: 0.45rem;
 	}
 	.cell-num {
-		font-size: 10px;
+		font-size: 11px;
 		letter-spacing: 0.16em;
 		color: var(--accent);
 		font-weight: 500;
 	}
 	.cell-rubric {
-		font-size: 10px;
+		font-size: 11px;
 		letter-spacing: 0.22em;
 		color: var(--micro, #8a8478);
 	}
 	.cell-counter {
 		margin-left: auto;
-		font-size: 9px;
+		font-size: 10px;
 		letter-spacing: 0.08em;
 		color: var(--micro, #8a8478);
 		font-variant-numeric: tabular-nums;
@@ -873,7 +873,7 @@
 		border-radius: 1px;
 		color: var(--ink);
 		font-family: var(--font-mono);
-		font-size: 18px;
+		font-size: 19px;
 		font-weight: 400;
 		line-height: 1;
 		cursor: pointer;
@@ -916,7 +916,7 @@
 		border: 1px solid var(--ink);
 		border-radius: 1px;
 		font-family: var(--font-mono);
-		font-size: 10px;
+		font-size: 11px;
 		letter-spacing: 0.14em;
 		cursor: pointer;
 		transition: all var(--duration-fast) var(--ease);
@@ -930,7 +930,7 @@
 		outline-offset: 2px;
 	}
 	.apply-rubric {
-		font-size: 10px;
+		font-size: 11px;
 		letter-spacing: 0.18em;
 		color: var(--micro, #8a8478);
 		text-transform: uppercase;
