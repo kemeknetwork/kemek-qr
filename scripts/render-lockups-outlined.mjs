@@ -1,0 +1,162 @@
+/* Builds true font-independent SVG lockups by extracting the
+ * Fraunces glyph outlines for "kemek/qr" via opentype.js and
+ * combining them with the canonical mark geometry. The output SVG
+ * has zero font dependency — every glyph is an explicit `<path>` —
+ * so it scales to any size at any print shop / vector editor / RIP
+ * with identical output.
+ *
+ * Why this is necessary: lockup-light.svg + lockup-dark.svg use a
+ * `<text>` element with `font-family: 'Fraunces Variable', ...`.
+ * If the consumer doesn't have Fraunces, the SVG falls back to
+ * Georgia / serif — visibly different. Outlined SVG sidesteps that
+ * entirely.
+ *
+ * The mark portion stays as `<rect>` + `<path>` geometry (already
+ * font-independent and pixel-perfect at any size).
+ *
+ * Usage: `node scripts/render-lockups-outlined.mjs`. Requires
+ * `opentype.js` + `wawoff2` (npm install --no-save). The Fraunces
+ * woff2 files in `node_modules/@fontsource-variable/fraunces/files/`
+ * are the source.
+ */
+
+import { readFile, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import opentype from 'opentype.js';
+import { decompress as decompressWoff2 } from 'wawoff2';
+
+const ROOT = resolve(import.meta.dirname, '..');
+
+/* opsz axis fixed at 14 (small-optical) to match the masthead's
+ * `font-size: 31` rendering character. wght at 500 (the masthead's
+ * `.brand` weight). letter-spacing -0.015em handled per-glyph via
+ * advance tweak. */
+const FONT_SIZE = 31;
+const WEIGHT = 500;
+const OPSZ = 14;
+const LETTER_SPACING_EM = -0.015;
+const SLASH_MARGIN_EM = 0.06; /* mirrors `.brand-slash { margin: 0 0.06em }` */
+
+/* Load + parse a woff2 font file. opentype.js doesn't natively read
+ * woff2 — wawoff2 decompresses to TTF first. */
+async function loadFont(woff2Path) {
+	const woff2 = await readFile(woff2Path);
+	const ttf = await decompressWoff2(woff2);
+	/* wawoff2 returns a Uint8Array that may be a view over a larger
+	 * buffer; slice to the exact range so opentype.js sees only the
+	 * decompressed TTF bytes (otherwise the signature check fails). */
+	const ab = ttf.buffer.slice(ttf.byteOffset, ttf.byteOffset + ttf.byteLength);
+	return opentype.parse(ab);
+}
+
+/* Returns the SVG `d` attribute for a single glyph at the target
+ * size + variable-axis values + position. opentype.js's getPath()
+ * returns a Path object; toPathData() emits SVG path syntax. */
+function glyphPath(font, char, x, y, size, variation) {
+	const path = font.getPath(char, x, y, size, { variation });
+	return {
+		d: path.toPathData(3),
+		advance: font.charToGlyph(char).advanceWidth * (size / font.unitsPerEm)
+	};
+}
+
+async function buildLockup({ wordmarkColor, accentColor, outPath }) {
+	const fontRoman = await loadFont(
+		resolve(
+			ROOT,
+			'node_modules/@fontsource-variable/fraunces/files/fraunces-latin-opsz-normal.woff2'
+		)
+	);
+	const fontItalic = await loadFont(
+		resolve(
+			ROOT,
+			'node_modules/@fontsource-variable/fraunces/files/fraunces-latin-opsz-italic.woff2'
+		)
+	);
+
+	const variation = { wght: WEIGHT, opsz: OPSZ };
+
+	/* Lay out "kemek/qr" from left to right. Wordmark baseline
+	 * sits at y=24 (mirrors the masthead's vertical-center alignment
+	 * with the 30 × 30 mark; baseline 24 puts the cap-line near the
+	 * mark's optical center y=15). */
+	const WORDMARK_X_START = 42;
+	const WORDMARK_Y_BASELINE = 24;
+	const letterSpacingPx = LETTER_SPACING_EM * FONT_SIZE;
+	const slashMarginPx = SLASH_MARGIN_EM * FONT_SIZE;
+
+	let x = WORDMARK_X_START;
+	const wordmarkPaths = [];
+	const accentSlashPaths = [];
+
+	const sequence = [
+		{ char: 'k', font: fontRoman, fill: wordmarkColor },
+		{ char: 'e', font: fontRoman, fill: wordmarkColor },
+		{ char: 'm', font: fontRoman, fill: wordmarkColor },
+		{ char: 'e', font: fontRoman, fill: wordmarkColor },
+		{ char: 'k', font: fontRoman, fill: wordmarkColor },
+		{ char: '/', font: fontItalic, fill: accentColor, marginPx: slashMarginPx },
+		{ char: 'q', font: fontRoman, fill: wordmarkColor },
+		{ char: 'r', font: fontRoman, fill: wordmarkColor }
+	];
+
+	for (const g of sequence) {
+		if (g.marginPx) x += g.marginPx;
+		const { d, advance } = glyphPath(g.font, g.char, x, WORDMARK_Y_BASELINE, FONT_SIZE, variation);
+		if (g.fill === accentColor) {
+			accentSlashPaths.push(d);
+		} else {
+			wordmarkPaths.push(d);
+		}
+		x += advance + letterSpacingPx;
+		if (g.marginPx) x += g.marginPx;
+	}
+
+	const totalWidth = Math.ceil(x + 4);
+
+	/* Mark — same 7-unit shape as src/routes/+layout.svelte's
+	 * `.brand-mark`, scaled to 30 × 30 and translated (3, 1). */
+	const markGroup = `\t<g transform="translate(3 1) scale(4.2857)" fill="${accentColor}">
+\t\t<path d="M0 0h3v1H0zM0 2h3v1H0zM0 1h1v1H0zM2 1h1v1H2z" />
+\t\t<path d="M4 0h3v1H4zM4 2h3v1H4zM4 1h1v1H4zM6 1h1v1H6z" />
+\t\t<path d="M0 4h3v1H0zM0 6h3v1H0zM0 5h1v1H0zM2 5h1v1H2z" />
+\t\t<rect x="4" y="4" width="1" height="1" />
+\t\t<rect x="6" y="4" width="1" height="1" />
+\t\t<rect x="5" y="5" width="1" height="1" />
+\t\t<rect x="4" y="6" width="1" height="1" />
+\t\t<rect x="6" y="6" width="1" height="1" />
+\t</g>`;
+
+	const wordmarkGroup = `\t<g fill="${wordmarkColor}">
+${wordmarkPaths.map((d) => `\t\t<path d="${d}" />`).join('\n')}
+\t</g>`;
+
+	const slashGroup = `\t<g fill="${accentColor}">
+${accentSlashPaths.map((d) => `\t\t<path d="${d}" />`).join('\n')}
+\t</g>`;
+
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalWidth} 32" width="${totalWidth}" height="32" role="img" aria-label="kemek/qr lockup (outlined)">
+\t<title>kemek-qr horizontal lockup — outlined glyphs, font-independent</title>
+${markGroup}
+${wordmarkGroup}
+${slashGroup}
+</svg>
+`;
+
+	await writeFile(resolve(ROOT, outPath), svg, 'utf8');
+	console.log(`${outPath}: built (${totalWidth} × 32, all paths)`);
+}
+
+await buildLockup({
+	wordmarkColor: '#0e0b06',
+	accentColor: '#c53a1f',
+	outPath: 'static/brand/lockup-light-outlined.svg'
+});
+
+await buildLockup({
+	wordmarkColor: '#f9eedb',
+	accentColor: '#c53a1f',
+	outPath: 'static/brand/lockup-dark-outlined.svg'
+});
+
+console.log('outlined lockups built — font-independent, scales to any size.');

@@ -50,8 +50,10 @@ favicon-specific styling, not part of the mark.
 | `mark-mono-ink.svg` | Monochrome ink (`#0e0b06`) on transparent. For light surfaces where color isn't appropriate. |
 | `mark-mono-cream.svg` | Monochrome cream (`#f9eedb`) on transparent. For dark surfaces where color isn't appropriate. |
 | `mark-mono-accent.svg` | Accent red on transparent. Same as `mark.svg`; named alias for clarity at consumption sites. |
-| `lockup-light.svg` | Horizontal lockup — accent mark + ink wordmark + italic accent slash, for light surfaces. Vector; falls back to Georgia/serif when Fraunces isn't available. |
-| `lockup-dark.svg` | Horizontal lockup — accent mark + cream wordmark + italic accent slash, for dark surfaces. Same fallback note. |
+| `lockup-light.svg` | Horizontal lockup — accent mark + ink wordmark + italic accent slash, for light surfaces. Vector with `<text>` element; falls back to Georgia/serif when Fraunces isn't available. |
+| `lockup-dark.svg` | Same as above, dark surfaces. |
+| `lockup-light-outlined.svg` | **Print-grade lockup.** Wordmark glyphs extracted from Fraunces via opentype.js + emitted as explicit `<path>` geometry. Zero font dependency — every shape is pure vector. Scales to *any* size (3 ft, 9 ft, side-of-building) with identical output. The right deliverable for print shops, vector editors, and RIPs. |
+| `lockup-dark-outlined.svg` | Same, dark surfaces. |
 | `lockup-light.png` | **Canonical lockup.** Literal pixel capture of the live masthead at light theme (`a.brand` element, 4× retina, transparent background). Mirror of the production site — use this anywhere font-fidelity matters (README headers, social cards, partner usage). |
 | `lockup-dark.png` | Canonical lockup, dark theme. Same capture pipeline. |
 | `mark-256.png` | Mark rasterized at 256 × 256, transparent ground. |
@@ -72,24 +74,32 @@ PNG rasters are generated from the SVG masters via:
   rendering pixel-for-pixel — same fonts, same `opsz`, same
   `ss01` feature. Requires Playwright + Chromium on the host;
   see the script header for env-var overrides.
+- `node scripts/render-lockups-outlined.mjs` — builds the
+  font-independent outlined SVGs by extracting Fraunces glyph
+  geometry via `opentype.js`. Requires `opentype.js` + `wawoff2`
+  available (the script header explains the
+  `npm install --no-save opentype.js wawoff2` recipe; they aren't
+  pinned devDeps to keep this repo lean).
 
 Don't edit the PNGs by hand; edit the SVG / masthead and re-run
 the build.
 
-## For prints larger than the included rasters
+## For prints at any size — including 3 ft × 9 ft
 
-The brand mark (`mark.svg`) is pure SVG geometry — rects + paths,
-no font dependency. Any print shop / RIP / vector editor can scale
-it to **any** size with zero loss. For a 3 × 9 ft poster, banner,
-side-of-building wrap — hand the print shop `mark.svg` directly and
-specify the output dimensions.
+Three tiers, pick what fits the workflow:
 
-The lockup with the wordmark is harder because the wordmark is set
-in Fraunces. The included `lockup-*-print.png` (6016 × 1536) covers
-roughly up to a 5 ft × 15 in banner at 100 DPI. For larger lockup
-prints, the next-tier deliverable is the lockup as SVG with the
-wordmark converted to outlined paths (font-independent) — not
-included yet, file an issue.
+1. **The mark alone** (`mark.svg`) — pure SVG geometry (rects + paths,
+   zero font dependency). Infinite scale. Hand to the print shop
+   with target dimensions; no other input required.
+2. **The lockup at any size** (`lockup-light-outlined.svg` /
+   `lockup-dark-outlined.svg`) — wordmark glyphs converted to
+   explicit `<path>` geometry via opentype.js, so the file has
+   zero font dependency. Drop into Illustrator / Inkscape / any
+   RIP and scale to any output dimensions. **This is the canonical
+   print deliverable.**
+3. **High-res rasters** (`lockup-*-print.png`, 6016 × 1536) — for
+   pipelines that prefer PNG over SVG. Suitable up to about 5 ft
+   wide at 100 DPI; beyond that, use tier 2 instead.
 
 ---
 
