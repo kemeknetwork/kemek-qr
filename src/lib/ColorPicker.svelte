@@ -410,7 +410,6 @@
 
 				<section class="cell">
 					<header class="cell-head">
-						<span class="cell-num">S-02</span>
 						<span class="cell-rubric">PALETTE</span>
 					</header>
 					<div class="grid grid-7">
@@ -430,7 +429,6 @@
 
 				<section class="cell">
 					<header class="cell-head">
-						<span class="cell-num">S-03</span>
 						<span class="cell-rubric">SAVED</span>
 						<span class="cell-counter">{saved.length}/{SAVED_MAX}</span>
 					</header>
@@ -465,8 +463,8 @@
 				</section>
 			</div>
 
-			<footer class="foot">
-				{#if hasEyeDropper}
+			{#if hasEyeDropper}
+				<footer class="foot">
 					<button
 						type="button"
 						class="eyedropper"
@@ -481,11 +479,8 @@
 						</svg>
 						<span>PICK FROM SCREEN</span>
 					</button>
-				{:else}
-					<span></span>
-				{/if}
-				<span class="apply-rubric">↳ {targetTag}</span>
-			</footer>
+				</footer>
+			{/if}
 		</div>
 	</div>
 {/if}
@@ -549,7 +544,7 @@
 		flex-direction: column;
 		background: var(--paper);
 		color: var(--ink);
-		border: 1px solid var(--ink);
+		border: 1px solid var(--rule-strong);
 		border-radius: 6px;
 		box-shadow:
 			0 14px 36px rgb(0 0 0 / 0.3),
@@ -580,7 +575,7 @@
 		background: var(--paper);
 	}
 	.head-rubric {
-		font-size: 12px;
+		font-size: 13px;
 		letter-spacing: 0.14em;
 		color: var(--micro, #8a8478);
 		text-transform: uppercase;
@@ -596,7 +591,7 @@
 		background: var(--swatch-fill);
 	}
 	.head-hex {
-		font-size: 13px;
+		font-size: 14px;
 		letter-spacing: 0.06em;
 		color: var(--ink);
 		font-variant-numeric: tabular-nums;
@@ -611,7 +606,7 @@
 		border: 1px solid var(--rule);
 		border-radius: 2px;
 		font-family: var(--font-mono);
-		font-size: 17px;
+		font-size: 18px;
 		line-height: 1;
 		color: var(--ink);
 		cursor: pointer;
@@ -670,7 +665,7 @@
 	.pad {
 		position: relative;
 		width: 100%;
-		height: 180px;
+		height: 240px;
 		border: 1px solid var(--rule-strong);
 		border-radius: 1px;
 		cursor: crosshair;
@@ -678,20 +673,20 @@
 	}
 	@media (max-width: 480px) {
 		.pad {
-			height: 160px;
+			height: 220px;
 		}
 	}
 	@media (max-width: 360px) {
 		.pad {
-			height: 140px;
+			height: 190px;
 		}
 	}
 	/* Landscape phones (typically 320 – 414 px tall) need a much
-	 * smaller canvas to keep PALETTE + SAVED + FOOT above the fold.
-	 * The body wrapper scrolls if they still don't all fit. */
+	 * smaller canvas to keep PALETTE + SAVED above the fold. The
+	 * body wrapper scrolls if they still don't all fit. */
 	@media (orientation: landscape) and (max-height: 500px) {
 		.pad {
-			height: 110px;
+			height: 130px;
 		}
 	}
 	.pad:focus-visible {
@@ -715,7 +710,7 @@
 	.hue {
 		position: relative;
 		width: 26px;
-		height: 180px;
+		height: 240px;
 		border: 1px solid var(--rule-strong);
 		border-radius: 1px;
 		background: linear-gradient(
@@ -733,17 +728,17 @@
 	}
 	@media (max-width: 480px) {
 		.hue {
-			height: 160px;
+			height: 220px;
 		}
 	}
 	@media (max-width: 360px) {
 		.hue {
-			height: 140px;
+			height: 190px;
 		}
 	}
 	@media (orientation: landscape) and (max-height: 500px) {
 		.hue {
-			height: 110px;
+			height: 130px;
 		}
 	}
 	.hue:focus-visible {
@@ -769,7 +764,7 @@
 		gap: 0.35rem 0.4rem;
 		padding: 0.55rem 0.85rem;
 		border-bottom: 1px dashed var(--rule);
-		font-size: 12px;
+		font-size: 13px;
 	}
 	.readout-rubric {
 		letter-spacing: 0.18em;
@@ -795,20 +790,14 @@
 		gap: 0.5rem;
 		margin-bottom: 0.45rem;
 	}
-	.cell-num {
-		font-size: 11px;
-		letter-spacing: 0.16em;
-		color: var(--accent);
-		font-weight: 500;
-	}
 	.cell-rubric {
-		font-size: 11px;
+		font-size: 12px;
 		letter-spacing: 0.22em;
 		color: var(--micro, #8a8478);
 	}
 	.cell-counter {
 		margin-left: auto;
-		font-size: 10px;
+		font-size: 11px;
 		letter-spacing: 0.08em;
 		color: var(--micro, #8a8478);
 		font-variant-numeric: tabular-nums;
@@ -873,7 +862,7 @@
 		border-radius: 1px;
 		color: var(--ink);
 		font-family: var(--font-mono);
-		font-size: 19px;
+		font-size: 20px;
 		font-weight: 400;
 		line-height: 1;
 		cursor: pointer;
@@ -899,8 +888,7 @@
 	.foot {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
-		gap: 0.7rem;
+		justify-content: center;
 		padding: 0.55rem 0.85rem;
 		background: var(--paper-warm, var(--paper));
 		border-top: 1px solid var(--rule-strong);
@@ -916,7 +904,7 @@
 		border: 1px solid var(--ink);
 		border-radius: 1px;
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: 12px;
 		letter-spacing: 0.14em;
 		cursor: pointer;
 		transition: all var(--duration-fast) var(--ease);
@@ -928,11 +916,5 @@
 	.eyedropper:focus-visible {
 		outline: 2px solid var(--accent);
 		outline-offset: 2px;
-	}
-	.apply-rubric {
-		font-size: 11px;
-		letter-spacing: 0.18em;
-		color: var(--micro, #8a8478);
-		text-transform: uppercase;
 	}
 </style>
