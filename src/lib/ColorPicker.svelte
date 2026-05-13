@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 
 	type Props = {
 		value: string;
@@ -9,11 +9,15 @@
 	let { value = $bindable(), label }: Props = $props();
 
 	let open = $state(false);
+	let triggerEl = $state<HTMLButtonElement | null>(null);
+	let panelEl = $state<HTMLDivElement | null>(null);
 	let padEl = $state<HTMLDivElement | null>(null);
 	let hueEl = $state<HTMLDivElement | null>(null);
 	let hasEyeDropper = $state(false);
-	let history = $state<string[]>([]);
-	let originalColor = $state(value);
+	let saved = $state<string[]>([]);
+
+	let panelLeft = $state<number | null>(null);
+	let panelTop = $state<number | null>(null);
 
 	let hue = $state(0);
 	let sat = $state(0);
@@ -29,16 +33,18 @@
 		{ hex: '#FFFFFF', name: 'White' }
 	];
 
-	const HISTORY_KEY = 'kemek-qr:color-history';
-	const HISTORY_MAX = 6;
+	const SAVED_KEY = 'kemek-qr:color-saved';
+	const SAVED_MAX = 6;
+	const PANEL_MAX_WIDTH = 420;
+	const MOBILE_BREAKPOINT = 720;
 
 	onMount(() => {
 		hasEyeDropper = typeof window !== 'undefined' && 'EyeDropper' in window;
 		try {
-			const raw = localStorage.getItem(HISTORY_KEY);
-			if (raw) history = JSON.parse(raw);
+			const raw = localStorage.getItem(SAVED_KEY);
+			if (raw) saved = JSON.parse(raw);
 		} catch {
-			/* history is a luxury, not load-bearing */
+			/* saved is a luxury, not load-bearing */
 		}
 	});
 
@@ -118,8 +124,7 @@
 		value = hex;
 	}
 
-	function openPicker() {
-		originalColor = value;
+	async function openPicker() {
 		const rgb = hexToRgb(value);
 		if (rgb) {
 			const [h, s, l] = rgbToHsl(...rgb);
@@ -128,22 +133,63 @@
 			light = l;
 		}
 		open = true;
+		/* Wait for panel to mount so we can measure its actual height
+		 * before positioning. Two ticks: one for the {#if open} block to
+		 * render, one for the browser to commit layout. */
+		await tick();
+		positionPanel();
 	}
 
 	function closePicker() {
-		if (value.toUpperCase() !== originalColor.toUpperCase()) {
-			const next = [value, ...history.filter((c) => c.toUpperCase() !== value.toUpperCase())].slice(
-				0,
-				HISTORY_MAX
-			);
-			history = next;
-			try {
-				localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
-			} catch {
-				/* ignored */
-			}
-		}
 		open = false;
+		panelLeft = null;
+		panelTop = null;
+	}
+
+	function saveCurrent() {
+		const v = value.toUpperCase();
+		const next = [value, ...saved.filter((c) => c.toUpperCase() !== v)].slice(0, SAVED_MAX);
+		saved = next;
+		try {
+			localStorage.setItem(SAVED_KEY, JSON.stringify(next));
+		} catch {
+			/* ignored — saved is a luxury */
+		}
+	}
+
+	/* Anchor panel to the trigger on desktop. Prefer below; flip above
+	 * if no room; pin to top with margin if neither fits. Mobile stays
+	 * bottom-sheet via CSS media query (panelLeft/Top stay null). */
+	function positionPanel() {
+		if (typeof window === 'undefined') return;
+		if (window.innerWidth <= MOBILE_BREAKPOINT) {
+			panelLeft = null;
+			panelTop = null;
+			return;
+		}
+		if (!triggerEl) return;
+		const trigRect = triggerEl.getBoundingClientRect();
+		const panelH = panelEl?.offsetHeight ?? 460;
+		const margin = 12;
+		const gap = 8;
+
+		const panelW = Math.min(PANEL_MAX_WIDTH, window.innerWidth - margin * 2);
+		let left = trigRect.left + trigRect.width / 2 - panelW / 2;
+		left = Math.max(margin, Math.min(window.innerWidth - panelW - margin, left));
+
+		const spaceBelow = window.innerHeight - trigRect.bottom - margin;
+		const spaceAbove = trigRect.top - margin;
+		let top: number;
+		if (panelH + gap <= spaceBelow) {
+			top = trigRect.bottom + gap;
+		} else if (panelH + gap <= spaceAbove) {
+			top = trigRect.top - panelH - gap;
+		} else {
+			top = margin;
+		}
+
+		panelLeft = left;
+		panelTop = top;
 	}
 
 	function onPadDown(e: PointerEvent) {
@@ -216,11 +262,16 @@
 		function onKey(e: KeyboardEvent) {
 			if (e.key === 'Escape') closePicker();
 		}
+		function onResize() {
+			positionPanel();
+		}
 		document.addEventListener('keydown', onKey);
+		window.addEventListener('resize', onResize);
 		const prevOverflow = document.body.style.overflow;
 		document.body.style.overflow = 'hidden';
 		return () => {
 			document.removeEventListener('keydown', onKey);
+			window.removeEventListener('resize', onResize);
 			document.body.style.overflow = prevOverflow;
 		};
 	});
@@ -250,12 +301,15 @@
 		return 'CLR';
 	});
 
+	let saveDisabled = $derived(saved.some((c) => c.toUpperCase() === value.toUpperCase()));
+
 	function onOverlayClick(e: MouseEvent) {
 		if (e.target === e.currentTarget) closePicker();
 	}
 </script>
 
 <button
+	bind:this={triggerEl}
 	type="button"
 	class="trigger"
 	aria-label={label}
@@ -272,7 +326,16 @@
 		onclick={onOverlayClick}
 		onkeydown={(e) => e.key === 'Enter' && closePicker()}
 	>
-		<div class="panel" role="dialog" aria-modal="true" aria-label={label}>
+		<div
+			bind:this={panelEl}
+			class="panel"
+			class:floating={panelLeft !== null && panelTop !== null}
+			style:left={panelLeft !== null ? `${panelLeft}px` : ''}
+			style:top={panelTop !== null ? `${panelTop}px` : ''}
+			role="dialog"
+			aria-modal="true"
+			aria-label={label}
+		>
 			<header class="head">
 				<span class="head-rubric">FILE · KMK·QR·{targetTag}</span>
 				<span class="head-swatch" style:--swatch-fill={value}></span>
@@ -335,7 +398,7 @@
 					<span class="cell-num">S-02</span>
 					<span class="cell-rubric">PALETTE</span>
 				</header>
-				<div class="palette">
+				<div class="grid grid-7">
 					{#each PALETTE as sw}
 						<button
 							type="button"
@@ -350,26 +413,41 @@
 				</div>
 			</section>
 
-			{#if history.length > 0}
-				<section class="cell">
-					<header class="cell-head">
-						<span class="cell-num">S-03</span>
-						<span class="cell-rubric">HISTORY</span>
-					</header>
-					<div class="palette palette-history">
-						{#each history as h}
+			<section class="cell">
+				<header class="cell-head">
+					<span class="cell-num">S-03</span>
+					<span class="cell-rubric">SAVED</span>
+					<span class="cell-counter">{saved.length}/{SAVED_MAX}</span>
+				</header>
+				<div class="grid grid-7">
+					<button
+						type="button"
+						class="add-chip"
+						onclick={saveCurrent}
+						disabled={saveDisabled}
+						aria-label="Save current color"
+						title={saveDisabled ? `${value} already saved` : `Save ${value}`}
+					>
+						<span aria-hidden="true">+</span>
+					</button>
+					{#each Array(SAVED_MAX) as _, i}
+						{@const h = saved[i]}
+						{#if h}
 							<button
 								type="button"
 								class="chip"
+								class:active={value.toUpperCase() === h.toUpperCase()}
 								onclick={() => pickSwatch(h)}
 								aria-label={`Use ${h}`}
 								title={h}
 								style:--swatch-fill={h}
 							></button>
-						{/each}
-					</div>
-				</section>
-			{/if}
+						{:else}
+							<span class="chip empty" aria-hidden="true"></span>
+						{/if}
+					{/each}
+				</div>
+			</section>
 
 			<footer class="foot">
 				{#if hasEyeDropper}
@@ -426,9 +504,6 @@
 		position: fixed;
 		inset: 0;
 		z-index: 1000;
-		display: grid;
-		place-items: center;
-		padding: 1.2rem;
 		background: rgb(0 0 0 / 0.58);
 		backdrop-filter: blur(2px);
 		-webkit-backdrop-filter: blur(2px);
@@ -444,12 +519,16 @@
 	}
 
 	.panel {
+		position: fixed;
 		width: 100%;
 		max-width: 420px;
-		max-height: calc(100dvh - 2.4rem);
+		max-height: calc(100dvh - 1.5rem);
 		overflow: hidden;
 		display: flex;
 		flex-direction: column;
+		left: 50%;
+		top: 12px;
+		transform: translateX(-50%);
 		background: var(--paper);
 		color: var(--ink);
 		border: 1px solid var(--ink);
@@ -460,7 +539,19 @@
 		font-family: var(--font-mono);
 		animation: cp-rise 200ms var(--ease, ease-out);
 	}
+	.panel.floating {
+		transform: none;
+	}
 	@keyframes cp-rise {
+		from {
+			opacity: 0;
+			transform: translateY(6px) scale(0.99);
+		}
+		to {
+			opacity: 1;
+		}
+	}
+	@keyframes cp-rise-floating {
 		from {
 			opacity: 0;
 			transform: translateY(6px) scale(0.99);
@@ -470,20 +561,35 @@
 			transform: none;
 		}
 	}
+	.panel.floating {
+		animation-name: cp-rise-floating;
+	}
 	@media (max-width: 720px) {
-		.overlay {
-			padding: 0;
-			align-items: end;
-		}
-		.panel {
+		.panel,
+		.panel.floating {
+			left: 0;
+			right: 0;
+			top: auto;
+			bottom: 0;
+			transform: none;
 			max-width: 100%;
 			max-height: 94dvh;
 			border-radius: 8px 8px 0 0;
 			border-bottom: none;
+			animation-name: cp-rise-mobile;
+		}
+		@keyframes cp-rise-mobile {
+			from {
+				opacity: 0;
+				transform: translateY(16px);
+			}
+			to {
+				opacity: 1;
+				transform: none;
+			}
 		}
 	}
 
-	/* Plate head — one row carrying everything orienting */
 	.head {
 		display: grid;
 		grid-template-columns: 1fr auto auto auto;
@@ -541,7 +647,6 @@
 		outline-offset: 2px;
 	}
 
-	/* Canvas — pad + hue, corner brackets on the outer panel */
 	.canvas {
 		position: relative;
 		display: grid;
@@ -655,7 +760,6 @@
 		pointer-events: none;
 	}
 
-	/* Inline RGB / HSL readout — HEX already lives in the head */
 	.readout {
 		display: flex;
 		align-items: baseline;
@@ -679,9 +783,8 @@
 		color: var(--rule);
 	}
 
-	/* Palette / history cells */
 	.cell {
-		padding: 0.6rem 0.85rem;
+		padding: 0.55rem 0.85rem;
 		border-bottom: 1px dashed var(--rule);
 	}
 	.cell-head {
@@ -701,15 +804,22 @@
 		letter-spacing: 0.22em;
 		color: var(--micro, #8a8478);
 	}
+	.cell-counter {
+		margin-left: auto;
+		font-size: 9px;
+		letter-spacing: 0.08em;
+		color: var(--micro, #8a8478);
+		font-variant-numeric: tabular-nums;
+	}
 
-	.palette {
+	.grid {
 		display: grid;
-		grid-template-columns: repeat(7, 1fr);
 		gap: 0.35rem;
 	}
-	.palette-history {
-		grid-template-columns: repeat(6, 1fr);
+	.grid-7 {
+		grid-template-columns: repeat(7, 1fr);
 	}
+
 	.chip {
 		appearance: none;
 		width: 100%;
@@ -733,8 +843,57 @@
 		border-color: var(--accent);
 		box-shadow: inset 0 0 0 1px var(--accent);
 	}
+	.chip.empty {
+		cursor: default;
+		background:
+			repeating-linear-gradient(
+				45deg,
+				transparent 0,
+				transparent 5px,
+				var(--rule) 5px,
+				var(--rule) 6px
+			),
+			var(--paper-warm, var(--paper));
+		opacity: 0.55;
+	}
+	.chip.empty:hover {
+		border-color: var(--rule-strong);
+		transform: none;
+	}
 
-	/* Foot — eyedropper + apply target rubric */
+	.add-chip {
+		appearance: none;
+		width: 100%;
+		aspect-ratio: 1.4;
+		padding: 0;
+		background: var(--paper-warm, var(--paper));
+		border: 1px dashed var(--rule-strong);
+		border-radius: 1px;
+		color: var(--ink);
+		font-family: var(--font-mono);
+		font-size: 18px;
+		font-weight: 400;
+		line-height: 1;
+		cursor: pointer;
+		display: grid;
+		place-items: center;
+		transition: all var(--duration-fast) var(--ease);
+	}
+	.add-chip:hover:not(:disabled) {
+		border-style: solid;
+		border-color: var(--accent);
+		color: var(--accent);
+		transform: translateY(-1px);
+	}
+	.add-chip:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
+	.add-chip:disabled {
+		opacity: 0.45;
+		cursor: not-allowed;
+	}
+
 	.foot {
 		display: flex;
 		align-items: center;
