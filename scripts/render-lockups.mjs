@@ -21,7 +21,14 @@ import { resolve } from 'node:path';
 import { createRequire } from 'node:module';
 
 const ROOT = resolve(import.meta.dirname, '..');
-const FRAUNCES_CSS = resolve(ROOT, 'node_modules/@fontsource-variable/fraunces/wght.css');
+/* Load the opsz subset (weight + optical-size axes) so the SVG can
+ * pin `font-variation-settings: 'opsz' 14` regardless of the rendered
+ * size. Without this, Fraunces auto-opsz drives stroke weight from
+ * font-size — fine at masthead-native size, but a brand kit asset
+ * needs to render with the same small-opsz character at any display
+ * size, otherwise the README header reads thinner than the live
+ * masthead. */
+const FRAUNCES_CSS = resolve(ROOT, 'node_modules/@fontsource-variable/fraunces/full.css');
 
 /* Resolve `playwright` from any sibling project that already has it
  * installed (the workspace pattern is to share a single Playwright
@@ -75,9 +82,16 @@ async function renderLockup(svgRelPath, outRelPath) {
 </style>
 </head><body>${svgSrc}</body></html>`;
 
+	/* The lockup SVG is masthead-native size (172 × 32). Render at
+	 * deviceScaleFactor 4 → ~ 688 × 128 native PNG, which is 2 × retina
+	 * for the README's `width="320"` display target. Rendering at this
+	 * pixel scale keeps Fraunces's `font-optical-sizing: auto` picking
+	 * the same small-optical cut as the live masthead — at much larger
+	 * canvas sizes the variable font shifts to a display-weight cut
+	 * with thinner strokes. */
 	const ctx = await browser.newContext({
-		viewport: { width: 1000, height: 280 },
-		deviceScaleFactor: 3
+		viewport: { width: 240, height: 64 },
+		deviceScaleFactor: 4
 	});
 	const page = await ctx.newPage();
 	await page.setContent(html, { waitUntil: 'networkidle' });
