@@ -1,41 +1,32 @@
-/* Rasterizes the brand lockup SVGs with Fraunces 500 loaded so the
- * wordmark in the PNG matches the live masthead exactly. sharp can't
- * load web fonts; this script uses Playwright + the bundled Fraunces
- * from `node_modules/@fontsource-variable/fraunces/` to bake the
- * font into the output. Run when:
+/* Screenshots the live masthead `.brand` element at both light and
+ * dark themes and writes the resulting PNGs to `static/brand/`. This
+ * guarantees zero drift between the brand kit lockup and the rendered
+ * masthead — they're not two implementations of the same design,
+ * they're the same pixels.
  *
- *   - `static/brand/lockup-{light,dark}.svg` changes
- *   - `node_modules/@fontsource-variable/fraunces/` updates
+ * Run when:
+ *   - `.brand` / `.brand-mark` / `.brand-name` / `.brand-slash` change
+ *     in `src/routes/+layout.svelte`
+ *   - `--font-display` / `--accent` / `--ink` / `--paper` tokens change
+ *     in `src/app.css`
  *
- * Usage: `node scripts/render-lockups.mjs`
+ * Usage:
+ *   1. Start the dev server: `npm run dev` (port 5184)
+ *   2. Run: `node scripts/render-lockups.mjs`
  *
- * Requirements: a Chromium-class browser (Chrome / Chromium /
- * Chrome-for-Testing) on the system. Edit `EXECUTABLE_PATH` if the
- * default discovery doesn't find one. The script does no fallback
- * to sharp because the whole point is the font fidelity.
+ * Requirements: a Chromium-class browser. The script self-discovers
+ * Playwright from sibling kemek-* projects to avoid pulling a ~ 200 MB
+ * devDep into kemek-qr itself. Env vars `PLAYWRIGHT_MODULE` and
+ * `PLAYWRIGHT_CHROMIUM` override the search.
  */
 
-import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createRequire } from 'node:module';
 
 const ROOT = resolve(import.meta.dirname, '..');
-/* Load the opsz subset (weight + optical-size axes) so the SVG can
- * pin `font-variation-settings: 'opsz' 14` regardless of the rendered
- * size. Without this, Fraunces auto-opsz drives stroke weight from
- * font-size — fine at masthead-native size, but a brand kit asset
- * needs to render with the same small-opsz character at any display
- * size, otherwise the README header reads thinner than the live
- * masthead. */
-const FRAUNCES_CSS = resolve(ROOT, 'node_modules/@fontsource-variable/fraunces/full.css');
+const DEV_URL = process.env.DEV_URL ?? 'http://localhost:5184/';
 
-/* Resolve `playwright` from any sibling project that already has it
- * installed (the workspace pattern is to share a single Playwright
- * install across kemek-* projects rather than pull ~ 200 MB of
- * browsers into every node_modules). Falls back to `playwright`
- * resolved from this project's node_modules if it ever gets added
- * as a local devDep. */
 const PLAYWRIGHT_HUNTS = [
 	process.env.PLAYWRIGHT_MODULE,
 	resolve(ROOT, 'node_modules/playwright'),
@@ -53,8 +44,6 @@ if (!playwrightDir) {
 const require = createRequire(import.meta.url);
 const { chromium } = require(playwrightDir);
 
-/* Use whatever Chromium binary the host already has. Playwright will
- * use its default if `executablePath` is undefined. */
 const CANDIDATE_CHROMES = [
 	process.env.PLAYWRIGHT_CHROMIUM,
 	'/tmp/chrome-cft/chrome/linux-148.0.7778.97/chrome-linux64/chrome',
@@ -70,45 +59,38 @@ const browser = await chromium.launch({
 	...(executablePath ? { executablePath } : {})
 });
 
-async function renderLockup(svgRelPath, outRelPath) {
-	const svgSrc = await readFile(resolve(ROOT, svgRelPath), 'utf8');
-	const html = `<!doctype html>
-<html><head><meta charset="utf-8">
-<style>
-  @import 'file://${FRAUNCES_CSS}';
-  html, body { margin: 0; padding: 0; background: transparent; }
-  body { display: inline-block; }
-  svg { display: block; }
-</style>
-</head><body>${svgSrc}</body></html>`;
-
-	/* The lockup SVG is masthead-native size (172 × 32). Render at
-	 * deviceScaleFactor 4 → ~ 688 × 128 native PNG, which is 2 × retina
-	 * for the README's `width="320"` display target. Rendering at this
-	 * pixel scale keeps Fraunces's `font-optical-sizing: auto` picking
-	 * the same small-optical cut as the live masthead — at much larger
-	 * canvas sizes the variable font shifts to a display-weight cut
-	 * with thinner strokes. */
+async function captureBrand(theme, outRelPath) {
 	const ctx = await browser.newContext({
-		viewport: { width: 240, height: 64 },
+		viewport: { width: 1280, height: 800 },
 		deviceScaleFactor: 4
 	});
 	const page = await ctx.newPage();
-	await page.setContent(html, { waitUntil: 'networkidle' });
-	/* Wait for the woff2 to actually be parsed + applied. Without
-	 * this the SVG may rasterize against the system serif fallback
-	 * even though the @font-face declaration has loaded. */
+	await page.goto(DEV_URL, { waitUntil: 'networkidle' });
+	/* The FOUC firewall in app.html reads localStorage on first paint
+	 * and writes data-theme. Set localStorage + reload so the theme
+	 * lands before the first stable paint instead of toggling after. */
+	await page.evaluate((t) => localStorage.setItem('kemek-qr:theme', t), theme);
+	await page.reload({ waitUntil: 'networkidle' });
+	/* Strip page + masthead backgrounds so omitBackground actually
+	 * yields a transparent capture. The lockup needs to sit on any
+	 * surface; we don't want the page's cream/graphite baked in. */
+	await page.addStyleTag({
+		content: `
+			html, body, .masthead, .masthead-inner { background: transparent !important; }
+		`
+	});
+	/* Wait for Fraunces + JetBrains Mono to actually be parsed. */
 	await page.evaluate(() => document.fonts.ready);
 	await page.waitForTimeout(200);
 
-	const elt = page.locator('svg').first();
+	const elt = page.locator('a.brand').first();
 	await elt.screenshot({ path: resolve(ROOT, outRelPath), omitBackground: true });
-	console.log(`${outRelPath}: rendered`);
+	console.log(`${outRelPath}: captured (theme=${theme})`);
 	await ctx.close();
 }
 
-await renderLockup('static/brand/lockup-light.svg', 'static/brand/lockup-light.png');
-await renderLockup('static/brand/lockup-dark.svg', 'static/brand/lockup-dark.png');
+await captureBrand('light', 'static/brand/lockup-light.png');
+await captureBrand('dark', 'static/brand/lockup-dark.png');
 
 await browser.close();
-console.log('lockup PNGs regenerated.');
+console.log('lockup PNGs regenerated (live-masthead capture).');
