@@ -9,25 +9,24 @@
 	let { value = $bindable(), label }: Props = $props();
 
 	let open = $state(false);
-	let panelEl = $state<HTMLDivElement | null>(null);
 	let padEl = $state<HTMLDivElement | null>(null);
 	let hueEl = $state<HTMLDivElement | null>(null);
-	let originalColor = $state(value);
 	let hasEyeDropper = $state(false);
 	let history = $state<string[]>([]);
+	let originalColor = $state(value);
 
 	let hue = $state(0);
 	let sat = $state(0);
 	let light = $state(0);
 
 	const PALETTE = [
-		{ hex: '#000000', short: 'BLK', name: 'Black' },
-		{ hex: '#1A1815', short: 'INK', name: 'Ink' },
-		{ hex: '#333333', short: 'CHR', name: 'Charcoal' },
-		{ hex: '#C53A1F', short: 'ACC', name: 'Accent' },
-		{ hex: '#16140F', short: 'PPD', name: 'Paper dark' },
-		{ hex: '#F2EBDD', short: 'PPR', name: 'Paper' },
-		{ hex: '#FFFFFF', short: 'WHT', name: 'White' }
+		{ hex: '#000000', name: 'Black' },
+		{ hex: '#1A1815', name: 'Ink' },
+		{ hex: '#333333', name: 'Charcoal' },
+		{ hex: '#C53A1F', name: 'Accent' },
+		{ hex: '#16140F', name: 'Paper dark' },
+		{ hex: '#F2EBDD', name: 'Paper' },
+		{ hex: '#FFFFFF', name: 'White' }
 	];
 
 	const HISTORY_KEY = 'kemek-qr:color-history';
@@ -39,7 +38,7 @@
 			const raw = localStorage.getItem(HISTORY_KEY);
 			if (raw) history = JSON.parse(raw);
 		} catch {
-			/* ignored — history is a luxury, not load-bearing */
+			/* history is a luxury, not load-bearing */
 		}
 	});
 
@@ -132,7 +131,7 @@
 	}
 
 	function closePicker() {
-		if (value !== originalColor) {
+		if (value.toUpperCase() !== originalColor.toUpperCase()) {
 			const next = [value, ...history.filter((c) => c.toUpperCase() !== value.toUpperCase())].slice(
 				0,
 				HISTORY_MAX
@@ -145,16 +144,6 @@
 			}
 		}
 		open = false;
-	}
-
-	function revertToOriginal() {
-		const rgb = hexToRgb(originalColor);
-		if (!rgb) return;
-		const [h, s, l] = rgbToHsl(...rgb);
-		hue = h;
-		sat = s;
-		light = l;
-		emit();
 	}
 
 	function onPadDown(e: PointerEvent) {
@@ -218,7 +207,7 @@
 			const res = await ed.open();
 			pickSwatch(res.sRGBHex);
 		} catch {
-			/* User cancelled — silent, matches native picker UX. */
+			/* user cancelled — silent */
 		}
 	}
 
@@ -247,18 +236,18 @@
 	let hueThumbStyle = $derived(`top: ${(hue / 360) * 100}%`);
 
 	let rgb = $derived(hexToRgb(value) ?? [0, 0, 0]);
-	let rgbDisplay = $derived(rgb.map((v) => v.toString().padStart(3, '0')).join(' · '));
+	let rgbDisplay = $derived(rgb.map((v) => v.toString().padStart(3, '0')).join('·'));
 	let hslDisplay = $derived(
-		`${Math.round(hue).toString().padStart(3, '0')}° · ${Math.round(sat).toString().padStart(2, '0')}% · ${Math.round(light).toString().padStart(2, '0')}%`
+		`${Math.round(hue).toString().padStart(3, '0')}° ${Math.round(sat).toString().padStart(2, '0')}% ${Math.round(light).toString().padStart(2, '0')}%`
 	);
 
-	let target = $derived.by(() => {
+	let targetTag = $derived.by(() => {
 		const u = label.toUpperCase();
-		if (u.includes('FOREGROUND')) return { tag: 'CLR-FG', full: 'FOREGROUND' };
-		if (u.includes('BACKGROUND')) return { tag: 'CLR-BG', full: 'BACKGROUND' };
-		if (u.includes('START')) return { tag: 'CLR-GF', full: 'GRADIENT START' };
-		if (u.includes('END')) return { tag: 'CLR-GT', full: 'GRADIENT END' };
-		return { tag: 'CLR', full: 'COLOR' };
+		if (u.includes('FOREGROUND')) return 'CLR-FG';
+		if (u.includes('BACKGROUND')) return 'CLR-BG';
+		if (u.includes('START')) return 'CLR-GF';
+		if (u.includes('END')) return 'CLR-GT';
+		return 'CLR';
 	});
 
 	function onOverlayClick(e: MouseEvent) {
@@ -283,177 +272,106 @@
 		onclick={onOverlayClick}
 		onkeydown={(e) => e.key === 'Enter' && closePicker()}
 	>
-		<div
-			bind:this={panelEl}
-			class="panel"
-			role="dialog"
-			aria-modal="true"
-			aria-labelledby="cp-title"
-		>
-			<header class="plate-head">
-				<span class="file-rubric">FILE · KMK·QR·{target.tag}</span>
+		<div class="panel" role="dialog" aria-modal="true" aria-label={label}>
+			<header class="head">
+				<span class="head-rubric">FILE · KMK·QR·{targetTag}</span>
+				<span class="head-swatch" style:--swatch-fill={value}></span>
+				<span class="head-hex">{value}</span>
 				<button type="button" class="dismiss" aria-label="Close picker" onclick={closePicker}
 					>×</button
 				>
 			</header>
 
-			<div class="title-block">
-				<div class="title-block-row">
-					<span class="title-rubric">PLATE</span>
-					<span class="title-num">P-02</span>
-				</div>
-				<h2 id="cp-title" class="title-h1">{target.full}</h2>
-				<dl class="title-meta">
-					<div>
-						<dt>SHEET</dt>
-						<dd>∞/∞</dd>
-					</div>
-					<div>
-						<dt>METHOD</dt>
-						<dd>HSL · LIVE</dd>
-					</div>
-				</dl>
-			</div>
-
 			<div class="canvas">
-				<div class="canvas-frame">
-					<span class="bracket bracket-tl" aria-hidden="true"></span>
-					<span class="bracket bracket-tr" aria-hidden="true"></span>
-					<span class="bracket bracket-bl" aria-hidden="true"></span>
-					<span class="bracket bracket-br" aria-hidden="true"></span>
+				<span class="bracket bracket-tl" aria-hidden="true"></span>
+				<span class="bracket bracket-tr" aria-hidden="true"></span>
+				<span class="bracket bracket-bl" aria-hidden="true"></span>
+				<span class="bracket bracket-br" aria-hidden="true"></span>
 
-					<div
-						bind:this={padEl}
-						class="pad"
-						style:background={padBg}
-						onpointerdown={onPadDown}
-						onpointermove={onPadMove}
-						onpointerup={onPadUp}
-						role="slider"
-						tabindex="0"
-						aria-label="Saturation and lightness"
-						aria-valuemin="0"
-						aria-valuemax="100"
-						aria-valuenow={Math.round((sat + light) / 2)}
-					>
-						<span class="pad-thumb" style={padThumbStyle}></span>
-					</div>
-
-					<div
-						bind:this={hueEl}
-						class="hue"
-						onpointerdown={onHueDown}
-						onpointermove={onHueMove}
-						onpointerup={onHueUp}
-						role="slider"
-						tabindex="0"
-						aria-label="Hue"
-						aria-valuemin="0"
-						aria-valuemax="360"
-						aria-valuenow={Math.round(hue)}
-					>
-						<span class="hue-thumb" style={hueThumbStyle}></span>
-					</div>
+				<div
+					bind:this={padEl}
+					class="pad"
+					style:background={padBg}
+					onpointerdown={onPadDown}
+					onpointermove={onPadMove}
+					onpointerup={onPadUp}
+					role="slider"
+					tabindex="0"
+					aria-label="Saturation and lightness"
+					aria-valuemin="0"
+					aria-valuemax="100"
+					aria-valuenow={Math.round((sat + light) / 2)}
+				>
+					<span class="pad-thumb" style={padThumbStyle}></span>
 				</div>
 
-				<div class="compare">
-					<div class="compare-cell" style:--swatch-fill={value}>
-						<span class="compare-rubric">CURRENT</span>
-					</div>
-					<div class="compare-cell" style:--swatch-fill={originalColor}>
-						<span class="compare-rubric">PREVIOUS</span>
-					</div>
-					{#if value.toUpperCase() !== originalColor.toUpperCase()}
-						<button
-							type="button"
-							class="revert-btn"
-							onclick={revertToOriginal}
-							aria-label="Revert to previous color"
-						>
-							↶ REVERT
-						</button>
-					{/if}
+				<div
+					bind:this={hueEl}
+					class="hue"
+					onpointerdown={onHueDown}
+					onpointermove={onHueMove}
+					onpointerup={onHueUp}
+					role="slider"
+					tabindex="0"
+					aria-label="Hue"
+					aria-valuemin="0"
+					aria-valuemax="360"
+					aria-valuenow={Math.round(hue)}
+				>
+					<span class="hue-thumb" style={hueThumbStyle}></span>
 				</div>
 			</div>
 
-			<section class="spec-cell">
-				<header class="spec-head">
-					<span class="spec-num">S-01</span>
-					<span class="spec-rubric">SPECIMEN VALUES</span>
-				</header>
-				<dl class="spec-grid">
-					<div>
-						<dt>HEX</dt>
-						<dd class="mono-val">{value}</dd>
-					</div>
-					<div>
-						<dt>RGB</dt>
-						<dd class="mono-val">{rgbDisplay}</dd>
-					</div>
-					<div>
-						<dt>HSL</dt>
-						<dd class="mono-val">{hslDisplay}</dd>
-					</div>
-				</dl>
-			</section>
+			<div class="readout" aria-live="polite">
+				<span class="readout-rubric">RGB</span>
+				<span class="readout-val">{rgbDisplay}</span>
+				<span class="readout-sep">·</span>
+				<span class="readout-rubric">HSL</span>
+				<span class="readout-val">{hslDisplay}</span>
+			</div>
 
-			<section class="spec-cell">
-				<header class="spec-head">
-					<span class="spec-num">S-02</span>
-					<span class="spec-rubric">PALETTE</span>
+			<section class="cell">
+				<header class="cell-head">
+					<span class="cell-num">S-02</span>
+					<span class="cell-rubric">PALETTE</span>
 				</header>
 				<div class="palette">
 					{#each PALETTE as sw}
 						<button
 							type="button"
-							class="palette-chip"
+							class="chip"
 							class:active={value.toUpperCase() === sw.hex.toUpperCase()}
 							onclick={() => pickSwatch(sw.hex)}
 							aria-label={sw.name}
-							title={sw.name}
-						>
-							<span class="chip-fill" style:--swatch-fill={sw.hex}></span>
-							<span class="chip-short">{sw.short}</span>
-							<span class="chip-hex">{sw.hex}</span>
-						</button>
+							title="{sw.name} · {sw.hex}"
+							style:--swatch-fill={sw.hex}
+						></button>
 					{/each}
 				</div>
 			</section>
 
-			<section class="spec-cell">
-				<header class="spec-head">
-					<span class="spec-num">S-03</span>
-					<span class="spec-rubric">HISTORY</span>
-				</header>
-				{#if history.length > 0}
-					<div class="history">
-						{#each Array(HISTORY_MAX) as _, i}
-							{@const h = history[i]}
-							{#if h}
-								<button
-									type="button"
-									class="history-chip"
-									onclick={() => pickSwatch(h)}
-									aria-label={`Use ${h}`}
-									title={h}
-								>
-									<span class="chip-fill" style:--swatch-fill={h}></span>
-									<span class="chip-hex">{h}</span>
-								</button>
-							{:else}
-								<span class="history-chip empty" aria-hidden="true">
-									<span class="chip-fill empty-fill"></span>
-									<span class="chip-hex">—</span>
-								</span>
-							{/if}
+			{#if history.length > 0}
+				<section class="cell">
+					<header class="cell-head">
+						<span class="cell-num">S-03</span>
+						<span class="cell-rubric">HISTORY</span>
+					</header>
+					<div class="palette palette-history">
+						{#each history as h}
+							<button
+								type="button"
+								class="chip"
+								onclick={() => pickSwatch(h)}
+								aria-label={`Use ${h}`}
+								title={h}
+								style:--swatch-fill={h}
+							></button>
 						{/each}
 					</div>
-				{:else}
-					<p class="history-empty">— no entries · pick a color and dismiss to log</p>
-				{/if}
-			</section>
+				</section>
+			{/if}
 
-			<footer class="plate-foot">
+			<footer class="foot">
 				{#if hasEyeDropper}
 					<button
 						type="button"
@@ -461,7 +379,7 @@
 						onclick={openEyeDropper}
 						aria-label="Pick color from screen"
 					>
-						<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+						<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
 							<path
 								d="M11 1.5l3.5 3.5-2 2-1.2-1.2-5 5L4 12.5l-1.5.5L2 12l.5-1.5L3.8 7l5-5-1.2-1.2 2-2zM5 9.5L8.5 6l1.5 1.5L6.5 11 5 9.5z"
 								fill="currentColor"
@@ -470,9 +388,9 @@
 						<span>PICK FROM SCREEN</span>
 					</button>
 				{:else}
-					<span class="eyedropper-absent">⌘ EYEDROPPER · UNAVAILABLE IN THIS BROWSER</span>
+					<span></span>
 				{/if}
-				<span class="apply-rubric">↳ APPLIES TO {target.full}</span>
+				<span class="apply-rubric">↳ {targetTag}</span>
 			</footer>
 		</div>
 	</div>
@@ -504,18 +422,17 @@
 		outline-offset: 2px;
 	}
 
-	/* Modal overlay */
 	.overlay {
 		position: fixed;
 		inset: 0;
 		z-index: 1000;
 		display: grid;
 		place-items: center;
-		padding: 1.5rem;
+		padding: 1.2rem;
 		background: rgb(0 0 0 / 0.58);
 		backdrop-filter: blur(2px);
 		-webkit-backdrop-filter: blur(2px);
-		animation: cp-fade-in 200ms var(--ease, ease-out);
+		animation: cp-fade-in 180ms var(--ease, ease-out);
 	}
 	@keyframes cp-fade-in {
 		from {
@@ -528,24 +445,25 @@
 
 	.panel {
 		width: 100%;
-		max-width: 540px;
-		max-height: calc(100vh - 3rem);
-		overflow-y: auto;
+		max-width: 420px;
+		max-height: calc(100dvh - 2.4rem);
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
 		background: var(--paper);
 		color: var(--ink);
 		border: 1px solid var(--ink);
 		border-radius: 2px;
 		box-shadow:
-			0 16px 48px rgb(0 0 0 / 0.32),
-			0 2px 8px rgb(0 0 0 / 0.18);
-		position: relative;
+			0 14px 36px rgb(0 0 0 / 0.3),
+			0 2px 6px rgb(0 0 0 / 0.18);
 		font-family: var(--font-mono);
-		animation: cp-rise 240ms var(--ease, ease-out);
+		animation: cp-rise 200ms var(--ease, ease-out);
 	}
 	@keyframes cp-rise {
 		from {
 			opacity: 0;
-			transform: translateY(8px) scale(0.985);
+			transform: translateY(6px) scale(0.99);
 		}
 		to {
 			opacity: 1;
@@ -559,37 +477,56 @@
 		}
 		.panel {
 			max-width: 100%;
-			max-height: 92vh;
+			max-height: 94dvh;
 			border-radius: 8px 8px 0 0;
 			border-bottom: none;
 		}
 	}
 
-	/* Plate head — file rubric corner */
-	.plate-head {
-		display: flex;
+	/* Plate head — one row carrying everything orienting */
+	.head {
+		display: grid;
+		grid-template-columns: 1fr auto auto auto;
 		align-items: center;
-		justify-content: space-between;
-		padding: 0.7rem 1.2rem;
+		gap: 0.55rem;
+		padding: 0.55rem 0.85rem;
 		border-bottom: 1px solid var(--rule-strong);
 		background: var(--paper);
 	}
-	.file-rubric {
-		font-size: var(--fs-help, 12px);
-		letter-spacing: 0.16em;
+	.head-rubric {
+		font-size: 11px;
+		letter-spacing: 0.14em;
 		color: var(--micro, #8a8478);
 		text-transform: uppercase;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.head-swatch {
+		width: 14px;
+		height: 14px;
+		border: 1px solid var(--rule-strong);
+		border-radius: 1px;
+		background: var(--swatch-fill);
+		flex-shrink: 0;
+	}
+	.head-hex {
+		font-size: 12px;
+		letter-spacing: 0.06em;
+		color: var(--ink);
+		font-variant-numeric: tabular-nums;
+		font-weight: 500;
 	}
 	.dismiss {
 		appearance: none;
-		width: 28px;
-		height: 28px;
+		width: 24px;
+		height: 24px;
 		padding: 0;
 		background: transparent;
 		border: 1px solid var(--rule);
 		border-radius: 2px;
 		font-family: var(--font-mono);
-		font-size: 18px;
+		font-size: 16px;
 		line-height: 1;
 		color: var(--ink);
 		cursor: pointer;
@@ -604,107 +541,44 @@
 		outline-offset: 2px;
 	}
 
-	/* Title block */
-	.title-block {
-		padding: 1.1rem 1.2rem 0.85rem;
-		border-bottom: 1px dashed var(--rule);
-	}
-	.title-block-row {
-		display: flex;
-		align-items: baseline;
-		gap: 0.5rem;
-		margin-bottom: 0.3rem;
-	}
-	.title-rubric {
-		font-size: var(--fs-help, 12px);
-		letter-spacing: 0.18em;
-		color: var(--micro, #8a8478);
-	}
-	.title-num {
-		font-size: var(--fs-help, 12px);
-		letter-spacing: 0.12em;
-		color: var(--accent);
-		font-weight: 500;
-	}
-	.title-h1 {
-		font-family: var(--font-display, 'Fraunces', serif);
-		font-weight: 500;
-		font-size: clamp(24px, 4vw, 32px);
-		line-height: 1.05;
-		letter-spacing: -0.01em;
-		margin: 0 0 0.55rem;
-		color: var(--ink);
-	}
-	.title-meta {
-		display: flex;
-		gap: 1.8rem;
-		margin: 0;
-		padding: 0;
-	}
-	.title-meta div {
-		display: flex;
-		flex-direction: column;
-		gap: 0.1rem;
-	}
-	.title-meta dt {
-		font-size: 10px;
-		letter-spacing: 0.18em;
-		color: var(--micro, #8a8478);
-		margin: 0;
-	}
-	.title-meta dd {
-		font-size: var(--fs-help, 12px);
-		letter-spacing: 0.06em;
-		color: var(--ink);
-		margin: 0;
-	}
-
-	/* Canvas (pad + hue + compare) */
+	/* Canvas — pad + hue, corner brackets on the outer panel */
 	.canvas {
-		padding: 1.1rem 1.2rem;
-		display: flex;
-		flex-direction: column;
-		gap: 0.95rem;
-		border-bottom: 1px dashed var(--rule);
-	}
-	.canvas-frame {
 		position: relative;
 		display: grid;
-		grid-template-columns: 1fr 28px;
-		gap: 0.75rem;
-		padding: 12px;
-		border: 1px solid var(--rule);
-		background: var(--paper-warm, var(--paper));
+		grid-template-columns: 1fr 26px;
+		gap: 0.55rem;
+		padding: 0.85rem;
+		border-bottom: 1px dashed var(--rule);
 	}
 	.bracket {
 		position: absolute;
-		width: 10px;
-		height: 10px;
+		width: 9px;
+		height: 9px;
 		border-color: var(--ink);
 		border-style: solid;
 		border-width: 0;
 	}
 	.bracket-tl {
-		top: -1px;
-		left: -1px;
+		top: 8px;
+		left: 8px;
 		border-top-width: 1.5px;
 		border-left-width: 1.5px;
 	}
 	.bracket-tr {
-		top: -1px;
-		right: -1px;
+		top: 8px;
+		right: 8px;
 		border-top-width: 1.5px;
 		border-right-width: 1.5px;
 	}
 	.bracket-bl {
-		bottom: -1px;
-		left: -1px;
+		bottom: 8px;
+		left: 8px;
 		border-bottom-width: 1.5px;
 		border-left-width: 1.5px;
 	}
 	.bracket-br {
-		bottom: -1px;
-		right: -1px;
+		bottom: 8px;
+		right: 8px;
 		border-bottom-width: 1.5px;
 		border-right-width: 1.5px;
 	}
@@ -712,15 +586,15 @@
 	.pad {
 		position: relative;
 		width: 100%;
-		height: 220px;
+		height: 180px;
 		border: 1px solid var(--rule-strong);
 		border-radius: 1px;
 		cursor: crosshair;
 		touch-action: none;
 	}
-	@media (max-width: 720px) {
+	@media (max-width: 480px) {
 		.pad {
-			height: 200px;
+			height: 160px;
 		}
 	}
 	.pad:focus-visible {
@@ -729,10 +603,10 @@
 	}
 	.pad-thumb {
 		position: absolute;
-		width: 16px;
-		height: 16px;
-		margin-left: -8px;
-		margin-top: -8px;
+		width: 14px;
+		height: 14px;
+		margin-left: -7px;
+		margin-top: -7px;
 		border: 2px solid #fff;
 		border-radius: 50%;
 		box-shadow:
@@ -743,8 +617,8 @@
 
 	.hue {
 		position: relative;
-		width: 28px;
-		height: 220px;
+		width: 26px;
+		height: 180px;
 		border: 1px solid var(--rule-strong);
 		border-radius: 1px;
 		background: linear-gradient(
@@ -760,9 +634,9 @@
 		cursor: ns-resize;
 		touch-action: none;
 	}
-	@media (max-width: 720px) {
+	@media (max-width: 480px) {
 		.hue {
-			height: 200px;
+			height: 160px;
 		}
 	}
 	.hue:focus-visible {
@@ -771,257 +645,102 @@
 	}
 	.hue-thumb {
 		position: absolute;
-		left: -3px;
-		right: -3px;
-		height: 6px;
-		margin-top: -3px;
+		left: -2px;
+		right: -2px;
+		height: 5px;
+		margin-top: -2.5px;
 		border: 1px solid #fff;
 		border-radius: 1px;
 		background: rgb(0 0 0 / 0.42);
 		pointer-events: none;
 	}
 
-	.compare {
-		display: grid;
-		grid-template-columns: 1fr 1fr auto;
-		gap: 0.55rem;
-		align-items: stretch;
-	}
-	.compare-cell {
-		position: relative;
-		height: 44px;
-		border: 1px solid var(--rule);
-		background:
-			linear-gradient(45deg, #ddd 25%, transparent 25%),
-			linear-gradient(-45deg, #ddd 25%, transparent 25%),
-			linear-gradient(45deg, transparent 75%, #ddd 75%),
-			linear-gradient(-45deg, transparent 75%, #ddd 75%);
-		background-size: 10px 10px;
-		background-position:
-			0 0,
-			0 5px,
-			5px -5px,
-			-5px 0;
-	}
-	.compare-cell::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background: var(--swatch-fill);
-	}
-	.compare-rubric {
-		position: absolute;
-		left: 8px;
-		top: 50%;
-		transform: translateY(-50%);
-		z-index: 1;
-		font-size: 10px;
-		letter-spacing: 0.16em;
-		padding: 2px 5px;
-		background: var(--paper);
-		color: var(--ink);
-		border: 1px solid var(--rule);
-	}
-	.revert-btn {
-		appearance: none;
-		padding: 0 0.7rem;
-		background: transparent;
-		border: 1px solid var(--rule);
-		font-family: var(--font-mono);
-		font-size: 11px;
-		letter-spacing: 0.14em;
-		color: var(--ink);
-		cursor: pointer;
-		transition: all var(--duration-fast) var(--ease);
-	}
-	.revert-btn:hover {
-		border-color: var(--accent);
-		color: var(--accent);
-	}
-	.revert-btn:focus-visible {
-		outline: 2px solid var(--accent);
-		outline-offset: 2px;
-	}
-
-	/* Specimen cells */
-	.spec-cell {
-		padding: 0.9rem 1.2rem;
-		border-bottom: 1px dashed var(--rule);
-	}
-	.spec-cell:last-of-type {
-		border-bottom: none;
-	}
-	.spec-head {
+	/* Inline RGB / HSL readout — HEX already lives in the head */
+	.readout {
 		display: flex;
 		align-items: baseline;
-		gap: 0.6rem;
-		margin-bottom: 0.7rem;
+		flex-wrap: wrap;
+		gap: 0.35rem 0.4rem;
+		padding: 0.55rem 0.85rem;
+		border-bottom: 1px dashed var(--rule);
+		font-size: 11px;
 	}
-	.spec-num {
+	.readout-rubric {
+		letter-spacing: 0.18em;
+		color: var(--micro, #8a8478);
+	}
+	.readout-val {
+		letter-spacing: 0.04em;
+		color: var(--ink);
+		font-variant-numeric: tabular-nums;
+		font-weight: 500;
+	}
+	.readout-sep {
+		color: var(--rule);
+	}
+
+	/* Palette / history cells */
+	.cell {
+		padding: 0.6rem 0.85rem;
+		border-bottom: 1px dashed var(--rule);
+	}
+	.cell-head {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+		margin-bottom: 0.45rem;
+	}
+	.cell-num {
 		font-size: 10px;
 		letter-spacing: 0.16em;
 		color: var(--accent);
 		font-weight: 500;
 	}
-	.spec-rubric {
+	.cell-rubric {
 		font-size: 10px;
 		letter-spacing: 0.22em;
 		color: var(--micro, #8a8478);
 	}
 
-	.spec-grid {
-		margin: 0;
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 0.4rem 1rem;
-	}
-	.spec-grid div {
-		display: flex;
-		flex-direction: column;
-		gap: 0.18rem;
-		min-width: 0;
-	}
-	.spec-grid dt {
-		font-size: 10px;
-		letter-spacing: 0.18em;
-		color: var(--micro, #8a8478);
-		margin: 0;
-	}
-	.spec-grid dd {
-		margin: 0;
-	}
-	.mono-val {
-		font-family: var(--font-mono);
-		font-size: 13px;
-		letter-spacing: 0.04em;
-		color: var(--ink);
-		font-variant-numeric: tabular-nums;
-		font-weight: 500;
-		overflow-wrap: anywhere;
-	}
-
-	/* Palette */
 	.palette {
 		display: grid;
 		grid-template-columns: repeat(7, 1fr);
-		gap: 0.45rem;
+		gap: 0.35rem;
 	}
-	@media (max-width: 480px) {
-		.palette {
-			grid-template-columns: repeat(4, 1fr);
-		}
+	.palette-history {
+		grid-template-columns: repeat(6, 1fr);
 	}
-	.palette-chip {
+	.chip {
 		appearance: none;
-		display: flex;
-		flex-direction: column;
-		align-items: stretch;
+		width: 100%;
+		aspect-ratio: 1.4;
 		padding: 0;
-		background: transparent;
-		border: 1px solid var(--rule);
+		background: var(--swatch-fill);
+		border: 1px solid var(--rule-strong);
 		border-radius: 1px;
 		cursor: pointer;
 		transition: all var(--duration-fast) var(--ease);
-		overflow: hidden;
 	}
-	.palette-chip:hover {
+	.chip:hover {
 		border-color: var(--accent);
 		transform: translateY(-1px);
 	}
-	.palette-chip:focus-visible {
+	.chip:focus-visible {
 		outline: 2px solid var(--accent);
 		outline-offset: 2px;
 	}
-	.palette-chip.active {
+	.chip.active {
 		border-color: var(--accent);
 		box-shadow: inset 0 0 0 1px var(--accent);
 	}
-	.chip-fill {
-		display: block;
-		width: 100%;
-		aspect-ratio: 1.6;
-		background: var(--swatch-fill);
-		border-bottom: 1px solid var(--rule);
-	}
-	.chip-short {
-		display: block;
-		padding: 0.22rem 0.25rem 0;
-		font-size: 10px;
-		letter-spacing: 0.12em;
-		color: var(--ink);
-		text-align: center;
-	}
-	.chip-hex {
-		display: block;
-		padding: 0.05rem 0.25rem 0.25rem;
-		font-size: 9px;
-		letter-spacing: 0.05em;
-		color: var(--micro, #8a8478);
-		text-align: center;
-		font-variant-numeric: tabular-nums;
-	}
 
-	/* History */
-	.history {
-		display: grid;
-		grid-template-columns: repeat(6, 1fr);
-		gap: 0.45rem;
-	}
-	@media (max-width: 480px) {
-		.history {
-			grid-template-columns: repeat(6, 1fr);
-		}
-	}
-	.history-chip {
-		appearance: none;
-		display: flex;
-		flex-direction: column;
-		padding: 0;
-		background: transparent;
-		border: 1px solid var(--rule);
-		border-radius: 1px;
-		cursor: pointer;
-		transition: all var(--duration-fast) var(--ease);
-		overflow: hidden;
-	}
-	.history-chip:hover:not(.empty) {
-		border-color: var(--accent);
-		transform: translateY(-1px);
-	}
-	.history-chip:focus-visible {
-		outline: 2px solid var(--accent);
-		outline-offset: 2px;
-	}
-	.history-chip.empty {
-		cursor: default;
-		opacity: 0.45;
-	}
-	.empty-fill {
-		background:
-			repeating-linear-gradient(
-				45deg,
-				transparent 0,
-				transparent 5px,
-				var(--rule) 5px,
-				var(--rule) 6px
-			),
-			var(--paper-warm, var(--paper));
-	}
-	.history-empty {
-		margin: 0;
-		font-size: var(--fs-help, 12px);
-		letter-spacing: 0.04em;
-		color: var(--micro, #8a8478);
-		font-style: italic;
-	}
-
-	/* Foot */
-	.plate-foot {
+	/* Foot — eyedropper + apply target rubric */
+	.foot {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 1rem;
-		padding: 0.85rem 1.2rem;
+		gap: 0.7rem;
+		padding: 0.55rem 0.85rem;
 		background: var(--paper-warm, var(--paper));
 		border-top: 1px solid var(--rule-strong);
 	}
@@ -1029,14 +748,14 @@
 		appearance: none;
 		display: inline-flex;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 0.45rem 0.85rem;
+		gap: 0.45rem;
+		padding: 0.35rem 0.7rem;
 		background: var(--ink);
 		color: var(--paper);
 		border: 1px solid var(--ink);
 		border-radius: 1px;
 		font-family: var(--font-mono);
-		font-size: 11px;
+		font-size: 10px;
 		letter-spacing: 0.14em;
 		cursor: pointer;
 		transition: all var(--duration-fast) var(--ease);
@@ -1049,29 +768,10 @@
 		outline: 2px solid var(--accent);
 		outline-offset: 2px;
 	}
-	.eyedropper-absent {
-		font-size: 10px;
-		letter-spacing: 0.14em;
-		color: var(--micro, #8a8478);
-	}
 	.apply-rubric {
 		font-size: 10px;
 		letter-spacing: 0.18em;
 		color: var(--micro, #8a8478);
 		text-transform: uppercase;
-	}
-
-	@media (max-width: 480px) {
-		.plate-foot {
-			flex-direction: column;
-			align-items: stretch;
-			gap: 0.5rem;
-		}
-		.eyedropper {
-			justify-content: center;
-		}
-		.apply-rubric {
-			text-align: center;
-		}
 	}
 </style>
