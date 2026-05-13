@@ -1,7 +1,7 @@
 <div align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="static/brand/lockup-dark.svg">
-    <img src="static/brand/lockup-light.svg" alt="kemek/qr" width="320" />
+    <source media="(prefers-color-scheme: dark)" srcset="static/brand/lockup-dark.png">
+    <img src="static/brand/lockup-light.png" alt="kemek/qr" width="320" />
   </picture>
 
 ### the QR code generator that doesn't want anything from you

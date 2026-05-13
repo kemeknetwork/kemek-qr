@@ -50,8 +50,10 @@ favicon-specific styling, not part of the mark.
 | `mark-mono-ink.svg` | Monochrome ink (`#0e0b06`) on transparent. For light surfaces where color isn't appropriate. |
 | `mark-mono-cream.svg` | Monochrome cream (`#f9eedb`) on transparent. For dark surfaces where color isn't appropriate. |
 | `mark-mono-accent.svg` | Accent red on transparent. Same as `mark.svg`; named alias for clarity at consumption sites. |
-| `lockup-light.svg` | Horizontal lockup — accent mark + ink wordmark + accent slash, for light surfaces. |
-| `lockup-dark.svg` | Horizontal lockup — accent mark + cream wordmark + accent slash, for dark surfaces. |
+| `lockup-light.svg` | Horizontal lockup — accent mark + ink wordmark + accent slash, for light surfaces. Vector; falls back to Georgia/serif when Fraunces isn't available. |
+| `lockup-dark.svg` | Horizontal lockup — accent mark + cream wordmark + accent slash, for dark surfaces. Same fallback note. |
+| `lockup-light.png` | Pre-rasterized lockup (~ 1440 × 384) with Fraunces 500 baked in. Use this for README headers, social cards, anywhere SVG font-fallback would drift. |
+| `lockup-dark.png` | Same as above, dark-surface variant. |
 | `mark-256.png` | Mark rasterized at 256 × 256, transparent ground. |
 | `mark-512.png` | Mark rasterized at 512 × 512, transparent ground. |
 | `mark-1024.png` | Mark rasterized at 1024 × 1024, transparent ground. |

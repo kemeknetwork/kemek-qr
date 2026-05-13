@@ -57,4 +57,15 @@ for (const size of [256, 512, 1024, 2048]) {
 	await rasterize(BRAND_MARK_SVG, size, `static/brand/mark-${size}.png`);
 }
 
+/* Lockup PNGs (lockup-light.png / lockup-dark.png) need Fraunces
+ * loaded to render the wordmark correctly. sharp can't load web
+ * fonts; running this script with sharp would produce a Georgia /
+ * serif fallback that drifts from the live masthead.
+ *
+ * Run `scripts/render-lockups.mjs` separately when the lockup SVGs
+ * change — it uses Playwright + the bundled Fraunces from
+ * `node_modules/@fontsource-variable/fraunces/` to bake the
+ * canonical wordmark into the PNG. Not chained here because it
+ * requires Chrome + Playwright. */
+
 console.log('static images regenerated.');
