@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="kemek-qr mark (monochrome cream)">
+	<title>kemek-qr brand mark — monochrome cream, transparent ground, for dark surfaces</title>
+	<rect x="1" y="1" width="62" height="62" fill="none" stroke="#f9eedb" stroke-width="1"/>
+	<g transform="translate(4 4)" fill="#f9eedb">
+		<rect width="24" height="8"/>
+		<rect y="16" width="24" height="8"/>
+		<rect y="8" width="8" height="8"/>
+		<rect x="16" y="8" width="8" height="8"/>
+		<rect x="32" width="24" height="8"/>
+		<rect x="32" y="16" width="24" height="8"/>
+		<rect x="32" y="8" width="8" height="8"/>
+		<rect x="48" y="8" width="8" height="8"/>
+		<rect y="32" width="24" height="8"/>
+		<rect y="48" width="24" height="8"/>
+		<rect y="40" width="8" height="8"/>
+		<rect x="16" y="40" width="8" height="8"/>
+		<rect x="32" y="32" width="8" height="8"/>
+		<rect x="48" y="32" width="8" height="8"/>
+		<rect x="40" y="40" width="8" height="8"/>
+		<rect x="32" y="48" width="8" height="8"/>
+		<rect x="48" y="48" width="8" height="8"/>
+	</g>
+</svg>

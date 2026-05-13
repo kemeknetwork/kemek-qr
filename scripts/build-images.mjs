@@ -11,6 +11,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 const FAVICON_SVG = await readFile('static/favicon.svg');
 const FAVICON_MASKABLE_SVG = await readFile('static/favicon-maskable.svg');
 const OG_SVG = await readFile('static/og.svg');
+const BRAND_MARK_SVG = await readFile('static/brand/mark.svg');
 
 /* sharp's `density` controls SVG-to-raster DPI. We use a high value
  * for small icons so the resize step gets crisp pixels rather than
@@ -47,5 +48,13 @@ const ico16 = await sharp(FAVICON_SVG, { density: 600 }).resize(16, 16).png().to
 const ico32 = await sharp(FAVICON_SVG, { density: 600 }).resize(32, 32).png().toBuffer();
 const ico48 = await sharp(FAVICON_SVG, { density: 600 }).resize(48, 48).png().toBuffer();
 await writeFile('static/favicon.ico', await toIco([ico16, ico32, ico48]));
+
+/* Brand-kit mark rasters — high-res PNGs for press, social, and
+ * partner usage. The SVG master in static/brand/mark.svg is the
+ * source of truth; PNGs are convenience exports. 2048 is the
+ * print-grade ceiling (~ 6.8 in at 300 DPI). */
+for (const size of [256, 512, 1024, 2048]) {
+	await rasterize(BRAND_MARK_SVG, size, `static/brand/mark-${size}.png`);
+}
 
 console.log('static images regenerated.');

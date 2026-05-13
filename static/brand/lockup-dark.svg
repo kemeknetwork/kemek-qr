@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 128" width="480" height="128" role="img" aria-label="kemek/qr lockup (dark)">
+	<title>kemek-qr horizontal lockup — mark + wordmark, for dark surfaces</title>
+	<rect width="480" height="128" fill="#100e09"/>
+	<g transform="translate(8 16) scale(1.5)">
+		<rect width="64" height="64" fill="#100e09"/>
+		<rect x="1" y="1" width="62" height="62" fill="none" stroke="#f9eedb" stroke-width="1"/>
+		<g transform="translate(4 4)" fill="#e0492c">
+			<rect width="24" height="8"/>
+			<rect y="16" width="24" height="8"/>
+			<rect y="8" width="8" height="8"/>
+			<rect x="16" y="8" width="8" height="8"/>
+			<rect x="32" width="24" height="8"/>
+			<rect x="32" y="16" width="24" height="8"/>
+			<rect x="32" y="8" width="8" height="8"/>
+			<rect x="48" y="8" width="8" height="8"/>
+			<rect y="32" width="24" height="8"/>
+			<rect y="48" width="24" height="8"/>
+			<rect y="40" width="8" height="8"/>
+			<rect x="16" y="40" width="8" height="8"/>
+			<rect x="32" y="32" width="8" height="8"/>
+			<rect x="48" y="32" width="8" height="8"/>
+			<rect x="40" y="40" width="8" height="8"/>
+			<rect x="32" y="48" width="8" height="8"/>
+			<rect x="48" y="48" width="8" height="8"/>
+		</g>
+	</g>
+	<text x="128" y="86" font-family="'JetBrains Mono', 'JetBrainsMono', 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace" font-size="60" font-weight="700" letter-spacing="-0.02em" fill="#f9eedb">
+		kemek<tspan fill="#e0492c">/</tspan>qr
+	</text>
+</svg>
