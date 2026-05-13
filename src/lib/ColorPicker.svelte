@@ -16,8 +16,19 @@
 	let hasEyeDropper = $state(false);
 	let saved = $state<string[]>([]);
 
-	let panelLeft = $state<number | null>(null);
-	let panelTop = $state<number | null>(null);
+	const PANEL_WIDTH = 420;
+	const MARGIN = 12;
+	const GAP = 8;
+	const MOBILE_BREAKPOINT = 720;
+	const SAVED_KEY = 'kemek-qr:color-saved';
+	const SAVED_MAX = 6;
+
+	/* Panel coords are always set; defaults are a safe top-centered
+	 * position so the panel is visible even before computePosition()
+	 * has measured the trigger. computePosition() runs after the
+	 * panel mounts and re-anchors near the click. */
+	let panelLeft = $state(MARGIN);
+	let panelTop = $state(MARGIN);
 
 	let hue = $state(0);
 	let sat = $state(0);
@@ -32,11 +43,6 @@
 		{ hex: '#F2EBDD', name: 'Paper' },
 		{ hex: '#FFFFFF', name: 'White' }
 	];
-
-	const SAVED_KEY = 'kemek-qr:color-saved';
-	const SAVED_MAX = 6;
-	const PANEL_MAX_WIDTH = 420;
-	const MOBILE_BREAKPOINT = 720;
 
 	onMount(() => {
 		hasEyeDropper = typeof window !== 'undefined' && 'EyeDropper' in window;
@@ -124,6 +130,42 @@
 		value = hex;
 	}
 
+	function computePosition() {
+		if (typeof window === 'undefined') return;
+		/* Mobile uses CSS bottom-sheet positioning that the media query
+		 * forces with !important — these coords are ignored. */
+		if (window.innerWidth <= MOBILE_BREAKPOINT) {
+			panelLeft = 0;
+			panelTop = 0;
+			return;
+		}
+		const panelW = Math.min(PANEL_WIDTH, window.innerWidth - MARGIN * 2);
+		const panelH = panelEl?.offsetHeight ?? 460;
+
+		if (!triggerEl) {
+			/* Fallback: top-center if we have no trigger to anchor to. */
+			panelLeft = Math.max(MARGIN, window.innerWidth / 2 - panelW / 2);
+			panelTop = MARGIN;
+			return;
+		}
+		const trigRect = triggerEl.getBoundingClientRect();
+		let left = trigRect.left + trigRect.width / 2 - panelW / 2;
+		left = Math.max(MARGIN, Math.min(window.innerWidth - panelW - MARGIN, left));
+
+		const spaceBelow = window.innerHeight - trigRect.bottom - MARGIN;
+		const spaceAbove = trigRect.top - MARGIN;
+		let top: number;
+		if (panelH + GAP <= spaceBelow) {
+			top = trigRect.bottom + GAP;
+		} else if (panelH + GAP <= spaceAbove) {
+			top = trigRect.top - panelH - GAP;
+		} else {
+			top = MARGIN;
+		}
+		panelLeft = left;
+		panelTop = top;
+	}
+
 	async function openPicker() {
 		const rgb = hexToRgb(value);
 		if (rgb) {
@@ -132,18 +174,17 @@
 			sat = s;
 			light = l;
 		}
+		/* Pre-position before showing so the first paint lands at the
+		 * right spot (we don't have panelH yet, so this uses the 460-px
+		 * estimate; recompute below once we can measure). */
+		computePosition();
 		open = true;
-		/* Wait for panel to mount so we can measure its actual height
-		 * before positioning. Two ticks: one for the {#if open} block to
-		 * render, one for the browser to commit layout. */
 		await tick();
-		positionPanel();
+		computePosition();
 	}
 
 	function closePicker() {
 		open = false;
-		panelLeft = null;
-		panelTop = null;
 	}
 
 	function saveCurrent() {
@@ -153,43 +194,8 @@
 		try {
 			localStorage.setItem(SAVED_KEY, JSON.stringify(next));
 		} catch {
-			/* ignored — saved is a luxury */
+			/* ignored */
 		}
-	}
-
-	/* Anchor panel to the trigger on desktop. Prefer below; flip above
-	 * if no room; pin to top with margin if neither fits. Mobile stays
-	 * bottom-sheet via CSS media query (panelLeft/Top stay null). */
-	function positionPanel() {
-		if (typeof window === 'undefined') return;
-		if (window.innerWidth <= MOBILE_BREAKPOINT) {
-			panelLeft = null;
-			panelTop = null;
-			return;
-		}
-		if (!triggerEl) return;
-		const trigRect = triggerEl.getBoundingClientRect();
-		const panelH = panelEl?.offsetHeight ?? 460;
-		const margin = 12;
-		const gap = 8;
-
-		const panelW = Math.min(PANEL_MAX_WIDTH, window.innerWidth - margin * 2);
-		let left = trigRect.left + trigRect.width / 2 - panelW / 2;
-		left = Math.max(margin, Math.min(window.innerWidth - panelW - margin, left));
-
-		const spaceBelow = window.innerHeight - trigRect.bottom - margin;
-		const spaceAbove = trigRect.top - margin;
-		let top: number;
-		if (panelH + gap <= spaceBelow) {
-			top = trigRect.bottom + gap;
-		} else if (panelH + gap <= spaceAbove) {
-			top = trigRect.top - panelH - gap;
-		} else {
-			top = margin;
-		}
-
-		panelLeft = left;
-		panelTop = top;
 	}
 
 	function onPadDown(e: PointerEvent) {
@@ -263,7 +269,7 @@
 			if (e.key === 'Escape') closePicker();
 		}
 		function onResize() {
-			positionPanel();
+			computePosition();
 		}
 		document.addEventListener('keydown', onKey);
 		window.addEventListener('resize', onResize);
@@ -329,9 +335,8 @@
 		<div
 			bind:this={panelEl}
 			class="panel"
-			class:floating={panelLeft !== null && panelTop !== null}
-			style:left={panelLeft !== null ? `${panelLeft}px` : ''}
-			style:top={panelTop !== null ? `${panelTop}px` : ''}
+			style:left="{panelLeft}px"
+			style:top="{panelTop}px"
 			role="dialog"
 			aria-modal="true"
 			aria-label={label}
@@ -507,9 +512,9 @@
 		background: rgb(0 0 0 / 0.58);
 		backdrop-filter: blur(2px);
 		-webkit-backdrop-filter: blur(2px);
-		animation: cp-fade-in 180ms var(--ease, ease-out);
+		animation: cp-fade 160ms ease-out;
 	}
-	@keyframes cp-fade-in {
+	@keyframes cp-fade {
 		from {
 			opacity: 0;
 		}
@@ -526,9 +531,6 @@
 		overflow: hidden;
 		display: flex;
 		flex-direction: column;
-		left: 50%;
-		top: 12px;
-		transform: translateX(-50%);
 		background: var(--paper);
 		color: var(--ink);
 		border: 1px solid var(--ink);
@@ -537,56 +539,20 @@
 			0 14px 36px rgb(0 0 0 / 0.3),
 			0 2px 6px rgb(0 0 0 / 0.18);
 		font-family: var(--font-mono);
-		animation: cp-rise 200ms var(--ease, ease-out);
-	}
-	.panel.floating {
-		transform: none;
-	}
-	@keyframes cp-rise {
-		from {
-			opacity: 0;
-			transform: translateY(6px) scale(0.99);
-		}
-		to {
-			opacity: 1;
-		}
-	}
-	@keyframes cp-rise-floating {
-		from {
-			opacity: 0;
-			transform: translateY(6px) scale(0.99);
-		}
-		to {
-			opacity: 1;
-			transform: none;
-		}
-	}
-	.panel.floating {
-		animation-name: cp-rise-floating;
+		animation: cp-fade 200ms ease-out;
 	}
 	@media (max-width: 720px) {
-		.panel,
-		.panel.floating {
-			left: 0;
+		.panel {
+			/* Bottom-sheet on mobile — !important beats the inline
+			 * left/top set by computePosition(). */
+			left: 0 !important;
 			right: 0;
-			top: auto;
+			top: auto !important;
 			bottom: 0;
-			transform: none;
 			max-width: 100%;
 			max-height: 94dvh;
 			border-radius: 8px 8px 0 0;
 			border-bottom: none;
-			animation-name: cp-rise-mobile;
-		}
-		@keyframes cp-rise-mobile {
-			from {
-				opacity: 0;
-				transform: translateY(16px);
-			}
-			to {
-				opacity: 1;
-				transform: none;
-			}
 		}
 	}
 
