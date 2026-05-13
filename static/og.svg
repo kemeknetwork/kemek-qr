@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
 	<defs>
 		<pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse">
-			<circle cx="7" cy="7" r="1.4" fill="#1a1815" opacity="0.05"/>
+			<circle cx="7" cy="7" r="1.4" fill="#0e0b06" opacity="0.05"/>
 		</pattern>
 	</defs>
 
-	<rect width="1200" height="630" fill="#f2ebdd"/>
+	<rect width="1200" height="630" fill="#f4eee0"/>
 	<rect width="1200" height="630" fill="url(#dots)"/>
 
-	<rect x="40" y="40" width="1120" height="550" fill="none" stroke="#1a1815" stroke-width="1.5"/>
+	<rect x="40" y="40" width="1120" height="550" fill="none" stroke="#0e0b06" stroke-width="1.5"/>
 
 	<g fill="#c53a1f">
 		<rect x="40" y="40" width="2" height="22"/>
@@ -23,14 +23,14 @@
 
 	<g transform="translate(80 105)">
 		<rect width="22" height="22" fill="#c53a1f" transform="rotate(45 11 11)"/>
-		<text x="48" y="22" font-family="Georgia, serif" font-style="italic" font-weight="500" font-size="36" fill="#1a1815" letter-spacing="-0.5">
+		<text x="48" y="22" font-family="Georgia, serif" font-style="italic" font-weight="500" font-size="36" fill="#0e0b06" letter-spacing="-0.5">
 			kemek<tspan fill="#c53a1f">/</tspan>qr
 		</text>
 	</g>
 
 	<text x="80" y="190" font-family="ui-monospace, 'Menlo', monospace" font-size="18" letter-spacing="6" fill="#c53a1f" font-weight="500">PLATE 01 · KMK·QR</text>
 
-	<text x="80" y="290" font-family="Georgia, serif" font-size="78" font-weight="400" fill="#1a1815" letter-spacing="-2">
+	<text x="80" y="290" font-family="Georgia, serif" font-size="78" font-weight="400" fill="#0e0b06" letter-spacing="-2">
 		<tspan>A QR code that</tspan>
 	</text>
 	<text x="80" y="370" font-family="Georgia, serif" font-style="italic" font-size="78" font-weight="400" fill="#c53a1f" letter-spacing="-2">
@@ -40,27 +40,27 @@
 		<tspan>from you.</tspan>
 	</text>
 
-	<text x="80" y="510" font-family="ui-monospace, 'Menlo', monospace" font-size="18" fill="#1a1815" opacity="0.62" letter-spacing="2.5">
+	<text x="80" y="510" font-family="ui-monospace, 'Menlo', monospace" font-size="18" fill="#0e0b06" opacity="0.62" letter-spacing="2.5">
 		<tspan>Free · No signup · No tracking · Logo + styling included.</tspan>
 	</text>
 
-	<g transform="translate(80 545)" font-family="ui-monospace, 'Menlo', monospace" font-size="12" fill="#1a1815" letter-spacing="3">
+	<g transform="translate(80 545)" font-family="ui-monospace, 'Menlo', monospace" font-size="12" fill="#0e0b06" letter-spacing="3">
 		<text opacity="0.55">PNG · SVG · PDF</text>
 		<text x="200" opacity="0.55">CLIENT-SIDE</text>
 		<text x="395" opacity="0.55">EDITION I — V·MMXXVI</text>
 	</g>
 
 	<g transform="translate(925 80)">
-		<rect width="195" height="470" fill="#ede4ce" stroke="#1a1815" stroke-width="1"/>
+		<rect width="195" height="470" fill="#efe6cf" stroke="#0e0b06" stroke-width="1"/>
 
-		<g transform="translate(20 35)" font-family="ui-monospace, 'Menlo', monospace" fill="#1a1815">
+		<g transform="translate(20 35)" font-family="ui-monospace, 'Menlo', monospace" fill="#0e0b06">
 			<text font-size="11" letter-spacing="3" opacity="0.55">PLATE</text>
 			<text y="55" font-family="Georgia, serif" font-style="italic" font-size="76" fill="#c53a1f" letter-spacing="-2">01</text>
 		</g>
 
-		<line x1="0" y1="160" x2="195" y2="160" stroke="#1a1815" stroke-width="1" opacity="0.18"/>
+		<line x1="0" y1="160" x2="195" y2="160" stroke="#0e0b06" stroke-width="1" opacity="0.18"/>
 
-		<g transform="translate(105 195)" stroke="#1a1815" fill="#1a1815">
+		<g transform="translate(105 195)" stroke="#0e0b06" fill="#0e0b06">
 			<rect x="0" y="0" width="14" height="14"/>
 			<rect x="20" y="0" width="14" height="14"/>
 			<rect x="40" y="0" width="14" height="14"/>
@@ -72,15 +72,15 @@
 			<rect x="20" y="40" width="14" height="14"/>
 			<rect x="40" y="40" width="14" height="14"/>
 		</g>
-		<g transform="translate(20 195)" stroke="#1a1815" stroke-width="3" fill="none">
+		<g transform="translate(20 195)" stroke="#0e0b06" stroke-width="3" fill="none">
 			<rect x="0" y="0" width="60" height="60"/>
-			<rect x="15" y="15" width="30" height="30" fill="#1a1815"/>
+			<rect x="15" y="15" width="30" height="30" fill="#0e0b06"/>
 		</g>
-		<g transform="translate(20 280)" stroke="#1a1815" stroke-width="3" fill="none">
+		<g transform="translate(20 280)" stroke="#0e0b06" stroke-width="3" fill="none">
 			<rect x="0" y="0" width="60" height="60"/>
-			<rect x="15" y="15" width="30" height="30" fill="#1a1815"/>
+			<rect x="15" y="15" width="30" height="30" fill="#0e0b06"/>
 		</g>
-		<g transform="translate(105 280)" fill="#1a1815">
+		<g transform="translate(105 280)" fill="#0e0b06">
 			<rect x="0" y="0" width="14" height="14"/>
 			<rect x="40" y="0" width="14" height="14"/>
 			<rect x="60" y="0" width="14" height="14"/>
@@ -91,7 +91,7 @@
 			<rect x="40" y="40" width="14" height="14"/>
 			<rect x="60" y="40" width="14" height="14"/>
 		</g>
-		<g transform="translate(20 365)" fill="#1a1815">
+		<g transform="translate(20 365)" fill="#0e0b06">
 			<rect x="0" y="0" width="14" height="14"/>
 			<rect x="20" y="0" width="14" height="14"/>
 			<rect x="60" y="0" width="14" height="14"/>
@@ -102,12 +102,12 @@
 			<rect x="40" y="40" width="14" height="14"/>
 			<rect x="60" y="40" width="14" height="14"/>
 		</g>
-		<g transform="translate(105 365)" stroke="#1a1815" stroke-width="3" fill="none">
+		<g transform="translate(105 365)" stroke="#0e0b06" stroke-width="3" fill="none">
 			<rect x="0" y="0" width="60" height="60"/>
-			<rect x="15" y="15" width="30" height="30" fill="#1a1815"/>
+			<rect x="15" y="15" width="30" height="30" fill="#0e0b06"/>
 		</g>
 
-		<line x1="0" y1="442" x2="195" y2="442" stroke="#1a1815" stroke-width="1" opacity="0.18"/>
-		<text x="20" y="462" font-family="ui-monospace, 'Menlo', monospace" font-size="10" letter-spacing="3" fill="#1a1815" opacity="0.55">SCAN ME</text>
+		<line x1="0" y1="442" x2="195" y2="442" stroke="#0e0b06" stroke-width="1" opacity="0.18"/>
+		<text x="20" y="462" font-family="ui-monospace, 'Menlo', monospace" font-size="10" letter-spacing="3" fill="#0e0b06" opacity="0.55">SCAN ME</text>
 	</g>
 </svg>

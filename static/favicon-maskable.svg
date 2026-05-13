@@ -7,7 +7,7 @@
 	     canvas, well within the safe zone, matching favicon.svg's
 	     finder + data cells exactly so the maskable read identically
 	     to the standard favicon when the mask is a square. -->
-	<rect width="100" height="100" fill="#f2ebdd"/>
+	<rect width="100" height="100" fill="#f4eee0"/>
 	<g transform="translate(22 22)" fill="#c53a1f">
 		<!-- 7×7 grid scaled to 56 px (8 px cells). Identical layout
 		     to favicon.svg, just rebased on the maskable canvas. -->

@@ -6,13 +6,13 @@
 No signup. No tracking. No upload. Logo + styling included.
 Runs in your browser — your data never leaves your machine.
 
-[![Live](https://img.shields.io/badge/live-qr.kemek.com-c53a1f?style=flat-square&labelColor=1a1815)](https://qr.kemek.com)
-[![License: MIT](https://img.shields.io/badge/license-MIT-1a1815?style=flat-square&labelColor=f2ebdd)](LICENSE)
-[![Svelte 5](https://img.shields.io/badge/svelte-5-ff3e00?style=flat-square&labelColor=1a1815)](https://svelte.dev)
-[![SvelteKit](https://img.shields.io/badge/sveltekit-2-ff3e00?style=flat-square&labelColor=1a1815)](https://kit.svelte.dev)
-[![TypeScript](https://img.shields.io/badge/typescript-strict-3178c6?style=flat-square&labelColor=1a1815)](https://www.typescriptlang.org)
-[![Vitest](https://img.shields.io/badge/tests-57%20passing-3dcc7d?style=flat-square&labelColor=1a1815)](#testing)
-[![Lighthouse](https://img.shields.io/badge/lighthouse-94%2F100%2F100%2F100-3dcc7d?style=flat-square&labelColor=1a1815)](#performance)
+[![Live](https://img.shields.io/badge/live-qr.kemek.com-c53a1f?style=flat-square&labelColor=0e0b06)](https://qr.kemek.com)
+[![License: MIT](https://img.shields.io/badge/license-MIT-0e0b06?style=flat-square&labelColor=f4eee0)](LICENSE)
+[![Svelte 5](https://img.shields.io/badge/svelte-5-ff3e00?style=flat-square&labelColor=0e0b06)](https://svelte.dev)
+[![SvelteKit](https://img.shields.io/badge/sveltekit-2-ff3e00?style=flat-square&labelColor=0e0b06)](https://kit.svelte.dev)
+[![TypeScript](https://img.shields.io/badge/typescript-strict-3178c6?style=flat-square&labelColor=0e0b06)](https://www.typescriptlang.org)
+[![Tests](https://img.shields.io/badge/tests-passing-3dcc7d?style=flat-square&labelColor=0e0b06)](#develop)
+[![Lighthouse](https://img.shields.io/badge/lighthouse-mobile%20audit%20clean-3dcc7d?style=flat-square&labelColor=0e0b06)](#performance)
 
 [**→ open the generator**](https://qr.kemek.com) &nbsp;·&nbsp;
 [the why](#why) &nbsp;·&nbsp;
