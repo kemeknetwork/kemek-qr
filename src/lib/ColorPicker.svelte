@@ -363,109 +363,111 @@
 				>
 			</header>
 
-			<div class="canvas">
-				<span class="bracket bracket-tl" aria-hidden="true"></span>
-				<span class="bracket bracket-tr" aria-hidden="true"></span>
-				<span class="bracket bracket-bl" aria-hidden="true"></span>
-				<span class="bracket bracket-br" aria-hidden="true"></span>
+			<div class="body">
+				<div class="canvas">
+					<span class="bracket bracket-tl" aria-hidden="true"></span>
+					<span class="bracket bracket-tr" aria-hidden="true"></span>
+					<span class="bracket bracket-bl" aria-hidden="true"></span>
+					<span class="bracket bracket-br" aria-hidden="true"></span>
 
-				<div
-					bind:this={padEl}
-					class="pad"
-					style:background={padBg}
-					onpointerdown={onPadDown}
-					onpointermove={onPadMove}
-					onpointerup={onPadUp}
-					role="slider"
-					tabindex="0"
-					aria-label="Saturation and lightness"
-					aria-valuemin="0"
-					aria-valuemax="100"
-					aria-valuenow={Math.round((sat + light) / 2)}
-				>
-					<span class="pad-thumb" style={padThumbStyle}></span>
-				</div>
-
-				<div
-					bind:this={hueEl}
-					class="hue"
-					onpointerdown={onHueDown}
-					onpointermove={onHueMove}
-					onpointerup={onHueUp}
-					role="slider"
-					tabindex="0"
-					aria-label="Hue"
-					aria-valuemin="0"
-					aria-valuemax="360"
-					aria-valuenow={Math.round(hue)}
-				>
-					<span class="hue-thumb" style={hueThumbStyle}></span>
-				</div>
-			</div>
-
-			<div class="readout" aria-live="polite">
-				<span class="readout-rubric">RGB</span>
-				<span class="readout-val">{rgbDisplay}</span>
-				<span class="readout-sep">·</span>
-				<span class="readout-rubric">HSL</span>
-				<span class="readout-val">{hslDisplay}</span>
-			</div>
-
-			<section class="cell">
-				<header class="cell-head">
-					<span class="cell-num">S-02</span>
-					<span class="cell-rubric">PALETTE</span>
-				</header>
-				<div class="grid grid-7">
-					{#each PALETTE as sw}
-						<button
-							type="button"
-							class="chip"
-							class:active={value.toUpperCase() === sw.hex.toUpperCase()}
-							onclick={() => pickSwatch(sw.hex)}
-							aria-label={sw.name}
-							title="{sw.name} · {sw.hex}"
-							style:--swatch-fill={sw.hex}
-						></button>
-					{/each}
-				</div>
-			</section>
-
-			<section class="cell">
-				<header class="cell-head">
-					<span class="cell-num">S-03</span>
-					<span class="cell-rubric">SAVED</span>
-					<span class="cell-counter">{saved.length}/{SAVED_MAX}</span>
-				</header>
-				<div class="grid grid-7">
-					<button
-						type="button"
-						class="add-chip"
-						onclick={saveCurrent}
-						disabled={saveDisabled}
-						aria-label="Save current color"
-						title={saveDisabled ? `${value} already saved` : `Save ${value}`}
+					<div
+						bind:this={padEl}
+						class="pad"
+						style:background={padBg}
+						onpointerdown={onPadDown}
+						onpointermove={onPadMove}
+						onpointerup={onPadUp}
+						role="slider"
+						tabindex="0"
+						aria-label="Saturation and lightness"
+						aria-valuemin="0"
+						aria-valuemax="100"
+						aria-valuenow={Math.round((sat + light) / 2)}
 					>
-						<span aria-hidden="true">+</span>
-					</button>
-					{#each Array(SAVED_MAX) as _, i}
-						{@const h = saved[i]}
-						{#if h}
+						<span class="pad-thumb" style={padThumbStyle}></span>
+					</div>
+
+					<div
+						bind:this={hueEl}
+						class="hue"
+						onpointerdown={onHueDown}
+						onpointermove={onHueMove}
+						onpointerup={onHueUp}
+						role="slider"
+						tabindex="0"
+						aria-label="Hue"
+						aria-valuemin="0"
+						aria-valuemax="360"
+						aria-valuenow={Math.round(hue)}
+					>
+						<span class="hue-thumb" style={hueThumbStyle}></span>
+					</div>
+				</div>
+
+				<div class="readout" aria-live="polite">
+					<span class="readout-rubric">RGB</span>
+					<span class="readout-val">{rgbDisplay}</span>
+					<span class="readout-sep">·</span>
+					<span class="readout-rubric">HSL</span>
+					<span class="readout-val">{hslDisplay}</span>
+				</div>
+
+				<section class="cell">
+					<header class="cell-head">
+						<span class="cell-num">S-02</span>
+						<span class="cell-rubric">PALETTE</span>
+					</header>
+					<div class="grid grid-7">
+						{#each PALETTE as sw}
 							<button
 								type="button"
 								class="chip"
-								class:active={value.toUpperCase() === h.toUpperCase()}
-								onclick={() => pickSwatch(h)}
-								aria-label={`Use ${h}`}
-								title={h}
-								style:--swatch-fill={h}
+								class:active={value.toUpperCase() === sw.hex.toUpperCase()}
+								onclick={() => pickSwatch(sw.hex)}
+								aria-label={sw.name}
+								title="{sw.name} · {sw.hex}"
+								style:--swatch-fill={sw.hex}
 							></button>
-						{:else}
-							<span class="chip empty" aria-hidden="true"></span>
-						{/if}
-					{/each}
-				</div>
-			</section>
+						{/each}
+					</div>
+				</section>
+
+				<section class="cell">
+					<header class="cell-head">
+						<span class="cell-num">S-03</span>
+						<span class="cell-rubric">SAVED</span>
+						<span class="cell-counter">{saved.length}/{SAVED_MAX}</span>
+					</header>
+					<div class="grid grid-7">
+						<button
+							type="button"
+							class="add-chip"
+							onclick={saveCurrent}
+							disabled={saveDisabled}
+							aria-label="Save current color"
+							title={saveDisabled ? `${value} already saved` : `Save ${value}`}
+						>
+							<span aria-hidden="true">+</span>
+						</button>
+						{#each Array(SAVED_MAX) as _, i}
+							{@const h = saved[i]}
+							{#if h}
+								<button
+									type="button"
+									class="chip"
+									class:active={value.toUpperCase() === h.toUpperCase()}
+									onclick={() => pickSwatch(h)}
+									aria-label={`Use ${h}`}
+									title={h}
+									style:--swatch-fill={h}
+								></button>
+							{:else}
+								<span class="chip empty" aria-hidden="true"></span>
+							{/if}
+						{/each}
+					</div>
+				</section>
+			</div>
 
 			<footer class="foot">
 				{#if hasEyeDropper}
@@ -553,6 +555,18 @@
 			0 2px 6px rgb(0 0 0 / 0.18);
 		font-family: var(--font-mono);
 		animation: cp-fade 200ms ease-out;
+	}
+	/* Head + foot stay pinned; body scrolls when content > available
+	 * height. Required for landscape phones where the panel max-height
+	 * (94dvh ≈ 300 px at 320-px tall viewport) is smaller than the
+	 * combined section heights — without this, PALETTE / SAVED / FOOT
+	 * get clipped and the user can't reach the brand swatches or the
+	 * dismiss button. */
+	.body {
+		flex: 1 1 auto;
+		overflow-y: auto;
+		min-height: 0;
+		-webkit-overflow-scrolling: touch;
 	}
 	@media (max-width: 720px) {
 		.panel {
@@ -680,6 +694,19 @@
 			height: 160px;
 		}
 	}
+	@media (max-width: 360px) {
+		.pad {
+			height: 140px;
+		}
+	}
+	/* Landscape phones (typically 320 – 414 px tall) need a much
+	 * smaller canvas to keep PALETTE + SAVED + FOOT above the fold.
+	 * The body wrapper scrolls if they still don't all fit. */
+	@media (orientation: landscape) and (max-height: 500px) {
+		.pad {
+			height: 110px;
+		}
+	}
 	.pad:focus-visible {
 		outline: 2px solid var(--accent);
 		outline-offset: 2px;
@@ -720,6 +747,16 @@
 	@media (max-width: 480px) {
 		.hue {
 			height: 160px;
+		}
+	}
+	@media (max-width: 360px) {
+		.hue {
+			height: 140px;
+		}
+	}
+	@media (orientation: landscape) and (max-height: 500px) {
+		.hue {
+			height: 110px;
 		}
 	}
 	.hue:focus-visible {
