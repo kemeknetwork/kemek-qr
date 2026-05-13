@@ -8,6 +8,24 @@
 
 	let { value = $bindable(), label }: Props = $props();
 
+	/* Teleport the overlay+panel to document.body so they escape any
+	 * ancestor that creates a `position: fixed` containing block. The
+	 * generator's `.controls` column runs a `fade-up both` animation
+	 * that leaves `transform: translateY(0)` on the computed style —
+	 * per CSS spec, any non-`none` transform makes `position: fixed`
+	 * resolve to that ancestor instead of the viewport, so without
+	 * the portal the panel renders inside the form column off-screen
+	 * and the overlay's `inset: 0` only darkens that column. */
+	function portal(node: HTMLElement) {
+		if (typeof document === 'undefined') return;
+		document.body.appendChild(node);
+		return {
+			destroy() {
+				node.remove();
+			}
+		};
+	}
+
 	let open = $state(false);
 	let triggerEl = $state<HTMLButtonElement | null>(null);
 	let panelEl = $state<HTMLDivElement | null>(null);
@@ -327,6 +345,7 @@
 
 {#if open}
 	<div
+		use:portal
 		class="overlay"
 		role="presentation"
 		onclick={onOverlayClick}
