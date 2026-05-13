@@ -15,6 +15,7 @@
 		type PngSize
 	} from '$lib/permalink';
 	import { encode } from '$lib/encoders';
+	import ColorPicker from '$lib/ColorPicker.svelte';
 	import { contrastBand, contrastRatio, effectiveFg, isInverted } from '$lib/contrast';
 	import {
 		DEFAULT_CONTENT,
@@ -1057,7 +1058,7 @@
 				<label class="color-field">
 					<span class="field-label">FOREGROUND</span>
 					<span class="color-input">
-						<input type="color" bind:value={fgColor} aria-label="Foreground color" />
+						<ColorPicker bind:value={fgColor} label="Foreground color" />
 						<input
 							type="text"
 							bind:value={fgInput}
@@ -1072,7 +1073,7 @@
 				<label class="color-field">
 					<span class="field-label">BACKGROUND</span>
 					<span class="color-input">
-						<input type="color" bind:value={bgColor} aria-label="Background color" />
+						<ColorPicker bind:value={bgColor} label="Background color" />
 						<input
 							type="text"
 							bind:value={bgInput}
@@ -1104,7 +1105,7 @@
 					<label class="color-field">
 						<span class="field-label">FROM</span>
 						<span class="color-input">
-							<input type="color" bind:value={gradientFrom} aria-label="Gradient start" />
+							<ColorPicker bind:value={gradientFrom} label="Gradient start color" />
 							<input
 								type="text"
 								bind:value={gradientFromInput}
@@ -1119,7 +1120,7 @@
 					<label class="color-field">
 						<span class="field-label">TO</span>
 						<span class="color-input">
-							<input type="color" bind:value={gradientTo} aria-label="Gradient end" />
+							<ColorPicker bind:value={gradientTo} label="Gradient end color" />
 							<input
 								type="text"
 								bind:value={gradientToInput}
@@ -2026,27 +2027,6 @@
 			min-height: var(--touch);
 			padding: 0.4rem 0.55rem;
 		}
-		.color-input input[type='color'] {
-			width: 32px;
-			height: 32px;
-		}
-	}
-	.color-input input[type='color'] {
-		-webkit-appearance: none;
-		appearance: none;
-		width: 28px;
-		height: 28px;
-		border: none;
-		background: transparent;
-		cursor: pointer;
-		padding: 0;
-	}
-	.color-input input[type='color']::-webkit-color-swatch-wrapper {
-		padding: 0;
-	}
-	.color-input input[type='color']::-webkit-color-swatch {
-		border: 1px solid var(--rule-strong);
-		border-radius: 2px;
 	}
 	.hex {
 		font-family: var(--font-mono);
