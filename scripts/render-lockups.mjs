@@ -59,10 +59,10 @@ const browser = await chromium.launch({
 	...(executablePath ? { executablePath } : {})
 });
 
-async function captureBrand(theme, outRelPath) {
+async function captureBrand(theme, outRelPath, scale = 4) {
 	const ctx = await browser.newContext({
 		viewport: { width: 1280, height: 800 },
-		deviceScaleFactor: 4
+		deviceScaleFactor: scale
 	});
 	const page = await ctx.newPage();
 	await page.goto(DEV_URL, { waitUntil: 'networkidle' });
@@ -89,8 +89,21 @@ async function captureBrand(theme, outRelPath) {
 	await ctx.close();
 }
 
-await captureBrand('light', 'static/brand/lockup-light.png');
-await captureBrand('dark', 'static/brand/lockup-dark.png');
+/* Screen-grade lockups — README header, social cards, in-browser
+ * uses. 4 × the native masthead → 752 × 192. Plenty of retina for
+ * any reasonable display size. */
+await captureBrand('light', 'static/brand/lockup-light.png', 4);
+await captureBrand('dark', 'static/brand/lockup-dark.png', 4);
+
+/* Print-grade lockups — banners, posters, anything that gets
+ * rasterized at a printer. 32 × the native masthead → ~ 6000 wide
+ * (capped by Chrome's canvas-size limits; 32 × is the sweet spot
+ * between resolution and "Chrome refuses to allocate"). At 150 DPI
+ * this is ~ 40 inches wide; at 100 DPI ~ 60 inches. For posters
+ * larger than that, hand the SVG mark to the print shop instead —
+ * mark.svg is pure geometry and scales to any size. */
+await captureBrand('light', 'static/brand/lockup-light-print.png', 32);
+await captureBrand('dark', 'static/brand/lockup-dark-print.png', 32);
 
 await browser.close();
 console.log('lockup PNGs regenerated (live-masthead capture).');

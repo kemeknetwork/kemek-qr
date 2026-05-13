@@ -51,9 +51,13 @@ await writeFile('static/favicon.ico', await toIco([ico16, ico32, ico48]));
 
 /* Brand-kit mark rasters — high-res PNGs for press, social, and
  * partner usage. The SVG master in static/brand/mark.svg is the
- * source of truth; PNGs are convenience exports. 2048 is the
- * print-grade ceiling (~ 6.8 in at 300 DPI). */
-for (const size of [256, 512, 1024, 2048]) {
+ * source of truth and scales to any size (it's pure geometry —
+ * rects + paths, no font dependency); the PNGs below are
+ * convenience exports for raster-only workflows. 4096 covers
+ * grand-format print needs (~ 13.6 in at 300 DPI, or feet of
+ * banner at lower DPIs); for anything bigger, hand the SVG to the
+ * print shop. */
+for (const size of [256, 512, 1024, 2048, 4096]) {
 	await rasterize(BRAND_MARK_SVG, size, `static/brand/mark-${size}.png`);
 }
 

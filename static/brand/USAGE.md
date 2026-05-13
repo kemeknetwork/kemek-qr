@@ -57,11 +57,39 @@ favicon-specific styling, not part of the mark.
 | `mark-256.png` | Mark rasterized at 256 × 256, transparent ground. |
 | `mark-512.png` | Mark rasterized at 512 × 512, transparent ground. |
 | `mark-1024.png` | Mark rasterized at 1024 × 1024, transparent ground. |
-| `mark-2048.png` | Mark rasterized at 2048 × 2048, transparent ground. Use for print. |
+| `mark-2048.png` | Mark rasterized at 2048 × 2048, transparent ground. |
+| `mark-4096.png` | Mark rasterized at 4096 × 4096, transparent ground. Print-grade — ~ 41 in square at 100 DPI, ~ 13.6 in at 300 DPI. |
+| `lockup-light-print.png` | Print-grade lockup (6016 × 1536), light theme. ~ 60 × 15 in at 100 DPI. Suitable for banners / posters up to about 5 ft wide. For larger, use `mark.svg` directly. |
+| `lockup-dark-print.png` | Print-grade lockup, dark theme. Same dimensions. |
 
-PNG rasters are generated from the SVG masters via
-`npm run build:images`. Don't edit the PNGs by hand; edit the SVG
-and re-run the build.
+PNG rasters are generated from the SVG masters via:
+
+- `npm run build:images` — `mark-{256..4096}.png` from `mark.svg` via
+  sharp (no fonts needed; the mark is pure geometry).
+- `node scripts/render-lockups.mjs` — `lockup-{light,dark}{,-print}.png`
+  by literally screenshotting the live masthead `a.brand` element
+  from a running dev server. The PNGs match the production
+  rendering pixel-for-pixel — same fonts, same `opsz`, same
+  `ss01` feature. Requires Playwright + Chromium on the host;
+  see the script header for env-var overrides.
+
+Don't edit the PNGs by hand; edit the SVG / masthead and re-run
+the build.
+
+## For prints larger than the included rasters
+
+The brand mark (`mark.svg`) is pure SVG geometry — rects + paths,
+no font dependency. Any print shop / RIP / vector editor can scale
+it to **any** size with zero loss. For a 3 × 9 ft poster, banner,
+side-of-building wrap — hand the print shop `mark.svg` directly and
+specify the output dimensions.
+
+The lockup with the wordmark is harder because the wordmark is set
+in Fraunces. The included `lockup-*-print.png` (6016 × 1536) covers
+roughly up to a 5 ft × 15 in banner at 100 DPI. For larger lockup
+prints, the next-tier deliverable is the lockup as SVG with the
+wordmark converted to outlined paths (font-independent) — not
+included yet, file an issue.
 
 ---
 
