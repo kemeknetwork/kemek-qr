@@ -42,24 +42,19 @@
 		<path d="M150.493 29.514Q149.966 30.506 149.230 31.901Q148.494 33.296 147.672 34.885Q146.851 36.474 146.014 38.070Q145.177 39.666 144.440 41.085Q143.704 42.503 143.146 43.526Q142.836 44.022 142.472 44.208Q142.108 44.394 141.689 44.239Q141.286 44.115 141.224 43.758Q141.162 43.402 141.472 42.922Q142.015 41.898 142.813 40.519Q143.611 39.139 144.510 37.574Q145.409 36.008 146.316 34.435Q147.223 32.862 148.013 31.475Q148.804 30.087 149.331 29.080Q149.873 28.072 150.617 26.662Q151.361 25.252 152.167 23.647Q152.973 22.043 153.795 20.431Q154.616 18.819 155.352 17.409Q156.089 15.998 156.631 14.991Q156.926 14.494 157.305 14.301Q157.685 14.107 158.104 14.277Q158.460 14.401 158.483 14.766Q158.507 15.130 158.243 15.595Q157.685 16.618 156.918 18.029Q156.151 19.439 155.267 21.020Q154.384 22.601 153.500 24.174Q152.617 25.748 151.834 27.135Q151.051 28.522 150.493 29.514" />
 	</g>
 	</g>
-	<text x="80" y="220" font-family="ui-monospace, 'Menlo', monospace" font-size="22" letter-spacing="5" fill="#e0492c" font-weight="500">PLATE 01 · KMK·QR</text>
-	<text x="80" y="320" font-family="Georgia, serif" font-size="78" font-weight="400" fill="#f9eedb" letter-spacing="-2">
+	<text x="80" y="300" font-family="Georgia, serif" font-size="78" font-weight="400" fill="#f9eedb" letter-spacing="-2">
 		<tspan>A QR code generator</tspan>
 	</text>
-	<text x="80" y="400" font-family="Georgia, serif" font-style="italic" font-size="78" font-weight="400" fill="#e0492c" letter-spacing="-2">
+	<text x="80" y="380" font-family="Georgia, serif" font-style="italic" font-size="78" font-weight="400" fill="#e0492c" letter-spacing="-2">
 		<tspan>that doesn’t want</tspan>
 	</text>
-	<text x="80" y="475" font-family="Georgia, serif" font-style="italic" font-size="78" font-weight="400" fill="#e0492c" letter-spacing="-2">
+	<text x="80" y="455" font-family="Georgia, serif" font-style="italic" font-size="78" font-weight="400" fill="#e0492c" letter-spacing="-2">
 		<tspan>anything from you.</tspan>
 	</text>
-	<text x="80" y="533" font-family="ui-monospace, 'Menlo', monospace" font-size="21" fill="#f9eedb" opacity="0.62" letter-spacing="2">
-		<tspan>Free · No signup · No tracking · Logo + styling included.</tspan>
+	<text x="80" y="520" font-family="ui-monospace, 'Menlo', monospace" font-size="24" fill="#f9eedb" opacity="0.78" letter-spacing="1.5">
+		<tspan>Free · No signup · No tracking · Logo + styling</tspan>
 	</text>
-	<g transform="translate(80 568)" font-family="ui-monospace, 'Menlo', monospace" font-size="17" fill="#f9eedb" letter-spacing="2.5">
-		<text opacity="0.55">PNG · SVG · PDF</text>
-		<text x="265" opacity="0.55">CLIENT-SIDE</text>
-		<text x="500" opacity="0.55">EDITION I — V·MMXXVI</text>
-	</g>
+	<text x="80" y="565" xml:space="preserve" font-family="ui-monospace, 'Menlo', monospace" font-size="20" letter-spacing="2.5"><tspan fill="#e0492c" font-weight="500">KMK·QR</tspan><tspan fill="#f9eedb" opacity="0.42">   ·   </tspan><tspan fill="#f9eedb" opacity="0.55">PNG / SVG / PDF</tspan><tspan fill="#f9eedb" opacity="0.42">   ·   </tspan><tspan fill="#f9eedb" opacity="0.55">EDITION I — V·MMXXVI</tspan></text>
 
 	<!-- Specimen card on the right. The QR itself is a styled PNG
 	     produced by kemek/qr's own app — dogfooding the product the
@@ -67,15 +62,15 @@
 	     so no separate quiet-zone tile needed under it. -->
 	<g transform="translate(925 80)">
 		<rect width="195" height="470" fill="#16130d" stroke="#f9eedb" stroke-opacity="0.34" stroke-width="1"/>
-		<text x="20" y="50" font-family="ui-monospace, 'Menlo', monospace" font-size="15" letter-spacing="2.5" fill="#f9eedb" opacity="0.55">PLATE</text>
-		<text x="97.5" y="135" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="76" fill="#e0492c" letter-spacing="-2">01</text>
-		<line x1="0" y1="175" x2="195" y2="175" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
+		<text x="20" y="55" font-family="ui-monospace, 'Menlo', monospace" font-size="22" letter-spacing="3" fill="#f9eedb" opacity="0.6">PLATE</text>
+		<text x="97.5" y="142" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="82" fill="#e0492c" letter-spacing="-2">01</text>
+		<line x1="0" y1="180" x2="195" y2="180" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
 
 		<rect x="15" y="195" width="165" height="165" fill="#f9eedb"/>
 		<image href="brand/qr.png" x="19" y="199" width="157" height="157"/>
 
 		<line x1="0" y1="385" x2="195" y2="385" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
-		<text x="97.5" y="412" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="14" letter-spacing="2.5" fill="#f9eedb" opacity="0.62">SCAN ME</text>
-		<text x="97.5" y="435" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="13" letter-spacing="1.5" fill="#e0492c">qr.kemek.com</text>
+		<text x="97.5" y="418" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="20" letter-spacing="3" fill="#f9eedb" opacity="0.65">SCAN ME</text>
+		<text x="97.5" y="450" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="18" letter-spacing="1.5" fill="#e0492c">qr.kemek.com</text>
 	</g>
 </svg>
