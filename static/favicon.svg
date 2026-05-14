@@ -1,11 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-	<rect width="64" height="64" fill="#f4eee0"/>
-	<rect x="2" y="2" width="60" height="60" fill="none" stroke="#0e0b06" stroke-width="1"/>
+	<rect width="64" height="64" fill="#100e09"/>
+	<rect x="2" y="2" width="60" height="60" fill="none" stroke="#f9eedb" stroke-opacity="0.34" stroke-width="1"/>
 	<!-- Stylized QR mark — 7×7 grid, 8 px cells, 4 px outer padding.
 	     Three finder-pattern eyes (TL/TR/BL) as hollow 3×3 squares,
 	     plus five scattered data cells in the BR quadrant. Mirrors
-	     the brand-mark in the masthead at 1:1 visual logic. -->
-	<g transform="translate(4 4)" fill="#c53a1f">
+	     the brand-mark in the masthead at 1:1 visual logic. Accent
+	     uses the dark-mode warm-accent value (#e0492c) so it reads
+	     against the graphite paper at small browser-tab sizes. -->
+	<g transform="translate(4 4)" fill="#e0492c">
 		<!-- TL finder -->
 		<rect width="24" height="8"/>
 		<rect y="16" width="24" height="8"/>
