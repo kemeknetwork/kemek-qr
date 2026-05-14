@@ -146,12 +146,35 @@
 
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
-	<!-- Identity / publisher -->
+	<!-- Identity / publisher. kVadrum is the creative author
+	     (rel="author", rel="me", DC.creator); KeMeK Network is the
+	     publisher / legal entity carrying the copyright + the
+	     wordmark + logo trademarks (rel="publisher", DC.publisher,
+	     DC.rights). The Schema.org Organization JSON-LD at the
+	     bottom of this head spells out the same relationship in
+	     a machine-graph-friendly form. -->
 	<meta name="application-name" content="kemek/qr" />
 	<meta name="author" content="kVadrum" />
 	<meta name="publisher" content="KeMeK Network" />
 	<meta name="copyright" content="© 2026 KeMeK Network" />
 	<meta name="generator" content="SvelteKit" />
+	<link rel="author" href="https://kvadrum.com" />
+	<link rel="publisher" href="https://kemek.com" />
+	<!-- rel="me" claims the author identity for Mastodon /
+	     indieweb verification chains. Mutual rel="me" with
+	     kvadrum.com establishes the link. -->
+	<link rel="me" href="https://kvadrum.com" />
+
+	<!-- Dublin Core — consumed by academic, archival, and
+	     library-grade crawlers. Mirrors the meta + JSON-LD identity
+	     in the format those crawlers expect. -->
+	<meta name="DC.title" content="kemek/qr" />
+	<meta name="DC.creator" content="kVadrum" />
+	<meta name="DC.publisher" content="KeMeK Network" />
+	<meta name="DC.rights" content="© 2026 KeMeK Network" />
+	<meta name="DC.identifier" content="https://qr.kemek.com" />
+	<meta name="DC.language" content="en" />
+	<meta name="DC.type" content="InteractiveResource" />
 
 	<!-- Crawlers: index aggressively, allow large image previews so the
 	     OG card surfaces in Google rich results. -->
@@ -192,6 +215,7 @@
 
 	<!-- OG image (1200×630). Per-page og:title / og:description /
 	     og:url / og:type live in the page's own svelte:head. -->
+	<meta property="og:site_name" content="kemek/qr" />
 	<meta property="og:locale" content="en_US" />
 	<meta property="og:image" content="https://qr.kemek.com/og.png" />
 	<meta property="og:image:secure_url" content="https://qr.kemek.com/og.png" />
@@ -219,7 +243,12 @@
 		name: 'KeMeK Network',
 		url: 'https://kemek.com',
 		logo: 'https://qr.kemek.com/favicon-512.png',
-		brand: { '@type': 'Brand', name: 'kemek/qr' }
+		brand: { '@type': 'Brand', name: 'kemek/qr' },
+		founder: {
+			'@type': 'Person',
+			name: 'kVadrum',
+			url: 'https://kvadrum.com'
+		}
 	})}</script>`}
 </svelte:head>
 
