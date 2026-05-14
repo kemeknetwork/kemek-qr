@@ -38,13 +38,19 @@ const LOCKUP_DARK_OUTLINED = (await readFile('static/brand/lockup-dark-outlined.
 const OG_CARD_W = 1200;
 const OG_CARD_H = 630;
 
-/* Right-side specimen card: 195×470 at (925,80). Styled QR sits at
- * 165×165, centered with 15 px margins each side. The supplied PNG
- * ships its own white background — no separate quiet-zone tile
- * needed. */
+/* Right-side specimen card: 195×470 at (925,80). The cream quiet-
+ * zone tile is 165×165, centered with 15 px margins each side. The
+ * styled QR PNG sits inset inside the tile so the modules clear the
+ * spec-required 4-module quiet zone — the supplied PNG ships a
+ * tight built-in margin that crowds the modules against the tile
+ * edges otherwise. */
 const QR_TILE_PX = 165;
-const QR_CARD_X = (195 - QR_TILE_PX) / 2;
-const QR_CARD_Y = 195;
+const QR_TILE_X = (195 - QR_TILE_PX) / 2;
+const QR_TILE_Y = 195;
+const QR_INSET = 12;
+const QR_IMG_PX = QR_TILE_PX - 2 * QR_INSET;
+const QR_IMG_X = QR_TILE_X + QR_INSET;
+const QR_IMG_Y = QR_TILE_Y + QR_INSET;
 
 const OG_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${OG_CARD_W} ${OG_CARD_H}" width="${OG_CARD_W}" height="${OG_CARD_H}">
 	<defs>
@@ -97,11 +103,12 @@ const OG_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${OG_CARD_W
 		<text x="97.5" y="135" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="76" fill="#e0492c" letter-spacing="-2">01</text>
 		<line x1="0" y1="175" x2="195" y2="175" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
 
-		<image href="brand/qr.png" x="${QR_CARD_X}" y="${QR_CARD_Y}" width="${QR_TILE_PX}" height="${QR_TILE_PX}"/>
+		<rect x="${QR_TILE_X}" y="${QR_TILE_Y}" width="${QR_TILE_PX}" height="${QR_TILE_PX}" fill="#f9eedb"/>
+		<image href="brand/qr.png" x="${QR_IMG_X}" y="${QR_IMG_Y}" width="${QR_IMG_PX}" height="${QR_IMG_PX}"/>
 
-		<line x1="0" y1="${QR_CARD_Y + QR_TILE_PX + 25}" x2="195" y2="${QR_CARD_Y + QR_TILE_PX + 25}" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
-		<text x="97.5" y="${QR_CARD_Y + QR_TILE_PX + 48}" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="11" letter-spacing="3" fill="#f9eedb" opacity="0.62">SCAN ME</text>
-		<text x="97.5" y="${QR_CARD_Y + QR_TILE_PX + 65}" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="10" letter-spacing="2" fill="#e0492c">qr.kemek.com</text>
+		<line x1="0" y1="${QR_TILE_Y + QR_TILE_PX + 25}" x2="195" y2="${QR_TILE_Y + QR_TILE_PX + 25}" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
+		<text x="97.5" y="${QR_TILE_Y + QR_TILE_PX + 48}" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="11" letter-spacing="3" fill="#f9eedb" opacity="0.62">SCAN ME</text>
+		<text x="97.5" y="${QR_TILE_Y + QR_TILE_PX + 65}" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="10" letter-spacing="2" fill="#e0492c">qr.kemek.com</text>
 	</g>
 </svg>
 `;
