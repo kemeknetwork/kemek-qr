@@ -60,17 +60,17 @@
 	     produced by kemek/qr's own app — dogfooding the product the
 	     OG card is selling. White background is baked into the PNG,
 	     so no separate quiet-zone tile needed under it. -->
-	<g transform="translate(925 80)">
-		<rect width="195" height="470" fill="#16130d" stroke="#f9eedb" stroke-opacity="0.34" stroke-width="1"/>
+	<g transform="translate(910 70)">
+		<rect width="210" height="490" fill="#16130d" stroke="#f9eedb" stroke-opacity="0.34" stroke-width="1"/>
 		<text x="20" y="55" font-family="ui-monospace, 'Menlo', monospace" font-size="22" letter-spacing="3" fill="#f9eedb" opacity="0.6">PLATE</text>
-		<text x="97.5" y="142" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="82" fill="#e0492c" letter-spacing="-2">01</text>
-		<line x1="0" y1="180" x2="195" y2="180" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
+		<text x="105" y="142" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="82" fill="#e0492c" letter-spacing="-2">01</text>
+		<line x1="0" y1="180" x2="210" y2="180" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
 
-		<rect x="15" y="195" width="165" height="165" fill="#f9eedb"/>
-		<image href="brand/qr.png" x="19" y="199" width="157" height="157"/>
+		<rect x="16" y="195" width="178" height="178" fill="#f9eedb"/>
+		<image href="brand/qr.png" x="20" y="199" width="170" height="170"/>
 
-		<line x1="0" y1="385" x2="195" y2="385" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
-		<text x="97.5" y="418" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="20" letter-spacing="3" fill="#f9eedb" opacity="0.65">SCAN ME</text>
-		<text x="97.5" y="450" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="18" letter-spacing="1.5" fill="#e0492c">qr.kemek.com</text>
+		<line x1="0" y1="398" x2="210" y2="398" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
+		<text x="105" y="433" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="22" letter-spacing="3" fill="#f9eedb" opacity="0.65">SCAN ME</text>
+		<text x="105" y="466" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="20" letter-spacing="1.5" fill="#e0492c">qr.kemek.com</text>
 	</g>
 </svg>

@@ -61,14 +61,17 @@ const LOCKUP_DARK_OUTLINED = LOCKUP_DARK_OUTLINED_RAW
 const OG_CARD_W = 1200;
 const OG_CARD_H = 630;
 
-/* Right-side specimen card: 195×470 at (925,80). The cream quiet-
- * zone tile is 165×165, centered with 15 px margins each side. The
+/* Right-side specimen card: 210×490 at (910,70). The cream quiet-
+ * zone tile is 178×178, centered with 16 px margins each side. The
  * styled QR PNG sits inset inside the tile so the modules clear the
  * spec-required 4-module quiet zone — the supplied PNG ships a
  * tight built-in margin that crowds the modules against the tile
  * edges otherwise. */
-const QR_TILE_PX = 165;
-const QR_TILE_X = (195 - QR_TILE_PX) / 2;
+const CARD_W = 210;
+const CARD_H = 490;
+const CARD_CX = CARD_W / 2;
+const QR_TILE_PX = 178;
+const QR_TILE_X = (CARD_W - QR_TILE_PX) / 2;
 const QR_TILE_Y = 195;
 const QR_INSET = 4;
 const QR_IMG_PX = QR_TILE_PX - 2 * QR_INSET;
@@ -115,18 +118,18 @@ const OG_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${OG_CARD_W
 	     produced by kemek/qr's own app — dogfooding the product the
 	     OG card is selling. White background is baked into the PNG,
 	     so no separate quiet-zone tile needed under it. -->
-	<g transform="translate(925 80)">
-		<rect width="195" height="470" fill="#16130d" stroke="#f9eedb" stroke-opacity="0.34" stroke-width="1"/>
+	<g transform="translate(910 70)">
+		<rect width="${CARD_W}" height="${CARD_H}" fill="#16130d" stroke="#f9eedb" stroke-opacity="0.34" stroke-width="1"/>
 		<text x="20" y="55" font-family="ui-monospace, 'Menlo', monospace" font-size="22" letter-spacing="3" fill="#f9eedb" opacity="0.6">PLATE</text>
-		<text x="97.5" y="142" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="82" fill="#e0492c" letter-spacing="-2">01</text>
-		<line x1="0" y1="180" x2="195" y2="180" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
+		<text x="${CARD_CX}" y="142" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="82" fill="#e0492c" letter-spacing="-2">01</text>
+		<line x1="0" y1="180" x2="${CARD_W}" y2="180" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
 
 		<rect x="${QR_TILE_X}" y="${QR_TILE_Y}" width="${QR_TILE_PX}" height="${QR_TILE_PX}" fill="#f9eedb"/>
 		<image href="brand/qr.png" x="${QR_IMG_X}" y="${QR_IMG_Y}" width="${QR_IMG_PX}" height="${QR_IMG_PX}"/>
 
-		<line x1="0" y1="${QR_TILE_Y + QR_TILE_PX + 25}" x2="195" y2="${QR_TILE_Y + QR_TILE_PX + 25}" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
-		<text x="97.5" y="${QR_TILE_Y + QR_TILE_PX + 58}" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="20" letter-spacing="3" fill="#f9eedb" opacity="0.65">SCAN ME</text>
-		<text x="97.5" y="${QR_TILE_Y + QR_TILE_PX + 90}" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="18" letter-spacing="1.5" fill="#e0492c">qr.kemek.com</text>
+		<line x1="0" y1="${QR_TILE_Y + QR_TILE_PX + 25}" x2="${CARD_W}" y2="${QR_TILE_Y + QR_TILE_PX + 25}" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
+		<text x="${CARD_CX}" y="${QR_TILE_Y + QR_TILE_PX + 60}" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="22" letter-spacing="3" fill="#f9eedb" opacity="0.65">SCAN ME</text>
+		<text x="${CARD_CX}" y="${QR_TILE_Y + QR_TILE_PX + 93}" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="20" letter-spacing="1.5" fill="#e0492c">qr.kemek.com</text>
 	</g>
 </svg>
 `;
