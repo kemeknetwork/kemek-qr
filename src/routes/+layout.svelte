@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import '../app.css';
 	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 	import { CONTENT_TYPES, PLATE, ROUTE_FOR_TYPE, TYPE_LABELS, type ContentType } from '$lib/types';
 	/* Vite `?url` imports resolve to the bundled, content-hashed asset
 	 * paths at build time, so the preload tags below land on the
@@ -118,6 +119,19 @@
 		);
 		return match ?? 'url';
 	});
+
+	/* The colophon-link sits at the bottom of every page; SvelteKit's
+	 * default scroll-restoration sometimes lands /about at a stale
+	 * y-position (a previous bottom-of-page scroll, or the click
+	 * y-coord). Force top-of-page on this specific CTA. Modifier
+	 * clicks fall through to native behavior so cmd/middle-click
+	 * still open in a new tab. */
+	async function navigateToColophon(e: MouseEvent) {
+		if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+		e.preventDefault();
+		await goto('/about');
+		window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+	}
 </script>
 
 <svelte:head>
@@ -309,7 +323,12 @@
 	</main>
 
 	{#if page.url.pathname !== '/about'}
-		<a class="colophon-link" href="/about" aria-label="Read the colophon — about kemek/qr">
+		<a
+			class="colophon-link"
+			href="/about"
+			aria-label="Read the colophon — about kemek/qr"
+			onclick={navigateToColophon}
+		>
 			<span class="cl-tick cl-tick-tl" aria-hidden="true"></span>
 			<span class="cl-tick cl-tick-tr" aria-hidden="true"></span>
 			<span class="cl-tick cl-tick-bl" aria-hidden="true"></span>
