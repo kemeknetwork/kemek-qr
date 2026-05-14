@@ -4,20 +4,9 @@
 			<circle cx="7" cy="7" r="1.4" fill="#f9eedb" opacity="0.04"/>
 		</pattern>
 	</defs>
-
-	<!-- Graphite paper (the dark-mode paper token). Subtle cream dot
-	     pattern for the same drafting-grid feel as light mode, dropped
-	     to 4% opacity so it reads as paper texture, not as a grid. -->
 	<rect width="1200" height="630" fill="#100e09"/>
 	<rect width="1200" height="630" fill="url(#dots)"/>
-
-	<!-- Inner frame — cream stroke at low opacity reads as a
-	     specification border without competing with the type. -->
 	<rect x="40" y="40" width="1120" height="550" fill="none" stroke="#f9eedb" stroke-opacity="0.34" stroke-width="1.5"/>
-
-	<!-- Corner crop marks in accent red — the brand's signature
-	     drafting-spec frame. Same proportions / placement as the
-	     light variant. -->
 	<g fill="#e0492c">
 		<rect x="40" y="40" width="2" height="22"/>
 		<rect x="40" y="40" width="22" height="2"/>
@@ -28,114 +17,72 @@
 		<rect x="1158" y="568" width="2" height="22"/>
 		<rect x="1138" y="588" width="22" height="2"/>
 	</g>
-
-	<!-- Brand lockup — canonical 7×7 mark + Fraunces wordmark. Mark
-	     geometry copied verbatim from static/brand/mark-dark.svg with
-	     the 1-unit padded viewBox (-1 -1 9 9 → scale(5) means 9*5=45
-	     px tall, with 5-px padding inside that box on every side).
-	     Slash uses the dark-mode accent #e0492c to match the rest of
-	     the card; preferred font is Fraunces, Georgia is the
-	     documented fallback for sharp+librsvg rasterization. -->
-	<g transform="translate(75 75)">
-		<g transform="translate(5 5) scale(5)" fill="#e0492c">
-			<path d="M0 0h3v1H0zM0 2h3v1H0zM0 1h1v1H0zM2 1h1v1H2z"/>
-			<path d="M4 0h3v1H4zM4 2h3v1H4zM4 1h1v1H4zM6 1h1v1H6z"/>
-			<path d="M0 4h3v1H0zM0 6h3v1H0zM0 5h1v1H0zM2 5h1v1H2z"/>
-			<rect x="4" y="4" width="1" height="1"/>
-			<rect x="6" y="4" width="1" height="1"/>
-			<rect x="5" y="5" width="1" height="1"/>
-			<rect x="4" y="6" width="1" height="1"/>
-			<rect x="6" y="6" width="1" height="1"/>
-		</g>
-		<text x="64" y="35" font-family="Fraunces, Georgia, serif" font-style="italic" font-weight="500" font-size="40" fill="#f9eedb" letter-spacing="-0.5">
-			kemek<tspan fill="#e0492c">/</tspan>qr
-		</text>
+	<g transform="translate(78 70) scale(2.1)">
+		<title>kemek-qr horizontal lockup — outlined glyphs, font-independent</title>
+	<g transform="translate(6 12) scale(4.2857)" fill="#e0492c">
+		<path d="M0 0h3v1H0zM0 2h3v1H0zM0 1h1v1H0zM2 1h1v1H2z" />
+		<path d="M4 0h3v1H4zM4 2h3v1H4zM4 1h1v1H4zM6 1h1v1H6z" />
+		<path d="M0 4h3v1H0zM0 6h3v1H0zM0 5h1v1H0zM2 5h1v1H2z" />
+		<rect x="4" y="4" width="1" height="1" />
+		<rect x="6" y="4" width="1" height="1" />
+		<rect x="5" y="5" width="1" height="1" />
+		<rect x="4" y="6" width="1" height="1" />
+		<rect x="6" y="6" width="1" height="1" />
 	</g>
-
-	<text x="80" y="200" font-family="ui-monospace, 'Menlo', monospace" font-size="18" letter-spacing="6" fill="#e0492c" font-weight="500">PLATE 01 · KMK·QR</text>
-
-	<text x="80" y="300" font-family="Georgia, serif" font-size="78" font-weight="400" fill="#f9eedb" letter-spacing="-2">
+	<g fill="#f9eedb">
+		<path d="M52.719 39L46.891 39Q46.519 39 46.372 38.853Q46.224 38.706 46.224 38.473Q46.224 38.272 46.356 38.132Q46.488 37.992 46.752 37.900L47.449 37.745Q47.712 37.667 47.852 37.458Q47.992 37.248 47.992 36.846L47.992 19.191Q47.992 18.834 47.891 18.680Q47.790 18.524 47.526 18.509L46.566 18.447Q46.318 18.401 46.209 18.284Q46.100 18.168 46.100 17.982Q46.100 17.765 46.232 17.633Q46.364 17.502 46.721 17.378L49.588 16.386Q50.084 16.200 50.394 16.122Q50.704 16.044 50.952 16.044Q51.355 16.044 51.564 16.269Q51.773 16.494 51.773 16.881L51.773 36.815Q51.773 37.248 51.913 37.458Q52.053 37.667 52.347 37.745L52.998 37.915Q53.447 38.070 53.447 38.426Q53.447 39 52.719 39M51.029 33.559L50.657 32.413L57.105 27.050Q57.648 26.584 57.594 26.205Q57.540 25.825 56.904 25.670L56.315 25.546Q56.052 25.453 55.951 25.337Q55.850 25.221 55.850 25.019Q55.850 24.771 56.036 24.624Q56.222 24.477 56.547 24.477L61.802 24.477Q62.127 24.477 62.314 24.624Q62.499 24.771 62.499 25.004Q62.499 25.252 62.344 25.399Q62.189 25.546 61.678 25.670Q60.888 25.825 60.267 26.166Q59.648 26.507 58.748 27.251L51.029 33.559M53.169 31.095L55.726 28.832L61.166 36.752Q61.538 37.279 61.833 37.489Q62.127 37.698 62.686 37.853Q62.995 37.977 63.135 38.140Q63.275 38.303 63.275 38.504Q63.275 38.721 63.088 38.861Q62.903 39 62.577 39L56.486 39Q56.191 39 56.020 38.853Q55.850 38.706 55.850 38.473Q55.850 38.303 55.951 38.186Q56.052 38.070 56.300 37.977L56.858 37.837Q57.307 37.729 57.346 37.481Q57.385 37.233 56.966 36.629" />
+		<path d="M77.907 29.979Q77.907 30.692 77.511 31.072Q77.116 31.451 76.310 31.451L66.545 31.451L66.545 30.428L73.396 30.428Q74.109 30.428 74.109 29.777Q74.109 27.669 73.303 26.538Q72.497 25.407 71.133 25.407Q70.079 25.407 69.273 26.034Q68.467 26.662 68.002 27.832Q67.537 29.002 67.537 30.630Q67.537 33.699 68.971 35.249Q70.404 36.799 72.761 36.799Q74.218 36.799 75.303 36.163Q76.388 35.528 76.883 34.397Q77.070 34.148 77.217 34.048Q77.364 33.947 77.519 33.947Q77.721 33.947 77.814 34.141Q77.907 34.334 77.907 34.583Q77.829 35.885 76.984 36.977Q76.139 38.070 74.729 38.713Q73.319 39.356 71.505 39.356Q69.320 39.356 67.653 38.450Q65.987 37.543 65.049 35.900Q64.112 34.257 64.112 32.041Q64.112 29.731 65.011 27.956Q65.910 26.181 67.615 25.159Q69.320 24.136 71.629 24.136Q73.567 24.136 74.985 24.880Q76.403 25.623 77.155 26.941Q77.907 28.258 77.907 29.979" />
+		<path d="M85.331 25.066L85.331 36.815Q85.331 37.248 85.471 37.458Q85.610 37.667 85.904 37.745L86.556 37.915Q87.005 38.070 87.005 38.426Q87.005 39 86.276 39L80.495 39Q80.139 39 79.960 38.853Q79.782 38.706 79.782 38.473Q79.782 38.272 79.914 38.132Q80.046 37.992 80.294 37.915L81.007 37.745Q81.270 37.667 81.410 37.458Q81.549 37.248 81.549 36.846L81.549 27.375Q81.549 27.050 81.441 26.887Q81.332 26.724 81.084 26.693L80.139 26.646Q79.875 26.600 79.767 26.476Q79.658 26.352 79.658 26.166Q79.658 25.965 79.790 25.833Q79.922 25.701 80.278 25.577L83.145 24.585Q83.642 24.399 83.952 24.322Q84.261 24.244 84.510 24.244Q84.913 24.244 85.122 24.469Q85.331 24.694 85.331 25.066M85.517 27.840L84.897 28.398L84.277 27.778L84.897 27.220Q86.773 25.499 88.168 24.825Q89.563 24.151 90.818 24.151Q92.787 24.151 93.949 25.376Q95.112 26.600 95.112 28.724L95.112 36.784Q95.112 37.218 95.267 37.442Q95.422 37.667 95.716 37.760L96.321 37.931Q96.755 38.086 96.755 38.426Q96.755 39 96.026 39L90.369 39Q89.640 39 89.640 38.426Q89.640 38.070 90.090 37.915L90.772 37.760Q91.066 37.667 91.206 37.442Q91.345 37.218 91.345 36.752L91.345 29.251Q91.345 27.794 90.655 27.081Q89.966 26.367 88.772 26.367Q88.044 26.367 87.238 26.724Q86.431 27.081 85.517 27.840M95.282 27.840L94.647 28.398L94.058 27.778L94.662 27.220Q96.491 25.562 97.801 24.856Q99.111 24.151 100.304 24.151Q102.164 24.151 103.195 25.376Q104.226 26.600 104.458 28.724L105.388 36.768Q105.434 37.233 105.574 37.450Q105.714 37.667 106.008 37.760L106.597 37.915Q106.876 37.992 107 38.132Q107.124 38.272 107.124 38.473Q107.124 38.706 106.954 38.853Q106.783 39 106.411 39L100.599 39Q99.870 39 99.870 38.426Q99.870 38.070 100.320 37.915L100.986 37.760Q101.312 37.667 101.474 37.434Q101.637 37.202 101.575 36.768L100.707 29.251Q100.537 27.809 99.963 27.088Q99.389 26.367 98.289 26.367Q97.607 26.367 96.871 26.732Q96.135 27.096 95.282 27.840" />
+		<path d="M121.818 29.979Q121.818 30.692 121.423 31.072Q121.028 31.451 120.222 31.451L110.457 31.451L110.457 30.428L117.308 30.428Q118.021 30.428 118.021 29.777Q118.021 27.669 117.215 26.538Q116.409 25.407 115.045 25.407Q113.991 25.407 113.185 26.034Q112.379 26.662 111.914 27.832Q111.449 29.002 111.449 30.630Q111.449 33.699 112.882 35.249Q114.316 36.799 116.672 36.799Q118.129 36.799 119.214 36.163Q120.299 35.528 120.795 34.397Q120.981 34.148 121.128 34.048Q121.276 33.947 121.431 33.947Q121.632 33.947 121.725 34.141Q121.818 34.334 121.818 34.583Q121.741 35.885 120.896 36.977Q120.051 38.070 118.641 38.713Q117.230 39.356 115.417 39.356Q113.231 39.356 111.565 38.450Q109.899 37.543 108.961 35.900Q108.023 34.257 108.023 32.041Q108.023 29.731 108.922 27.956Q109.821 26.181 111.526 25.159Q113.231 24.136 115.541 24.136Q117.478 24.136 118.896 24.880Q120.315 25.623 121.066 26.941Q121.818 28.258 121.818 29.979" />
+		<path d="M130.188 39L124.360 39Q123.988 39 123.841 38.853Q123.694 38.706 123.694 38.473Q123.694 38.272 123.825 38.132Q123.957 37.992 124.221 37.900L124.918 37.745Q125.182 37.667 125.321 37.458Q125.461 37.248 125.461 36.846L125.461 19.191Q125.461 18.834 125.360 18.680Q125.259 18.524 124.996 18.509L124.035 18.447Q123.787 18.401 123.678 18.284Q123.570 18.168 123.570 17.982Q123.570 17.765 123.701 17.633Q123.833 17.502 124.190 17.378L127.057 16.386Q127.553 16.200 127.863 16.122Q128.173 16.044 128.421 16.044Q128.824 16.044 129.033 16.269Q129.243 16.494 129.243 16.881L129.243 36.815Q129.243 37.248 129.382 37.458Q129.522 37.667 129.816 37.745L130.467 37.915Q130.917 38.070 130.917 38.426Q130.917 39 130.188 39M128.499 33.559L128.127 32.413L134.575 27.050Q135.117 26.584 135.063 26.205Q135.008 25.825 134.373 25.670L133.784 25.546Q133.520 25.453 133.420 25.337Q133.319 25.221 133.319 25.019Q133.319 24.771 133.505 24.624Q133.691 24.477 134.017 24.477L139.271 24.477Q139.597 24.477 139.782 24.624Q139.969 24.771 139.969 25.004Q139.969 25.252 139.814 25.399Q139.659 25.546 139.147 25.670Q138.357 25.825 137.737 26.166Q137.117 26.507 136.218 27.251L128.499 33.559M130.638 31.095L133.195 28.832L138.636 36.752Q139.007 37.279 139.302 37.489Q139.597 37.698 140.155 37.853Q140.465 37.977 140.604 38.140Q140.744 38.303 140.744 38.504Q140.744 38.721 140.558 38.861Q140.371 39 140.046 39L133.954 39Q133.660 39 133.490 38.853Q133.319 38.706 133.319 38.473Q133.319 38.303 133.420 38.186Q133.520 38.070 133.769 37.977L134.327 37.837Q134.776 37.729 134.815 37.481Q134.853 37.233 134.435 36.629" />
+		<path d="M174.735 46.223L168.566 46.223Q168.194 46.223 168.016 46.076Q167.838 45.928 167.838 45.696Q167.838 45.479 167.969 45.340Q168.101 45.200 168.365 45.138L169.326 44.968Q169.620 44.921 169.760 44.696Q169.899 44.471 169.899 44.038L169.899 26.259L171.620 24.585Q172.162 24.352 172.457 24.260Q172.751 24.166 172.984 24.166Q173.294 24.166 173.487 24.329Q173.681 24.492 173.681 24.864L173.681 44.053Q173.681 44.471 173.821 44.688Q173.960 44.906 174.239 44.983L174.937 45.138Q175.185 45.215 175.316 45.355Q175.448 45.495 175.448 45.696Q175.448 45.928 175.270 46.076Q175.092 46.223 174.735 46.223M170.690 34.769L171.232 35.559Q170.085 37.341 168.527 38.349Q166.970 39.356 165.094 39.356Q163.281 39.356 161.855 38.434Q160.429 37.512 159.615 35.885Q158.801 34.257 158.801 32.133Q158.801 29.700 159.770 27.910Q160.739 26.120 162.382 25.127Q164.025 24.136 166.040 24.136Q167.869 24.136 169.248 24.988Q170.628 25.840 171.496 27.437L170.659 28.197Q169.915 26.910 168.907 26.267Q167.900 25.623 166.737 25.623Q165.590 25.623 164.676 26.274Q163.761 26.925 163.250 28.266Q162.738 29.607 162.738 31.669Q162.738 33.637 163.234 34.931Q163.730 36.225 164.614 36.877Q165.497 37.528 166.613 37.528Q167.776 37.528 168.806 36.838Q169.837 36.148 170.690 34.769" />
+		<path d="M182.284 30.878L181.772 30.909Q181.772 28.693 182.408 27.189Q183.043 25.685 184.074 24.918Q185.105 24.151 186.252 24.151Q187.693 24.151 188.453 24.941Q189.212 25.732 189.212 27.174Q189.212 28.383 188.708 28.995Q188.205 29.607 187.399 29.607Q186.577 29.607 186.151 29.165Q185.725 28.724 185.709 27.918L185.709 27.375Q185.694 26.879 185.469 26.631Q185.244 26.383 184.717 26.383Q184.128 26.383 183.562 26.871Q182.997 27.360 182.640 28.352Q182.284 29.343 182.284 30.878M182.098 25.066L182.284 28.801L182.284 36.815Q182.284 37.202 182.454 37.396Q182.625 37.590 183.043 37.682L184.423 37.884Q184.748 37.931 184.895 38.070Q185.043 38.209 185.043 38.458Q185.043 38.706 184.864 38.853Q184.686 39 184.314 39L177.448 39Q177.091 39 176.921 38.853Q176.750 38.706 176.750 38.473Q176.750 38.272 176.874 38.132Q176.998 37.992 177.246 37.900L177.959 37.745Q178.238 37.667 178.370 37.458Q178.502 37.248 178.502 36.846L178.502 27.406Q178.502 27.050 178.401 26.895Q178.300 26.739 178.052 26.724L177.091 26.662Q176.828 26.616 176.719 26.499Q176.611 26.383 176.611 26.197Q176.611 25.980 176.750 25.840Q176.890 25.701 177.246 25.593L180.052 24.632Q180.672 24.399 180.974 24.322Q181.276 24.244 181.447 24.244Q181.741 24.244 181.888 24.430Q182.036 24.616 182.098 25.066" />
+	</g>
+	<g fill="#e0492c">
+		<path d="M150.493 29.514Q149.966 30.506 149.230 31.901Q148.494 33.296 147.672 34.885Q146.851 36.474 146.014 38.070Q145.177 39.666 144.440 41.085Q143.704 42.503 143.146 43.526Q142.836 44.022 142.472 44.208Q142.108 44.394 141.689 44.239Q141.286 44.115 141.224 43.758Q141.162 43.402 141.472 42.922Q142.015 41.898 142.813 40.519Q143.611 39.139 144.510 37.574Q145.409 36.008 146.316 34.435Q147.223 32.862 148.013 31.475Q148.804 30.087 149.331 29.080Q149.873 28.072 150.617 26.662Q151.361 25.252 152.167 23.647Q152.973 22.043 153.795 20.431Q154.616 18.819 155.352 17.409Q156.089 15.998 156.631 14.991Q156.926 14.494 157.305 14.301Q157.685 14.107 158.104 14.277Q158.460 14.401 158.483 14.766Q158.507 15.130 158.243 15.595Q157.685 16.618 156.918 18.029Q156.151 19.439 155.267 21.020Q154.384 22.601 153.500 24.174Q152.617 25.748 151.834 27.135Q151.051 28.522 150.493 29.514" />
+	</g>
+	</g>
+	<text x="80" y="220" font-family="ui-monospace, 'Menlo', monospace" font-size="18" letter-spacing="6" fill="#e0492c" font-weight="500">PLATE 01 · KMK·QR</text>
+	<text x="80" y="320" font-family="Georgia, serif" font-size="78" font-weight="400" fill="#f9eedb" letter-spacing="-2">
 		<tspan>A QR code that</tspan>
 	</text>
-	<text x="80" y="380" font-family="Georgia, serif" font-style="italic" font-size="78" font-weight="400" fill="#e0492c" letter-spacing="-2">
+	<text x="80" y="400" font-family="Georgia, serif" font-style="italic" font-size="78" font-weight="400" fill="#e0492c" letter-spacing="-2">
 		<tspan>doesn’t want anything</tspan>
 	</text>
-	<text x="80" y="455" font-family="Georgia, serif" font-style="italic" font-size="78" font-weight="400" fill="#e0492c" letter-spacing="-2">
+	<text x="80" y="475" font-family="Georgia, serif" font-style="italic" font-size="78" font-weight="400" fill="#e0492c" letter-spacing="-2">
 		<tspan>from you.</tspan>
 	</text>
-
-	<text x="80" y="520" font-family="ui-monospace, 'Menlo', monospace" font-size="18" fill="#f9eedb" opacity="0.62" letter-spacing="2.5">
+	<text x="80" y="535" font-family="ui-monospace, 'Menlo', monospace" font-size="18" fill="#f9eedb" opacity="0.62" letter-spacing="2.5">
 		<tspan>Free · No signup · No tracking · Logo + styling included.</tspan>
 	</text>
-
-	<!-- Bottom-of-page microcopy — bumped +1 (12 → 13) per user. -->
-	<g transform="translate(80 555)" font-family="ui-monospace, 'Menlo', monospace" font-size="13" fill="#f9eedb" letter-spacing="3">
+	<g transform="translate(80 565)" font-family="ui-monospace, 'Menlo', monospace" font-size="13" fill="#f9eedb" letter-spacing="3">
 		<text opacity="0.55">PNG · SVG · PDF</text>
 		<text x="215" opacity="0.55">CLIENT-SIDE</text>
 		<text x="430" opacity="0.55">EDITION I — V·MMXXVI</text>
 	</g>
 
-	<!-- Specimen card on the right — warm graphite fill, cream stroke.
-	     "01" plate number now centered horizontally within the 195-px
-	     card column (was left-aligned in the rubric column, which felt
-	     off-center). PLATE rubric stays anchored left as a column
-	     label. Card rubrics bumped +1 (10/11 → 11/12). -->
+	<!-- Specimen card on the right. Real QR encoding the canonical
+	     site URL (was a hand-drawn mosaic + SCAN ME label that
+	     promised more than it delivered). Cream quiet-zone field
+	     under the ink modules so the QR follows scan-reliability
+	     rules regardless of the card's dark mode (per CLAUDE.md
+	     QR-color guardrail). -->
 	<g transform="translate(925 80)">
 		<rect width="195" height="470" fill="#16130d" stroke="#f9eedb" stroke-opacity="0.34" stroke-width="1"/>
-
 		<text x="20" y="50" font-family="ui-monospace, 'Menlo', monospace" font-size="12" letter-spacing="3" fill="#f9eedb" opacity="0.55">PLATE</text>
-		<text x="97.5" y="115" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="76" fill="#e0492c" letter-spacing="-2">01</text>
+		<text x="97.5" y="135" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="76" fill="#e0492c" letter-spacing="-2">01</text>
+		<line x1="0" y1="175" x2="195" y2="175" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
 
-		<line x1="0" y1="160" x2="195" y2="160" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
-
-		<g transform="translate(105 195)" stroke="#f9eedb" fill="#f9eedb">
-			<rect x="0" y="0" width="14" height="14"/>
-			<rect x="20" y="0" width="14" height="14"/>
-			<rect x="40" y="0" width="14" height="14"/>
-			<rect x="60" y="0" width="14" height="14"/>
-			<rect x="0" y="20" width="14" height="14"/>
-			<rect x="40" y="20" width="14" height="14"/>
-			<rect x="60" y="20" width="14" height="14"/>
-			<rect x="0" y="40" width="14" height="14"/>
-			<rect x="20" y="40" width="14" height="14"/>
-			<rect x="40" y="40" width="14" height="14"/>
-		</g>
-		<g transform="translate(20 195)" stroke="#f9eedb" stroke-width="3" fill="none">
-			<rect x="0" y="0" width="60" height="60"/>
-			<rect x="15" y="15" width="30" height="30" fill="#f9eedb"/>
-		</g>
-		<g transform="translate(20 280)" stroke="#f9eedb" stroke-width="3" fill="none">
-			<rect x="0" y="0" width="60" height="60"/>
-			<rect x="15" y="15" width="30" height="30" fill="#f9eedb"/>
-		</g>
-		<g transform="translate(105 280)" fill="#f9eedb">
-			<rect x="0" y="0" width="14" height="14"/>
-			<rect x="40" y="0" width="14" height="14"/>
-			<rect x="60" y="0" width="14" height="14"/>
-			<rect x="0" y="20" width="14" height="14"/>
-			<rect x="20" y="20" width="14" height="14"/>
-			<rect x="40" y="20" width="14" height="14"/>
-			<rect x="0" y="40" width="14" height="14"/>
-			<rect x="40" y="40" width="14" height="14"/>
-			<rect x="60" y="40" width="14" height="14"/>
-		</g>
-		<g transform="translate(20 365)" fill="#f9eedb">
-			<rect x="0" y="0" width="14" height="14"/>
-			<rect x="20" y="0" width="14" height="14"/>
-			<rect x="60" y="0" width="14" height="14"/>
-			<rect x="0" y="20" width="14" height="14"/>
-			<rect x="20" y="20" width="14" height="14"/>
-			<rect x="40" y="20" width="14" height="14"/>
-			<rect x="0" y="40" width="14" height="14"/>
-			<rect x="40" y="40" width="14" height="14"/>
-			<rect x="60" y="40" width="14" height="14"/>
-		</g>
-		<g transform="translate(105 365)" stroke="#f9eedb" stroke-width="3" fill="none">
-			<rect x="0" y="0" width="60" height="60"/>
-			<rect x="15" y="15" width="30" height="30" fill="#f9eedb"/>
+		<g transform="translate(15 195)">
+			<!-- Cream quiet-zone tile (165×165). -->
+			<rect width="165" height="165" fill="#f9eedb"/>
+			<g transform="translate(20 20) scale(5)" fill="#0e0b06">
+				<path d="M0 0h1v1h-1zM1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM5 0h1v1h-1zM6 0h1v1h-1zM11 0h1v1h-1zM12 0h1v1h-1zM16 0h1v1h-1zM18 0h1v1h-1zM19 0h1v1h-1zM20 0h1v1h-1zM21 0h1v1h-1zM22 0h1v1h-1zM23 0h1v1h-1zM24 0h1v1h-1zM0 1h1v1h-1zM6 1h1v1h-1zM9 1h1v1h-1zM12 1h1v1h-1zM13 1h1v1h-1zM15 1h1v1h-1zM18 1h1v1h-1zM24 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM6 2h1v1h-1zM8 2h1v1h-1zM9 2h1v1h-1zM10 2h1v1h-1zM12 2h1v1h-1zM14 2h1v1h-1zM16 2h1v1h-1zM18 2h1v1h-1zM20 2h1v1h-1zM21 2h1v1h-1zM22 2h1v1h-1zM24 2h1v1h-1zM0 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM6 3h1v1h-1zM8 3h1v1h-1zM13 3h1v1h-1zM14 3h1v1h-1zM18 3h1v1h-1zM20 3h1v1h-1zM21 3h1v1h-1zM22 3h1v1h-1zM24 3h1v1h-1zM0 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM9 4h1v1h-1zM10 4h1v1h-1zM12 4h1v1h-1zM13 4h1v1h-1zM18 4h1v1h-1zM20 4h1v1h-1zM21 4h1v1h-1zM22 4h1v1h-1zM24 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM10 5h1v1h-1zM13 5h1v1h-1zM14 5h1v1h-1zM15 5h1v1h-1zM16 5h1v1h-1zM18 5h1v1h-1zM24 5h1v1h-1zM0 6h1v1h-1zM1 6h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM19 6h1v1h-1zM20 6h1v1h-1zM21 6h1v1h-1zM22 6h1v1h-1zM23 6h1v1h-1zM24 6h1v1h-1zM8 7h1v1h-1zM14 7h1v1h-1zM0 8h1v1h-1zM2 8h1v1h-1zM3 8h1v1h-1zM4 8h1v1h-1zM5 8h1v1h-1zM6 8h1v1h-1zM9 8h1v1h-1zM10 8h1v1h-1zM11 8h1v1h-1zM12 8h1v1h-1zM13 8h1v1h-1zM14 8h1v1h-1zM18 8h1v1h-1zM19 8h1v1h-1zM20 8h1v1h-1zM21 8h1v1h-1zM22 8h1v1h-1zM2 9h1v1h-1zM3 9h1v1h-1zM4 9h1v1h-1zM7 9h1v1h-1zM8 9h1v1h-1zM10 9h1v1h-1zM12 9h1v1h-1zM13 9h1v1h-1zM16 9h1v1h-1zM17 9h1v1h-1zM19 9h1v1h-1zM23 9h1v1h-1zM3 10h1v1h-1zM4 10h1v1h-1zM6 10h1v1h-1zM7 10h1v1h-1zM9 10h1v1h-1zM10 10h1v1h-1zM12 10h1v1h-1zM14 10h1v1h-1zM15 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM19 10h1v1h-1zM21 10h1v1h-1zM23 10h1v1h-1zM24 10h1v1h-1zM1 11h1v1h-1zM8 11h1v1h-1zM9 11h1v1h-1zM10 11h1v1h-1zM11 11h1v1h-1zM14 11h1v1h-1zM15 11h1v1h-1zM16 11h1v1h-1zM24 11h1v1h-1zM0 12h1v1h-1zM4 12h1v1h-1zM5 12h1v1h-1zM6 12h1v1h-1zM7 12h1v1h-1zM9 12h1v1h-1zM10 12h1v1h-1zM15 12h1v1h-1zM18 12h1v1h-1zM19 12h1v1h-1zM20 12h1v1h-1zM22 12h1v1h-1zM23 12h1v1h-1zM24 12h1v1h-1zM0 13h1v1h-1zM1 13h1v1h-1zM5 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM12 13h1v1h-1zM13 13h1v1h-1zM16 13h1v1h-1zM19 13h1v1h-1zM21 13h1v1h-1zM23 13h1v1h-1zM0 14h1v1h-1zM2 14h1v1h-1zM4 14h1v1h-1zM5 14h1v1h-1zM6 14h1v1h-1zM7 14h1v1h-1zM8 14h1v1h-1zM9 14h1v1h-1zM13 14h1v1h-1zM14 14h1v1h-1zM15 14h1v1h-1zM16 14h1v1h-1zM17 14h1v1h-1zM19 14h1v1h-1zM20 14h1v1h-1zM21 14h1v1h-1zM23 14h1v1h-1zM24 14h1v1h-1zM0 15h1v1h-1zM3 15h1v1h-1zM4 15h1v1h-1zM7 15h1v1h-1zM8 15h1v1h-1zM12 15h1v1h-1zM13 15h1v1h-1zM15 15h1v1h-1zM16 15h1v1h-1zM19 15h1v1h-1zM20 15h1v1h-1zM24 15h1v1h-1zM0 16h1v1h-1zM2 16h1v1h-1zM5 16h1v1h-1zM6 16h1v1h-1zM8 16h1v1h-1zM12 16h1v1h-1zM14 16h1v1h-1zM16 16h1v1h-1zM17 16h1v1h-1zM18 16h1v1h-1zM19 16h1v1h-1zM20 16h1v1h-1zM22 16h1v1h-1zM8 17h1v1h-1zM9 17h1v1h-1zM15 17h1v1h-1zM16 17h1v1h-1zM20 17h1v1h-1zM21 17h1v1h-1zM0 18h1v1h-1zM1 18h1v1h-1zM2 18h1v1h-1zM3 18h1v1h-1zM4 18h1v1h-1zM5 18h1v1h-1zM6 18h1v1h-1zM10 18h1v1h-1zM11 18h1v1h-1zM12 18h1v1h-1zM16 18h1v1h-1zM18 18h1v1h-1zM20 18h1v1h-1zM22 18h1v1h-1zM23 18h1v1h-1zM24 18h1v1h-1zM0 19h1v1h-1zM6 19h1v1h-1zM8 19h1v1h-1zM9 19h1v1h-1zM10 19h1v1h-1zM11 19h1v1h-1zM14 19h1v1h-1zM16 19h1v1h-1zM20 19h1v1h-1zM21 19h1v1h-1zM24 19h1v1h-1zM0 20h1v1h-1zM2 20h1v1h-1zM3 20h1v1h-1zM4 20h1v1h-1zM6 20h1v1h-1zM8 20h1v1h-1zM9 20h1v1h-1zM10 20h1v1h-1zM11 20h1v1h-1zM15 20h1v1h-1zM16 20h1v1h-1zM17 20h1v1h-1zM18 20h1v1h-1zM19 20h1v1h-1zM20 20h1v1h-1zM22 20h1v1h-1zM23 20h1v1h-1zM24 20h1v1h-1zM0 21h1v1h-1zM2 21h1v1h-1zM3 21h1v1h-1zM4 21h1v1h-1zM6 21h1v1h-1zM8 21h1v1h-1zM10 21h1v1h-1zM12 21h1v1h-1zM13 21h1v1h-1zM14 21h1v1h-1zM17 21h1v1h-1zM18 21h1v1h-1zM20 21h1v1h-1zM21 21h1v1h-1zM22 21h1v1h-1zM23 21h1v1h-1zM24 21h1v1h-1zM0 22h1v1h-1zM2 22h1v1h-1zM3 22h1v1h-1zM4 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM10 22h1v1h-1zM13 22h1v1h-1zM14 22h1v1h-1zM21 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM0 23h1v1h-1zM6 23h1v1h-1zM9 23h1v1h-1zM12 23h1v1h-1zM13 23h1v1h-1zM15 23h1v1h-1zM16 23h1v1h-1zM19 23h1v1h-1zM20 23h1v1h-1zM21 23h1v1h-1zM24 23h1v1h-1zM0 24h1v1h-1zM1 24h1v1h-1zM2 24h1v1h-1zM3 24h1v1h-1zM4 24h1v1h-1zM5 24h1v1h-1zM6 24h1v1h-1zM8 24h1v1h-1zM10 24h1v1h-1zM12 24h1v1h-1zM14 24h1v1h-1zM17 24h1v1h-1zM19 24h1v1h-1zM20 24h1v1h-1zM21 24h1v1h-1zM22 24h1v1h-1zM23 24h1v1h-1zM24 24h1v1h-1z"/>
+			</g>
 		</g>
 
-		<line x1="0" y1="442" x2="195" y2="442" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
-		<text x="20" y="462" font-family="ui-monospace, 'Menlo', monospace" font-size="11" letter-spacing="3" fill="#f9eedb" opacity="0.55">SCAN ME</text>
+		<line x1="0" y1="385" x2="195" y2="385" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
+		<text x="97.5" y="408" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="11" letter-spacing="3" fill="#f9eedb" opacity="0.62">SCAN ME</text>
+		<text x="97.5" y="425" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="10" letter-spacing="2" fill="#e0492c">qr.kemek.com</text>
 	</g>
 </svg>
