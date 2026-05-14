@@ -97,7 +97,7 @@ const OG_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${OG_CARD_W
 	<g transform="translate(78 70) scale(2.1)">
 		${LOCKUP_DARK_OUTLINED.trim()}
 	</g>
-	<text x="80" y="220" font-family="ui-monospace, 'Menlo', monospace" font-size="18" letter-spacing="6" fill="#e0492c" font-weight="500">PLATE 01 · KMK·QR</text>
+	<text x="80" y="220" font-family="ui-monospace, 'Menlo', monospace" font-size="22" letter-spacing="5" fill="#e0492c" font-weight="500">PLATE 01 · KMK·QR</text>
 	<text x="80" y="320" font-family="Georgia, serif" font-size="78" font-weight="400" fill="#f9eedb" letter-spacing="-2">
 		<tspan>A QR code generator</tspan>
 	</text>
@@ -107,13 +107,13 @@ const OG_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${OG_CARD_W
 	<text x="80" y="475" font-family="Georgia, serif" font-style="italic" font-size="78" font-weight="400" fill="#e0492c" letter-spacing="-2">
 		<tspan>anything from you.</tspan>
 	</text>
-	<text x="80" y="535" font-family="ui-monospace, 'Menlo', monospace" font-size="18" fill="#f9eedb" opacity="0.62" letter-spacing="2.5">
+	<text x="80" y="533" font-family="ui-monospace, 'Menlo', monospace" font-size="21" fill="#f9eedb" opacity="0.62" letter-spacing="2">
 		<tspan>Free · No signup · No tracking · Logo + styling included.</tspan>
 	</text>
-	<g transform="translate(80 565)" font-family="ui-monospace, 'Menlo', monospace" font-size="13" fill="#f9eedb" letter-spacing="3">
+	<g transform="translate(80 568)" font-family="ui-monospace, 'Menlo', monospace" font-size="17" fill="#f9eedb" letter-spacing="2.5">
 		<text opacity="0.55">PNG · SVG · PDF</text>
-		<text x="215" opacity="0.55">CLIENT-SIDE</text>
-		<text x="430" opacity="0.55">EDITION I — V·MMXXVI</text>
+		<text x="265" opacity="0.55">CLIENT-SIDE</text>
+		<text x="500" opacity="0.55">EDITION I — V·MMXXVI</text>
 	</g>
 
 	<!-- Specimen card on the right. The QR itself is a styled PNG
@@ -122,7 +122,7 @@ const OG_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${OG_CARD_W
 	     so no separate quiet-zone tile needed under it. -->
 	<g transform="translate(925 80)">
 		<rect width="195" height="470" fill="#16130d" stroke="#f9eedb" stroke-opacity="0.34" stroke-width="1"/>
-		<text x="20" y="50" font-family="ui-monospace, 'Menlo', monospace" font-size="12" letter-spacing="3" fill="#f9eedb" opacity="0.55">PLATE</text>
+		<text x="20" y="50" font-family="ui-monospace, 'Menlo', monospace" font-size="15" letter-spacing="2.5" fill="#f9eedb" opacity="0.55">PLATE</text>
 		<text x="97.5" y="135" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="76" fill="#e0492c" letter-spacing="-2">01</text>
 		<line x1="0" y1="175" x2="195" y2="175" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
 
@@ -130,8 +130,8 @@ const OG_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${OG_CARD_W
 		<image href="brand/qr.png" x="${QR_IMG_X}" y="${QR_IMG_Y}" width="${QR_IMG_PX}" height="${QR_IMG_PX}"/>
 
 		<line x1="0" y1="${QR_TILE_Y + QR_TILE_PX + 25}" x2="195" y2="${QR_TILE_Y + QR_TILE_PX + 25}" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
-		<text x="97.5" y="${QR_TILE_Y + QR_TILE_PX + 48}" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="11" letter-spacing="3" fill="#f9eedb" opacity="0.62">SCAN ME</text>
-		<text x="97.5" y="${QR_TILE_Y + QR_TILE_PX + 65}" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="10" letter-spacing="2" fill="#e0492c">qr.kemek.com</text>
+		<text x="97.5" y="${QR_TILE_Y + QR_TILE_PX + 52}" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="14" letter-spacing="2.5" fill="#f9eedb" opacity="0.62">SCAN ME</text>
+		<text x="97.5" y="${QR_TILE_Y + QR_TILE_PX + 75}" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="13" letter-spacing="1.5" fill="#e0492c">qr.kemek.com</text>
 	</g>
 </svg>
 `;
