@@ -746,43 +746,43 @@
 		}
 	}
 
-	/* Full-width accent-red "colophon stamp" — gateway band between
-	 * main content and the cream four-cell colophon below. The color
-	 * change itself is the visual divider, so no dashed rule above;
-	 * cream corner ticks mirror the about-page hero's title-block
-	 * ticks so the visit feels pre-announced. Three-column grid at
-	 * desktop (marker · headline · CTA), stacked centered at mobile.
+	/* Full-width "colophon stamp" — gateway band between main content
+	 * and the cream four-cell colophon below. Paper-warm fill (quiet
+	 * differentiation from the main page paper) bracketed by dashed
+	 * full-width rules above and below for clear section-break read.
+	 * Accent red is restricted to corner ticks + the §00 marker
+	 * number + the CTA arrow — small punctuation marks on a quiet
+	 * field, not a flood of color. Three-column grid at desktop
+	 * (marker · headline · CTA), stacked centered at mobile.
 	 * Hidden on /about itself via the template guard, not CSS. */
 	.colophon-link {
 		display: block;
 		position: relative;
 		width: 100%;
-		background: var(--accent);
-		color: var(--paper);
+		background: var(--paper-warm);
+		color: var(--ink);
+		border-top: 1px dashed var(--rule);
+		border-bottom: 1px dashed var(--rule);
 		overflow: hidden;
 		text-decoration: none;
-		transition: background var(--duration-fast) var(--ease);
-	}
-	.colophon-link:hover,
-	.colophon-link:focus-visible {
-		background: var(--accent-deep);
+		transition:
+			background var(--duration-fast) var(--ease),
+			color var(--duration-fast) var(--ease);
 	}
 	.colophon-link:focus-visible {
-		outline: 2px solid var(--paper);
+		outline: 2px solid var(--accent);
 		outline-offset: -8px;
 	}
 
-	/* Corner ticks — anchored to a padded offset from each viewport
-	 * edge (not flush) so they read as deliberate spec-frame marks
-	 * on the colored field. clamp() keeps the offset sensible from
-	 * phone to wide desktop. */
+	/* Corner ticks — accent red, small drafting-spec frame marks at
+	 * the four corners of the band. Anchored to a padded offset from
+	 * each viewport edge (not flush) so they read as deliberate. */
 	.cl-tick {
 		position: absolute;
 		width: 14px;
 		height: 14px;
 		pointer-events: none;
-		color: var(--paper);
-		opacity: 0.85;
+		color: var(--accent);
 	}
 	.cl-tick-tl {
 		top: 14px;
@@ -830,13 +830,14 @@
 		font-size: 15px;
 		font-weight: 600;
 		letter-spacing: 0.06em;
+		color: var(--accent);
 	}
 	.cl-marker-rubric {
 		font-family: var(--font-mono);
 		font-size: 11px;
 		letter-spacing: 0.24em;
 		text-transform: uppercase;
-		opacity: 0.78;
+		color: var(--micro);
 	}
 
 	.cl-headline {
@@ -850,7 +851,8 @@
 		letter-spacing: -0.012em;
 		line-height: 1.04;
 		margin: 0;
-		color: var(--paper);
+		color: var(--ink);
+		transition: color var(--duration-fast) var(--ease);
 	}
 	.cl-sub {
 		margin: 0.6rem 0 0;
@@ -858,7 +860,7 @@
 		font-size: 12px;
 		letter-spacing: 0.18em;
 		text-transform: uppercase;
-		opacity: 0.78;
+		color: var(--micro);
 	}
 
 	.cl-cta {
@@ -873,13 +875,18 @@
 		font-size: 11px;
 		letter-spacing: 0.24em;
 		text-transform: uppercase;
-		opacity: 0.78;
+		color: var(--micro);
 	}
 	.cl-cta-arrow {
 		font-family: var(--font-mono);
 		font-size: 32px;
 		line-height: 1;
+		color: var(--accent);
 		transition: transform var(--duration-fast) var(--ease);
+	}
+	.colophon-link:hover .cl-title,
+	.colophon-link:focus-visible .cl-title {
+		color: var(--accent);
 	}
 	.colophon-link:hover .cl-cta-arrow,
 	.colophon-link:focus-visible .cl-cta-arrow {
