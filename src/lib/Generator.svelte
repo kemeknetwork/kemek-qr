@@ -86,6 +86,19 @@
 	let qrInstance: InstanceType<typeof QRCodeStyling> | null = null;
 	let QRCodeStylingClass: typeof QRCodeStyling | null = null;
 
+	/* Quiet-zone margin as a fraction of the QR canvas. qr-code-styling
+	 * takes `margin` in absolute pixels, so a fixed value (e.g. 6) gets
+	 * proportionally smaller at every larger export size — at 2048 px a
+	 * 6 px margin is nearly invisible and the modules crowd the edges.
+	 * Express margin as a ratio and derive the absolute value per
+	 * canvas size: ~5 % gives roughly one to two modules of quiet zone
+	 * across all formats (preview at 480, PNG 1024 / 2048 / 4096, SVG
+	 * 1024, PDF 2048). The QR spec recommends 4 modules; this is below
+	 * spec but reads cleaner at brand-asset scale where the surrounding
+	 * UI / page provides additional optical quiet zone. */
+	const QR_MARGIN_RATIO = 0.05;
+	const qrMargin = (size: number) => Math.round(size * QR_MARGIN_RATIO);
+
 	/* qr-code-styling expresses linear gradients as a rotation in radians
 	 * around the center; we expose degrees in the UI for ergonomics. */
 	function buildGradient() {
@@ -113,7 +126,7 @@
 			// so an empty input renders a valid placeholder QR rather than crashing.
 			data: encoded.trim() || 'https://kemek.com',
 			image: logoDataUrl ?? undefined,
-			margin: 6,
+			margin: qrMargin(480),
 			qrOptions: { errorCorrectionLevel: ecc },
 			dotsOptions: { color: fgColor, type: dotType, gradient },
 			backgroundOptions: { color: bgColor },
@@ -497,6 +510,7 @@
 			...buildOpts(),
 			width: exportSize,
 			height: exportSize,
+			margin: qrMargin(exportSize),
 			type: 'canvas'
 		});
 		if (frameEnabled) {
@@ -547,6 +561,7 @@
 			...buildOpts(),
 			width: exportSize,
 			height: exportSize,
+			margin: qrMargin(exportSize),
 			type: 'svg'
 		});
 		const blob = (await exporter.getRawData('svg')) as Blob | null;
@@ -572,6 +587,7 @@
 			...buildOpts(),
 			width: exportSize,
 			height: exportSize,
+			margin: qrMargin(exportSize),
 			type: 'canvas'
 		});
 		const qrBlob = (await exporter.getRawData('png')) as Blob | null;

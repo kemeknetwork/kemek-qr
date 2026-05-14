@@ -37,13 +37,16 @@
 		text-transform: uppercase;
 		color: var(--ghost);
 		margin: 0;
-		/* Keep titles like "Notes on the artifact" / "Footnotes &
-		 * queries" on one line at common viewports so the dashed rule
-		 * fills remaining width. At very narrow widths (≤380 px) the
-		 * title would force horizontal scroll, so let it wrap. */
+		/* Keep titles on one line at desktop widths so the dashed rule
+		 * fills remaining space. Below ~720 px the longer section
+		 * titles ("Error correction & scan reliability" is 35 chars
+		 * and ~378 px wide nowrap) force horizontal overflow on every
+		 * phone- and tablet-portrait viewport — release nowrap there
+		 * and let the title wrap naturally; the dashed rule still
+		 * fills the trailing space on the last wrapped line. */
 		white-space: nowrap;
 	}
-	@media (max-width: 380px) {
+	@media (max-width: 720px) {
 		.section-title {
 			white-space: normal;
 		}

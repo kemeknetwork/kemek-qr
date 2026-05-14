@@ -6,7 +6,7 @@
 	const canonicalUrl = `${SITE}/about`;
 	const title = 'About kemek/qr — privacy posture, scope, license | KeMeK';
 	const description =
-		'How kemek/qr is built and why. A free, fully client-side QR generator from KeMeK Network — no signup, no upload, MIT-licensed source.';
+		'How kemek/qr is built and why. A free, fully client-side QR code generator from KeMeK Network — no signup, no upload, MIT-licensed source.';
 
 	const jsonLd = {
 		'@context': 'https://schema.org',
@@ -62,7 +62,7 @@
 
 		<div class="title-block-body">
 			<span class="title-rubric">COLOPHON · ABOUT THIS SPECIFICATION</span>
-			<h1 class="hero-title">A QR generator that doesn’t want anything from you.</h1>
+			<h1 class="hero-title">A QR code generator that doesn’t want anything from you.</h1>
 			<p class="hero-sub">
 				kemek/qr is a free utility from KeMeK Network. It runs entirely in your browser — no upload,
 				no account, no expiry, no tracking. This page explains exactly what that means and where the

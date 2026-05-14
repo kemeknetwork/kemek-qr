@@ -14,9 +14,10 @@
 		 * Same selectors, same DOM — just the size cascade. */
 		compact?: boolean;
 		/* h1 vs short label — the per-type landings use the full
-		 * `Free … QR code generator` h1; about uses the tighter
-		 * `… QR generator` (`plateLabel`) so eight rows of "Free …"
-		 * don't dominate the page. */
+		 * `Free … QR code generator` h1; about uses `plateLabel`
+		 * (`… QR code generator` without the leading `Free`) so the
+		 * eight rows don't all start with "Free …" and dominate the
+		 * page visually. */
 		labelKind?: 'h1' | 'plateLabel';
 	};
 
