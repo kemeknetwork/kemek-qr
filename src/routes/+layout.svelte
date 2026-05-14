@@ -134,7 +134,7 @@
 
 	<!-- Identity / publisher -->
 	<meta name="application-name" content="kemek/qr" />
-	<meta name="author" content="KeMeK Network" />
+	<meta name="author" content="kVadrum" />
 	<meta name="publisher" content="KeMeK Network" />
 	<meta name="copyright" content="© 2026 KeMeK Network" />
 	<meta name="generator" content="SvelteKit" />
@@ -324,7 +324,7 @@
 			<div class="colophon-cell">
 				<span class="cell-rubric">DRAWN BY</span>
 				<span class="cell-value">
-					<a href="https://kemek.com" target="_blank" rel="publisher noopener">KEMEK NETWORK</a>
+					<a href="https://kvadrum.com" target="_blank" rel="author noopener">kVadrum</a>
 				</span>
 			</div>
 			<div class="colophon-cell">
