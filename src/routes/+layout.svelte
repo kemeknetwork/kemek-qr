@@ -308,6 +308,17 @@
 		{@render children()}
 	</main>
 
+	{#if page.url.pathname !== '/about'}
+		<nav class="colophon-link" aria-label="Read the colophon">
+			<a class="colophon-link-row" href="/about">
+				<span class="colophon-link-rubric">COLOPHON</span>
+				<span class="colophon-link-sep" aria-hidden="true">·</span>
+				<span class="colophon-link-title">About the specification</span>
+				<span class="colophon-link-arrow" aria-hidden="true">→</span>
+			</a>
+		</nav>
+	{/if}
+
 	<footer class="colophon">
 		<div class="colophon-inner">
 			<div class="colophon-cell">
@@ -718,6 +729,82 @@
 		}
 		.plate-label {
 			font-size: 18px;
+		}
+	}
+
+	/* Pre-footer band — invitation to the /about page, set in the
+	 * drafting-spec voice. Single-row centered link, dashed rules
+	 * above + below so it reads as a deliberate section-break, not a
+	 * trailing afterthought. Hidden on the /about page itself
+	 * (handled in the template, not CSS, so it doesn't take layout
+	 * space). */
+	.colophon-link {
+		border-top: 1px dashed var(--rule);
+		border-bottom: 1px dashed var(--rule);
+		background: var(--paper);
+	}
+	.colophon-link-row {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		max-width: var(--max-w);
+		margin: 0 auto;
+		padding: 1rem var(--gutter);
+		width: 100%;
+		justify-content: center;
+		font-family: var(--font-mono);
+		font-size: 13px;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--ink);
+		border: none;
+		transition:
+			color var(--duration-fast) var(--ease),
+			gap var(--duration-fast) var(--ease);
+	}
+	.colophon-link-row:hover,
+	.colophon-link-row:focus-visible {
+		color: var(--accent);
+		gap: 0.7rem;
+	}
+	.colophon-link-row:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
+	.colophon-link-rubric {
+		color: var(--accent);
+		font-weight: 500;
+	}
+	.colophon-link-sep {
+		color: var(--rule);
+	}
+	.colophon-link-title {
+		font-family: var(--font-display);
+		font-size: 16px;
+		font-weight: 500;
+		letter-spacing: -0.01em;
+		text-transform: none;
+		color: inherit;
+	}
+	.colophon-link-arrow {
+		font-family: var(--font-mono);
+		font-size: 14px;
+		color: var(--accent);
+		transition: transform var(--duration-fast) var(--ease);
+	}
+	.colophon-link-row:hover .colophon-link-arrow,
+	.colophon-link-row:focus-visible .colophon-link-arrow {
+		transform: translateX(2px);
+	}
+	@media (max-width: 480px) {
+		.colophon-link-row {
+			padding: 0.85rem var(--gutter);
+			font-size: 12px;
+			gap: 0.4rem;
+			flex-wrap: wrap;
+		}
+		.colophon-link-title {
+			font-size: 15px;
 		}
 	}
 
