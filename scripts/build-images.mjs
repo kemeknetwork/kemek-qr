@@ -68,15 +68,15 @@ const OG_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${OG_CARD_W
 	<g transform="translate(78 70) scale(2.1)">
 		${LOCKUP_DARK_OUTLINED.trim()}
 	</g>
-	<text x="80" y="220" font-family="ui-monospace, 'Menlo', monospace" font-size="18" letter-spacing="6" fill="#e0492c" font-weight="500">PLATE 01 · QR CODE GENERATOR</text>
+	<text x="80" y="220" font-family="ui-monospace, 'Menlo', monospace" font-size="18" letter-spacing="6" fill="#e0492c" font-weight="500">PLATE 01 · KMK·QR</text>
 	<text x="80" y="320" font-family="Georgia, serif" font-size="78" font-weight="400" fill="#f9eedb" letter-spacing="-2">
-		<tspan>A QR code that</tspan>
+		<tspan>A QR code generator</tspan>
 	</text>
 	<text x="80" y="400" font-family="Georgia, serif" font-style="italic" font-size="78" font-weight="400" fill="#e0492c" letter-spacing="-2">
-		<tspan>doesn’t want anything</tspan>
+		<tspan>that doesn’t want</tspan>
 	</text>
 	<text x="80" y="475" font-family="Georgia, serif" font-style="italic" font-size="78" font-weight="400" fill="#e0492c" letter-spacing="-2">
-		<tspan>from you.</tspan>
+		<tspan>anything from you.</tspan>
 	</text>
 	<text x="80" y="535" font-family="ui-monospace, 'Menlo', monospace" font-size="18" fill="#f9eedb" opacity="0.62" letter-spacing="2.5">
 		<tspan>Free · No signup · No tracking · Logo + styling included.</tspan>

@@ -42,15 +42,15 @@
 		<path d="M150.493 29.514Q149.966 30.506 149.230 31.901Q148.494 33.296 147.672 34.885Q146.851 36.474 146.014 38.070Q145.177 39.666 144.440 41.085Q143.704 42.503 143.146 43.526Q142.836 44.022 142.472 44.208Q142.108 44.394 141.689 44.239Q141.286 44.115 141.224 43.758Q141.162 43.402 141.472 42.922Q142.015 41.898 142.813 40.519Q143.611 39.139 144.510 37.574Q145.409 36.008 146.316 34.435Q147.223 32.862 148.013 31.475Q148.804 30.087 149.331 29.080Q149.873 28.072 150.617 26.662Q151.361 25.252 152.167 23.647Q152.973 22.043 153.795 20.431Q154.616 18.819 155.352 17.409Q156.089 15.998 156.631 14.991Q156.926 14.494 157.305 14.301Q157.685 14.107 158.104 14.277Q158.460 14.401 158.483 14.766Q158.507 15.130 158.243 15.595Q157.685 16.618 156.918 18.029Q156.151 19.439 155.267 21.020Q154.384 22.601 153.500 24.174Q152.617 25.748 151.834 27.135Q151.051 28.522 150.493 29.514" />
 	</g>
 	</g>
-	<text x="80" y="220" font-family="ui-monospace, 'Menlo', monospace" font-size="18" letter-spacing="6" fill="#e0492c" font-weight="500">PLATE 01 · QR CODE GENERATOR</text>
+	<text x="80" y="220" font-family="ui-monospace, 'Menlo', monospace" font-size="18" letter-spacing="6" fill="#e0492c" font-weight="500">PLATE 01 · KMK·QR</text>
 	<text x="80" y="320" font-family="Georgia, serif" font-size="78" font-weight="400" fill="#f9eedb" letter-spacing="-2">
-		<tspan>A QR code that</tspan>
+		<tspan>A QR code generator</tspan>
 	</text>
 	<text x="80" y="400" font-family="Georgia, serif" font-style="italic" font-size="78" font-weight="400" fill="#e0492c" letter-spacing="-2">
-		<tspan>doesn’t want anything</tspan>
+		<tspan>that doesn’t want</tspan>
 	</text>
 	<text x="80" y="475" font-family="Georgia, serif" font-style="italic" font-size="78" font-weight="400" fill="#e0492c" letter-spacing="-2">
-		<tspan>from you.</tspan>
+		<tspan>anything from you.</tspan>
 	</text>
 	<text x="80" y="535" font-family="ui-monospace, 'Menlo', monospace" font-size="18" fill="#f9eedb" opacity="0.62" letter-spacing="2.5">
 		<tspan>Free · No signup · No tracking · Logo + styling included.</tspan>
