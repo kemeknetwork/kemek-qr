@@ -22,17 +22,40 @@ const BRAND_MARK_SVG = await readFile('static/brand/mark.svg');
  * card is a styled, app-produced PNG (static/brand/qr.png — generated
  * by kemek/qr itself, dogfooding the product the OG card is about)
  * referenced by relative href so librsvg resolves it against
- * static/og.svg's location at rasterize time. */
-const LOCKUP_DARK_OUTLINED = (await readFile('static/brand/lockup-dark-outlined.svg', 'utf8'))
-	/* Extract the <svg>'s inner content. The lockup's own viewBox is
-	 * 196 × 53; we re-host it inside the OG card via a wrapping <g>
-	 * with translate + scale, no need for the outer <svg>. */
+ * static/og.svg's location at rasterize time.
+ *
+ * Preflight: touch the QR PNG so a missing/renamed asset fails the
+ * build with a useful path instead of silently rasterizing a blank
+ * <image> slot — librsvg degrades quietly on unresolved href. */
+await readFile('static/brand/qr.png');
+
+const LOCKUP_DARK_OUTLINED_RAW = await readFile('static/brand/lockup-dark-outlined.svg', 'utf8');
+
+/* The brand-kit dark-outlined lockup ships mark + slash in #c53a1f
+ * (the light-mode accent — chosen for ink-on-cream contrast in the
+ * print lockup contexts the kit was built for). The OG card's
+ * graphite ground wants the slightly brighter dark-mode accent
+ * #e0492c instead, matching every other accent on the card. We
+ * sweep the hex via replaceAll, but assert that the source carries
+ * exactly the expected number of occurrences — if the brand kit
+ * grows another accent use (e.g. an additional tint, an underline
+ * stroke), the sweep would mix colors silently and OG scrapers
+ * would catch the regression weeks later. The assertion fails the
+ * build loudly instead. */
+const EXPECTED_LIGHT_ACCENT_HITS = 2;
+const lightAccentHits = (LOCKUP_DARK_OUTLINED_RAW.match(/#c53a1f/g) || []).length;
+if (lightAccentHits !== EXPECTED_LIGHT_ACCENT_HITS) {
+	throw new Error(
+		`OG composer: lockup-dark-outlined.svg has ${lightAccentHits} #c53a1f occurrences, expected ${EXPECTED_LIGHT_ACCENT_HITS}. ` +
+			`Brand kit may have drifted — inspect the lockup and adjust the color sweep in scripts/build-images.mjs.`
+	);
+}
+
+const LOCKUP_DARK_OUTLINED = LOCKUP_DARK_OUTLINED_RAW
+	/* Drop the outer <svg> shell; we re-host the lockup's inner
+	 * content inside the OG card via a wrapping <g> transform. */
 	.replace(/^[\s\S]*?<svg[^>]*>/, '')
 	.replace(/<\/svg>\s*$/, '')
-	/* The brand-kit dark-outlined lockup ships mark + slash in
-	 * #c53a1f (light-mode accent). On the OG card's graphite ground
-	 * the slightly brighter dark-mode accent #e0492c reads with
-	 * more presence, matching the rest of the card's accent usage. */
 	.replaceAll('#c53a1f', '#e0492c');
 
 const OG_CARD_W = 1200;
