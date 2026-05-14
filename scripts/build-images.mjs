@@ -9,22 +9,20 @@
 
 import sharp from 'sharp';
 import toIco from 'to-ico';
-import QRCode from 'qrcode';
 import { readFile, writeFile } from 'node:fs/promises';
 
 const FAVICON_SVG = await readFile('static/favicon.svg');
 const FAVICON_MASKABLE_SVG = await readFile('static/favicon-maskable.svg');
 const BRAND_MARK_SVG = await readFile('static/brand/mark.svg');
 
-/* OG card composition. Read the canonical Fraunces-outlined lockup
- * from the brand kit (font-independent: every glyph is an explicit
- * <path> via opentype.js extraction; see
- * scripts/render-lockups-outlined.mjs) and a real QR matrix for the
- * canonical URL, then emit the composed og.svg. This replaces a
- * hand-coded mark + Georgia-fallback wordmark + fake-mosaic "SCAN
- * ME" tile that drifted away from the live brand. */
-const CANONICAL_URL = 'https://qr.kemek.com';
-
+/* OG card composition. The brand lockup is sourced from the canonical
+ * Fraunces-outlined lockup in the brand kit (font-independent: every
+ * glyph is an explicit <path> via opentype.js — see
+ * scripts/render-lockups-outlined.mjs). The QR shown on the specimen
+ * card is a styled, app-produced PNG (static/brand/qr.png — generated
+ * by kemek/qr itself, dogfooding the product the OG card is about)
+ * referenced by relative href so librsvg resolves it against
+ * static/og.svg's location at rasterize time. */
 const LOCKUP_DARK_OUTLINED = (await readFile('static/brand/lockup-dark-outlined.svg', 'utf8'))
 	/* Extract the <svg>'s inner content. The lockup's own viewBox is
 	 * 196 × 53; we re-host it inside the OG card via a wrapping <g>
@@ -37,38 +35,16 @@ const LOCKUP_DARK_OUTLINED = (await readFile('static/brand/lockup-dark-outlined.
 	 * more presence, matching the rest of the card's accent usage. */
 	.replaceAll('#c53a1f', '#e0492c');
 
-const QR = (() => {
-	const qr = QRCode.create(CANONICAL_URL, { errorCorrectionLevel: 'M' });
-	const { size, data } = qr.modules;
-	return { size, data };
-})();
-
-/* Render the QR matrix as a compact SVG <path> made of unit cells.
- * Each filled module emits `M x y h1 v1 h-1 z`. Caller wraps the
- * path in a translated/scaled <g>. */
-function qrPath() {
-	const { size, data } = QR;
-	const parts = [];
-	for (let y = 0; y < size; y++) {
-		for (let x = 0; x < size; x++) {
-			if (data[y * size + x]) parts.push(`M${x} ${y}h1v1h-1z`);
-		}
-	}
-	return parts.join('');
-}
-
 const OG_CARD_W = 1200;
 const OG_CARD_H = 630;
 
-/* Right-side specimen card — the QR's home. 195×470 at (925,80).
- * Cell size 5 px, 4-module quiet zone — 25*5 + 2*4*5 = 165 total.
- * 15 px margins inside the 195-wide card. */
-const QR_CELL = 5;
-const QR_PAD = 4; // quiet zone, in modules
-const QR_INNER_PX = QR.size * QR_CELL; // 125
-const QR_TILE_PX = QR_INNER_PX + 2 * QR_PAD * QR_CELL; // 165
-const QR_CARD_X = 15; // (195 - 165) / 2
-const QR_CARD_Y = 195; // sits below the centered "01" plate marker
+/* Right-side specimen card: 195×470 at (925,80). Styled QR sits at
+ * 165×165, centered with 15 px margins each side. The supplied PNG
+ * ships its own white background — no separate quiet-zone tile
+ * needed. */
+const QR_TILE_PX = 165;
+const QR_CARD_X = (195 - QR_TILE_PX) / 2;
+const QR_CARD_Y = 195;
 
 const OG_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${OG_CARD_W} ${OG_CARD_H}" width="${OG_CARD_W}" height="${OG_CARD_H}">
 	<defs>
@@ -92,7 +68,7 @@ const OG_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${OG_CARD_W
 	<g transform="translate(78 70) scale(2.1)">
 		${LOCKUP_DARK_OUTLINED.trim()}
 	</g>
-	<text x="80" y="220" font-family="ui-monospace, 'Menlo', monospace" font-size="18" letter-spacing="6" fill="#e0492c" font-weight="500">PLATE 01 · KMK·QR</text>
+	<text x="80" y="220" font-family="ui-monospace, 'Menlo', monospace" font-size="18" letter-spacing="6" fill="#e0492c" font-weight="500">PLATE 01 · QR CODE GENERATOR</text>
 	<text x="80" y="320" font-family="Georgia, serif" font-size="78" font-weight="400" fill="#f9eedb" letter-spacing="-2">
 		<tspan>A QR code that</tspan>
 	</text>
@@ -111,25 +87,17 @@ const OG_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${OG_CARD_W
 		<text x="430" opacity="0.55">EDITION I — V·MMXXVI</text>
 	</g>
 
-	<!-- Specimen card on the right. Real QR encoding the canonical
-	     site URL (was a hand-drawn mosaic + SCAN ME label that
-	     promised more than it delivered). Cream quiet-zone field
-	     under the ink modules so the QR follows scan-reliability
-	     rules regardless of the card's dark mode (per CLAUDE.md
-	     QR-color guardrail). -->
+	<!-- Specimen card on the right. The QR itself is a styled PNG
+	     produced by kemek/qr's own app — dogfooding the product the
+	     OG card is selling. White background is baked into the PNG,
+	     so no separate quiet-zone tile needed under it. -->
 	<g transform="translate(925 80)">
 		<rect width="195" height="470" fill="#16130d" stroke="#f9eedb" stroke-opacity="0.34" stroke-width="1"/>
 		<text x="20" y="50" font-family="ui-monospace, 'Menlo', monospace" font-size="12" letter-spacing="3" fill="#f9eedb" opacity="0.55">PLATE</text>
 		<text x="97.5" y="135" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="76" fill="#e0492c" letter-spacing="-2">01</text>
 		<line x1="0" y1="175" x2="195" y2="175" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
 
-		<g transform="translate(${QR_CARD_X} ${QR_CARD_Y})">
-			<!-- Cream quiet-zone tile (165×165). -->
-			<rect width="${QR_TILE_PX}" height="${QR_TILE_PX}" fill="#f9eedb"/>
-			<g transform="translate(${QR_PAD * QR_CELL} ${QR_PAD * QR_CELL}) scale(${QR_CELL})" fill="#0e0b06">
-				<path d="${qrPath()}"/>
-			</g>
-		</g>
+		<image href="brand/qr.png" x="${QR_CARD_X}" y="${QR_CARD_Y}" width="${QR_TILE_PX}" height="${QR_TILE_PX}"/>
 
 		<line x1="0" y1="${QR_CARD_Y + QR_TILE_PX + 25}" x2="195" y2="${QR_CARD_Y + QR_TILE_PX + 25}" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
 		<text x="97.5" y="${QR_CARD_Y + QR_TILE_PX + 48}" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="11" letter-spacing="3" fill="#f9eedb" opacity="0.62">SCAN ME</text>
@@ -151,9 +119,11 @@ async function rasterize(svg, size, dest) {
 }
 
 /* OG card stays at native dimensions (1200×630). Density 144 gives
- * sharp enough sub-pixel detail for the QR module grid + outlined
- * Fraunces glyphs to rasterize cleanly. */
-await sharp(Buffer.from(OG_SVG), { density: 144 }).png().toFile('static/og.png');
+ * sharp enough sub-pixel detail for the outlined Fraunces glyphs +
+ * downscaled QR PNG to rasterize cleanly. We pass the file path
+ * (not an in-memory buffer) so librsvg resolves the relative
+ * `<image href="brand/qr.png">` against static/'s directory. */
+await sharp('static/og.svg', { density: 144 }).png().toFile('static/og.png');
 
 /* Standard favicon sizes for the modern + legacy fleet. */
 await rasterize(FAVICON_SVG, 16, 'static/favicon-16.png');
