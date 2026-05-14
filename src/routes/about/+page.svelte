@@ -166,7 +166,57 @@
 		</p>
 	</div>
 
-	<ExplainerSection marker="§05" title="Plate index" />
+	<ExplainerSection marker="§05" title="Error correction & scan reliability" />
+	<div class="prose">
+		<p>
+			<span class="dropmark" aria-hidden="true">01</span>
+			Every QR code carries redundant data so the code still scans when part of it is damaged, smudged,
+			scratched, or partially obscured. The redundancy level is called <em>error correction</em> and
+			the spec defines four of them — L, M, Q, H — recovering roughly
+			<strong>7%</strong>, <strong>15%</strong>, <strong>25%</strong>, and <strong>30%</strong>
+			of the code respectively. Higher levels survive more damage but make the code denser (more modules
+			in the same data) so dense codes at very small print sizes can be harder for cheap cameras to read.
+			M is the everyday default for most uses.
+		</p>
+		<p>
+			<span class="dropmark" aria-hidden="true">02</span>
+			The
+			<strong>AUTO</strong> setting in the generator picks
+			<strong>M</strong> when the code is plain and
+			<strong>H</strong> when a logo is embedded. The logo physically obscures part of the data region,
+			and H builds enough redundancy that the obscured cells get reconstructed at scan time. If you're
+			embedding a logo at the default 25% size, AUTO is almost always the right call. Manual override
+			is there for the cases AUTO doesn't anticipate.
+		</p>
+		<p>
+			<span class="dropmark" aria-hidden="true">03</span>
+			Reach for <strong>Q</strong> if the code will be printed on something that sees real-world
+			wear — sticker on a delivery box, label on outdoor signage, business card that lives in a
+			wallet. The extra recovery margin pays for itself in scan success. Reach for
+			<strong>H</strong>
+			when you want a logo and a margin of safety on top, or for industrial-environment placements (workshop
+			walls, construction sites) where scratches and dust are a given.
+		</p>
+		<p>
+			<span class="dropmark" aria-hidden="true">04</span>
+			Error correction is only half the scan-reliability story. The other half is
+			<strong>contrast</strong> — the foreground/background combination must be readable by a
+			camera. The convention is dark-on-light (most decoders assume it). The picker shows a live
+			<code>CONTRAST n.n:1</code> readout — anything below 3:1 is flagged as LOW; foreground brighter
+			than background is flagged as INVERTED. It's informational, not a gate: we trust you to ship what
+			you mean. But if your scans fail in real-world lighting, contrast is the first thing to check.
+		</p>
+		<p>
+			<span class="dropmark" aria-hidden="true">05</span>
+			Size matters too. A QR code shrunk too small relative to the scanning distance won't resolve. Rule
+			of thumb: the smallest visible square (a single module) should be at least 0.4&nbsp;mm at the viewer's
+			eye-distance for reliable scanning. For arm's-length scans (palm-sized prints), the code itself
+			should be at least 2&nbsp;cm × 2&nbsp;cm. For across-the-room scans (poster on a wall), scale up
+			proportionally.
+		</p>
+	</div>
+
+	<ExplainerSection marker="§06" title="Plate index" />
 	<PlateIndex compact labelKind="plateLabel" />
 </section>
 
