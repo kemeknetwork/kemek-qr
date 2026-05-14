@@ -309,14 +309,26 @@
 	</main>
 
 	{#if page.url.pathname !== '/about'}
-		<nav class="colophon-link" aria-label="Read the colophon">
-			<a class="colophon-link-row" href="/about">
-				<span class="colophon-link-rubric">COLOPHON</span>
-				<span class="colophon-link-sep" aria-hidden="true">·</span>
-				<span class="colophon-link-title">About the specification</span>
-				<span class="colophon-link-arrow" aria-hidden="true">→</span>
-			</a>
-		</nav>
+		<a class="colophon-link" href="/about" aria-label="Read the colophon — about kemek/qr">
+			<span class="cl-tick cl-tick-tl" aria-hidden="true"></span>
+			<span class="cl-tick cl-tick-tr" aria-hidden="true"></span>
+			<span class="cl-tick cl-tick-bl" aria-hidden="true"></span>
+			<span class="cl-tick cl-tick-br" aria-hidden="true"></span>
+			<div class="cl-inner">
+				<div class="cl-marker">
+					<span class="cl-marker-num">§00</span>
+					<span class="cl-marker-rubric">Colophon</span>
+				</div>
+				<div class="cl-headline">
+					<h2 class="cl-title">About the specification</h2>
+					<p class="cl-sub">Privacy · Method · License · Error correction · Brand</p>
+				</div>
+				<div class="cl-cta">
+					<span class="cl-cta-rubric">On file</span>
+					<span class="cl-cta-arrow" aria-hidden="true">→</span>
+				</div>
+			</div>
+		</a>
 	{/if}
 
 	<footer class="colophon">
@@ -350,19 +362,21 @@
 				</button>
 			</div>
 		</div>
-		<p class="colophon-rights">
-			<a href="https://kemek.com" target="_blank" rel="publisher noopener">KEMEK NETWORK</a> ©
-			<span class="rights-year">MMXXVI</span>
-			· License:
-			<a
-				href="https://github.com/KeMeK-Network/kemek-QR/blob/main/LICENSE"
-				target="_blank"
-				rel="license noopener">MIT</a
-			>
-			{#if pageviews !== null}
-				· Pageviews: <span class="pageviews-count">{pageviews.toLocaleString()}</span>
-			{/if}
-		</p>
+		<div class="colophon-rights-wrap">
+			<p class="colophon-rights">
+				<a href="https://kemek.com" target="_blank" rel="publisher noopener">KEMEK NETWORK</a> ©
+				<span class="rights-year">MMXXVI</span>
+				· License:
+				<a
+					href="https://github.com/KeMeK-Network/kemek-QR/blob/main/LICENSE"
+					target="_blank"
+					rel="license noopener">MIT</a
+				>
+				{#if pageviews !== null}
+					· Pageviews: <span class="pageviews-count">{pageviews.toLocaleString()}</span>
+				{/if}
+			</p>
+		</div>
 	</footer>
 </div>
 
@@ -732,79 +746,180 @@
 		}
 	}
 
-	/* Pre-footer band — invitation to the /about page, set in the
-	 * drafting-spec voice. Single-row centered link, dashed rules
-	 * above + below so it reads as a deliberate section-break, not a
-	 * trailing afterthought. Hidden on the /about page itself
-	 * (handled in the template, not CSS, so it doesn't take layout
-	 * space). */
+	/* Full-width accent-red "colophon stamp" — gateway band between
+	 * main content and the cream four-cell colophon below. The color
+	 * change itself is the visual divider, so no dashed rule above;
+	 * cream corner ticks mirror the about-page hero's title-block
+	 * ticks so the visit feels pre-announced. Three-column grid at
+	 * desktop (marker · headline · CTA), stacked centered at mobile.
+	 * Hidden on /about itself via the template guard, not CSS. */
 	.colophon-link {
-		border-top: 1px dashed var(--rule);
-		border-bottom: 1px dashed var(--rule);
-		background: var(--paper);
+		display: block;
+		position: relative;
+		width: 100%;
+		background: var(--accent);
+		color: var(--paper);
+		overflow: hidden;
+		text-decoration: none;
+		transition: background var(--duration-fast) var(--ease);
 	}
-	.colophon-link-row {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.5rem;
+	.colophon-link:hover,
+	.colophon-link:focus-visible {
+		background: var(--accent-deep);
+	}
+	.colophon-link:focus-visible {
+		outline: 2px solid var(--paper);
+		outline-offset: -8px;
+	}
+
+	/* Corner ticks — anchored to a padded offset from each viewport
+	 * edge (not flush) so they read as deliberate spec-frame marks
+	 * on the colored field. clamp() keeps the offset sensible from
+	 * phone to wide desktop. */
+	.cl-tick {
+		position: absolute;
+		width: 14px;
+		height: 14px;
+		pointer-events: none;
+		color: var(--paper);
+		opacity: 0.85;
+	}
+	.cl-tick-tl {
+		top: 14px;
+		left: clamp(14px, var(--gutter), 32px);
+		border-top: 1.5px solid currentColor;
+		border-left: 1.5px solid currentColor;
+	}
+	.cl-tick-tr {
+		top: 14px;
+		right: clamp(14px, var(--gutter), 32px);
+		border-top: 1.5px solid currentColor;
+		border-right: 1.5px solid currentColor;
+	}
+	.cl-tick-bl {
+		bottom: 14px;
+		left: clamp(14px, var(--gutter), 32px);
+		border-bottom: 1.5px solid currentColor;
+		border-left: 1.5px solid currentColor;
+	}
+	.cl-tick-br {
+		bottom: 14px;
+		right: clamp(14px, var(--gutter), 32px);
+		border-bottom: 1.5px solid currentColor;
+		border-right: 1.5px solid currentColor;
+	}
+
+	.cl-inner {
 		max-width: var(--max-w);
 		margin: 0 auto;
-		padding: 1rem var(--gutter);
-		width: 100%;
-		justify-content: center;
+		padding: clamp(2.5rem, 5vw, 3.5rem) var(--gutter);
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		gap: clamp(1.5rem, 4vw, 3rem);
+		align-items: center;
+	}
+
+	.cl-marker {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		line-height: 1;
+	}
+	.cl-marker-num {
 		font-family: var(--font-mono);
-		font-size: 13px;
-		letter-spacing: 0.16em;
+		font-size: 15px;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+	}
+	.cl-marker-rubric {
+		font-family: var(--font-mono);
+		font-size: 11px;
+		letter-spacing: 0.24em;
 		text-transform: uppercase;
-		color: var(--ink);
-		border: none;
-		transition:
-			color var(--duration-fast) var(--ease),
-			gap var(--duration-fast) var(--ease);
+		opacity: 0.78;
 	}
-	.colophon-link-row:hover,
-	.colophon-link-row:focus-visible {
-		color: var(--accent);
-		gap: 0.7rem;
+
+	.cl-headline {
+		text-align: center;
+		min-width: 0;
 	}
-	.colophon-link-row:focus-visible {
-		outline: 2px solid var(--accent);
-		outline-offset: 2px;
-	}
-	.colophon-link-rubric {
-		color: var(--accent);
-		font-weight: 500;
-	}
-	.colophon-link-sep {
-		color: var(--rule);
-	}
-	.colophon-link-title {
+	.cl-title {
 		font-family: var(--font-display);
-		font-size: 16px;
+		font-size: clamp(26px, 4.2vw, 42px);
 		font-weight: 500;
-		letter-spacing: -0.01em;
-		text-transform: none;
-		color: inherit;
+		letter-spacing: -0.012em;
+		line-height: 1.04;
+		margin: 0;
+		color: var(--paper);
 	}
-	.colophon-link-arrow {
+	.cl-sub {
+		margin: 0.6rem 0 0;
 		font-family: var(--font-mono);
-		font-size: 14px;
-		color: var(--accent);
+		font-size: 12px;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		opacity: 0.78;
+	}
+
+	.cl-cta {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 0.35rem;
+		line-height: 1;
+	}
+	.cl-cta-rubric {
+		font-family: var(--font-mono);
+		font-size: 11px;
+		letter-spacing: 0.24em;
+		text-transform: uppercase;
+		opacity: 0.78;
+	}
+	.cl-cta-arrow {
+		font-family: var(--font-mono);
+		font-size: 32px;
+		line-height: 1;
 		transition: transform var(--duration-fast) var(--ease);
 	}
-	.colophon-link-row:hover .colophon-link-arrow,
-	.colophon-link-row:focus-visible .colophon-link-arrow {
-		transform: translateX(2px);
+	.colophon-link:hover .cl-cta-arrow,
+	.colophon-link:focus-visible .cl-cta-arrow {
+		transform: translateX(8px);
+	}
+
+	@media (max-width: 720px) {
+		.cl-inner {
+			grid-template-columns: 1fr;
+			gap: 1.2rem;
+			text-align: center;
+			padding: clamp(2rem, 6vw, 2.5rem) var(--gutter);
+		}
+		.cl-marker {
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+			gap: 0.6rem;
+		}
+		.cl-cta {
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+			gap: 0.7rem;
+		}
+		.cl-cta-arrow {
+			font-size: 26px;
+		}
+		.cl-tick {
+			width: 10px;
+			height: 10px;
+		}
 	}
 	@media (max-width: 480px) {
-		.colophon-link-row {
-			padding: 0.85rem var(--gutter);
-			font-size: 12px;
-			gap: 0.4rem;
-			flex-wrap: wrap;
+		.cl-title {
+			font-size: 22px;
 		}
-		.colophon-link-title {
-			font-size: 15px;
+		.cl-sub {
+			font-size: 11px;
+			letter-spacing: 0.14em;
 		}
 	}
 
@@ -862,7 +977,13 @@
 
 	/* Sub-bar beneath the four-cell colophon: legal copyright + license
 	 * + publisher link. Roman-numeral year keeps the drafting-spec
-	 * voice; the actual <copyright> meta tag is the legal anchor. */
+	 * voice; the actual <copyright> meta tag is the legal anchor.
+	 * The dashed rule above lives on .colophon-rights-wrap so it
+	 * reaches the viewport edges, not just the --max-w container. */
+	.colophon-rights-wrap {
+		width: 100%;
+		border-top: 1px dashed var(--rule);
+	}
 	.colophon-rights {
 		max-width: var(--max-w);
 		margin: 0 auto;
@@ -872,7 +993,6 @@
 		letter-spacing: 0.22em;
 		text-transform: uppercase;
 		color: var(--micro);
-		border-top: 1px dashed var(--rule);
 		text-align: center;
 	}
 	.colophon-rights a {
