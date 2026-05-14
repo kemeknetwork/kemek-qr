@@ -67,6 +67,12 @@ const SLASH_MARGIN_EM = 0.06;
  * mark's optical center. Replicating that here. */
 const WORDMARK_BASELINE_NUDGE_PX = 8;
 
+/* Padding (SVG units) around the mark + wordmark on all four sides.
+ * Without it the mark sits flush against the left viewBox edge and
+ * the slash terminals against the right — fine for in-page DOM
+ * embed, ugly as a standalone brand asset. */
+const EDGE_PADDING = 6;
+
 /* Load + parse a woff2 font file. opentype.js doesn't natively read
  * woff2 — wawoff2 decompresses to TTF first. */
 async function loadFont(woff2Path) {
@@ -124,7 +130,8 @@ async function buildLockup({ wordmarkColor, accentColor, outPath }) {
 	const wordmarkFeatures = {};
 	const slashFeatures = {};
 
-	const WORDMARK_X_START = 42;
+	/* Wordmark starts at: edge padding + mark width 30 + 9 gap. */
+	const WORDMARK_X_START = EDGE_PADDING + 30 + 9;
 	const letterSpacingPx = LETTER_SPACING_EM * FONT_SIZE;
 	const slashMarginPx = SLASH_MARGIN_EM * FONT_SIZE;
 
@@ -161,12 +168,13 @@ async function buildLockup({ wordmarkColor, accentColor, outPath }) {
 		glyphYMax = Math.max(glyphYMax, probe.yMax);
 	}
 
-	const margin = 2;
-	const canvasHeight = Math.ceil(glyphYMax - glyphYMin + margin * 2 + WORDMARK_BASELINE_NUDGE_PX);
-	/* The mark's natural footprint is 32 tall (30 mark + 2 lift +
-	 * margin). Make sure the canvas can fit it too. */
-	const HEIGHT = Math.max(canvasHeight, 32);
-	const WORDMARK_Y_BASELINE = Math.round(-glyphYMin + margin + WORDMARK_BASELINE_NUDGE_PX);
+	const canvasHeight = Math.ceil(
+		glyphYMax - glyphYMin + EDGE_PADDING * 2 + WORDMARK_BASELINE_NUDGE_PX
+	);
+	/* The mark's natural footprint is 30 + (2 × padding). Make sure
+	 * the canvas can fit it too. */
+	const HEIGHT = Math.max(canvasHeight, 30 + EDGE_PADDING * 2);
+	const WORDMARK_Y_BASELINE = Math.round(-glyphYMin + EDGE_PADDING + WORDMARK_BASELINE_NUDGE_PX);
 
 	for (const g of sequence) {
 		if (g.marginPx) x += g.marginPx;
@@ -188,7 +196,7 @@ async function buildLockup({ wordmarkColor, accentColor, outPath }) {
 		if (g.marginPx) x += g.marginPx;
 	}
 
-	const totalWidth = Math.ceil(x + 4);
+	const totalWidth = Math.ceil(x + EDGE_PADDING);
 	/* Vertically center the mark in the (possibly-taller) canvas, so
 	 * the mark's optical center still aligns with the wordmark's
 	 * x-height region the way the masthead does it. */
@@ -197,7 +205,7 @@ async function buildLockup({ wordmarkColor, accentColor, outPath }) {
 	/* Mark — same 7-unit shape as src/routes/+layout.svelte's
 	 * `.brand-mark`, scaled to 30 × 30 and translated to fit the
 	 * (possibly taller-than-mark) canvas. */
-	const markGroup = `\t<g transform="translate(3 ${markTop}) scale(4.2857)" fill="${accentColor}">
+	const markGroup = `\t<g transform="translate(${EDGE_PADDING} ${markTop}) scale(4.2857)" fill="${accentColor}">
 \t\t<path d="M0 0h3v1H0zM0 2h3v1H0zM0 1h1v1H0zM2 1h1v1H2z" />
 \t\t<path d="M4 0h3v1H4zM4 2h3v1H4zM4 1h1v1H4zM6 1h1v1H6z" />
 \t\t<path d="M0 4h3v1H0zM0 6h3v1H0zM0 5h1v1H0zM2 5h1v1H2z" />

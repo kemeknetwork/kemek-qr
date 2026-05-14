@@ -23,9 +23,18 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createRequire } from 'node:module';
+import sharp from 'sharp';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const DEV_URL = process.env.DEV_URL ?? 'http://localhost:5184/';
+
+/* Padding (in CSS px) added around the captured `.brand` element on
+ * all four sides. Without it, the mark sits flush against the
+ * left edge of the PNG and the slash terminals against the right —
+ * fine for an in-page DOM context but ugly as a standalone brand
+ * asset. The capture is at `scale` × DPR, so we multiply the CSS
+ * padding by the same factor when extending the raster. */
+const CSS_PADDING = 4;
 
 const PLAYWRIGHT_HUNTS = [
 	process.env.PLAYWRIGHT_MODULE,
@@ -84,8 +93,22 @@ async function captureBrand(theme, outRelPath, scale = 4) {
 	await page.waitForTimeout(200);
 
 	const elt = page.locator('a.brand').first();
-	await elt.screenshot({ path: resolve(ROOT, outRelPath), omitBackground: true });
-	console.log(`${outRelPath}: captured (theme=${theme})`);
+	const captureBuffer = await elt.screenshot({ omitBackground: true });
+	/* Sharp.extend adds transparent padding around the captured PNG.
+	 * Scaling the CSS padding by the same DSF the capture used keeps
+	 * the padding proportional. */
+	const pad = CSS_PADDING * scale;
+	await sharp(captureBuffer)
+		.extend({
+			top: pad,
+			bottom: pad,
+			left: pad,
+			right: pad,
+			background: { r: 0, g: 0, b: 0, alpha: 0 }
+		})
+		.png()
+		.toFile(resolve(ROOT, outRelPath));
+	console.log(`${outRelPath}: captured (theme=${theme}, padding=${pad}px)`);
 	await ctx.close();
 }
 
