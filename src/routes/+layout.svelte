@@ -648,11 +648,11 @@
 	}
 	.type-nav::before {
 		left: 0;
-		background: linear-gradient(to right, var(--paper-warm), rgba(237, 228, 206, 0));
+		background: linear-gradient(to right, var(--paper-warm), transparent);
 	}
 	.type-nav::after {
 		right: 0;
-		background: linear-gradient(to left, var(--paper-warm), rgba(237, 228, 206, 0));
+		background: linear-gradient(to left, var(--paper-warm), transparent);
 	}
 	@media (max-width: 720px) {
 		.type-nav::before,
@@ -991,8 +991,6 @@
 	}
 	.colophon-cell {
 		min-width: 0;
-	}
-	.colophon-cell {
 		display: flex;
 		flex-direction: column;
 		gap: 0.25rem;
