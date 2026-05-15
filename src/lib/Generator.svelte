@@ -55,8 +55,13 @@
 	let exportFormat = $state<'png' | 'svg' | 'pdf'>('png');
 	let exporting = $state(false);
 	let engineError = $state<string | null>(null);
+	/* Latches once the autosave write hits a non-quota exception so we
+	 * don't smash localStorage on every subsequent keystroke after the
+	 * subsystem proves degraded. Quota errors don't latch — those are
+	 * transient (trimming the logo lets the next write through). */
+	let sessionSaveBroken = false;
 	let logoError = $state<string | null>(null);
-	let copyState = $state<'idle' | 'copied' | 'dropped'>('idle');
+	let copyState = $state<'idle' | 'copied' | 'dropped' | 'manual'>('idle');
 	let copyTimer: ReturnType<typeof setTimeout> | null = null;
 
 	const dotOptions: { value: DotType; label: string }[] = [
@@ -254,13 +259,27 @@
 		if (!restored || typeof window === 'undefined') return;
 		if (saveTimer) clearTimeout(saveTimer);
 		saveTimer = setTimeout(() => {
+			if (sessionSaveBroken) return;
 			try {
 				localStorage.setItem(sessionKey, encodeSession(snapshot));
-			} catch {
-				/* QuotaExceededError most likely (large logo + many
-				 * sibling-route sessions). The next field edit
-				 * retries after the user has presumably trimmed
-				 * something; no surfaced error. */
+			} catch (err) {
+				/* QuotaExceededError is transient — usually a too-big logo
+				 * combined with sibling-route sessions. The next edit
+				 * retries silently after the user trims something. Any
+				 * other class (encoder bug, SecurityError from blocked
+				 * storage policy) is a real subsystem fault — latch the
+				 * broken flag so we stop retrying on every keystroke and
+				 * surface it once via engineError. */
+				const isQuota =
+					err instanceof DOMException &&
+					(err.name === 'QuotaExceededError' || err.name === 'NS_ERROR_DOM_QUOTA_REACHED');
+				if (!isQuota) {
+					sessionSaveBroken = true;
+					engineError =
+						err instanceof Error
+							? `Session autosave broken: ${err.message}`
+							: 'Session autosave broken.';
+				}
 			}
 		}, SAVE_DEBOUNCE_MS);
 		return () => {
@@ -285,22 +304,65 @@
 		if (!qrInstance) return;
 		if (renderTimer) clearTimeout(renderTimer);
 		renderTimer = setTimeout(() => {
-			qrInstance?.update(opts);
+			try {
+				qrInstance?.update(opts);
+			} catch (err) {
+				/* qr-code-styling throws synchronously on certain bad
+				 * option combinations (malformed logo data URL, NaN
+				 * gradient angle from a corrupted permalink). Without
+				 * this catch the throw lands in the timer callback,
+				 * vanishes to window.onerror, and the preview blanks
+				 * silently. Surface via the same engineError channel
+				 * the onMount path uses. */
+				engineError =
+					err instanceof Error
+						? `QR render failed: ${err.message}`
+						: 'QR render failed.';
+			}
 		}, RENDER_DEBOUNCE_MS);
 		return () => {
 			if (renderTimer) clearTimeout(renderTimer);
 		};
 	});
 
+	/* 4 MB is generous for QR logos (typical brand marks are tens of KB)
+	 * and below the localStorage-quota risk threshold across browsers.
+	 * Anything bigger is almost certainly a mis-drag of a wallpaper or
+	 * full-res photo, and bloats permalinks past the 6 KB share limit. */
+	const MAX_LOGO_BYTES = 4 * 1024 * 1024;
+
 	function handleLogoUpload(e: Event) {
 		const input = e.target as HTMLInputElement;
 		const file = input.files?.[0];
 		if (!file) return;
 		logoError = null;
+		if (!file.type.startsWith('image/')) {
+			logoError = `${file.name} isn't an image file.`;
+			input.value = '';
+			return;
+		}
+		if (file.size > MAX_LOGO_BYTES) {
+			logoError = `${file.name} is over 4 MB — pick a smaller image.`;
+			input.value = '';
+			return;
+		}
 		const reader = new FileReader();
 		reader.onload = () => {
-			logoDataUrl = reader.result as string;
-			logoName = file.name;
+			const dataUrl = reader.result as string;
+			/* Verify the data actually decodes as an image before
+			 * committing to state — a malformed PNG (truncated, wrong
+			 * extension) would slip past the MIME check and render
+			 * blank in the QR with no signal. */
+			const probe = new Image();
+			probe.onload = () => {
+				logoDataUrl = dataUrl;
+				logoName = file.name;
+			};
+			probe.onerror = () => {
+				logoError = `${file.name} couldn't be decoded as an image.`;
+				input.value = '';
+			};
+			probe.src = dataUrl;
 		};
 		reader.onerror = reader.onabort = () => {
 			logoError = `Couldn't read ${file.name}.`;
@@ -357,12 +419,12 @@
 		if (ok) {
 			copyState = result.logoDropped ? 'dropped' : 'copied';
 		} else {
-			/* Both paths failed — surface the URL via the address bar
-			 * as a last-resort recovery so the user can copy it
-			 * manually. Mark state so the user sees the button
-			 * acknowledge their click. */
+			/* Both clipboard paths failed — surface the URL via the
+			 * address bar as a last-resort recovery so the user can
+			 * copy it from there. Distinct 'manual' state so the UI
+			 * doesn't lie "LINK COPIED" — the clipboard is empty. */
 			window.history.replaceState(null, '', `#${result.hash}`);
-			copyState = result.logoDropped ? 'dropped' : 'copied';
+			copyState = 'manual';
 		}
 		if (copyTimer) clearTimeout(copyTimer);
 		copyTimer = setTimeout(() => (copyState = 'idle'), 2400);
@@ -509,6 +571,19 @@
 		setTimeout(() => URL.revokeObjectURL(url), 1000);
 	}
 
+	/* Discriminated export error so downloadActive can map a failure
+	 * reason to an actionable user message (4K-on-iOS canvas limit,
+	 * engine fault, PDF embed error) instead of flattening them all
+	 * into one generic "Download failed: …" string. */
+	type ExportErrorReason = 'canvas-limit' | 'engine' | 'pdf';
+	class QrExportError extends Error {
+		reason: ExportErrorReason;
+		constructor(reason: ExportErrorReason, message: string) {
+			super(message);
+			this.reason = reason;
+		}
+	}
+
 	async function downloadPNG() {
 		if (!QRCodeStylingClass) return;
 		const exportSize = PNG_SIZE_PX[pngSize];
@@ -521,7 +596,16 @@
 		});
 		if (frameEnabled) {
 			const blob = (await exporter.getRawData('png')) as Blob | null;
-			if (!blob) throw new Error('QR rasterization returned null');
+			if (!blob) {
+				/* Most likely cause: iOS Safari caps total canvas area at
+				 * 16,777,216 px; a 4K framed PNG (4096 + label band) is
+				 * just over that. canvas.toBlob returns null silently. */
+				const culprit4K = pngSize === '4K' ? '4K + frame ' : '';
+				throw new QrExportError(
+					'canvas-limit',
+					`${culprit4K}exceeds the canvas size limit on this device. Try 2K, or disable the frame.`
+				);
+			}
 			const framed = await composeFramedPng(blob, exportSize, frameLabel);
 			triggerDownload(framed, 'kemek-qr.png');
 		} else {
@@ -571,7 +655,7 @@
 			type: 'svg'
 		});
 		const blob = (await exporter.getRawData('svg')) as Blob | null;
-		if (!blob) throw new Error('SVG rasterization returned null');
+		if (!blob) throw new QrExportError('engine', 'SVG rasterization returned no data.');
 		const text = await blob.text();
 		const finalText = frameEnabled ? composeFramedSvg(text, exportSize, frameLabel) : text;
 		const finalBlob = new Blob([finalText], { type: 'image/svg+xml' });
@@ -597,7 +681,12 @@
 			type: 'canvas'
 		});
 		const qrBlob = (await exporter.getRawData('png')) as Blob | null;
-		if (!qrBlob) throw new Error('QR rasterization returned null');
+		if (!qrBlob) {
+			throw new QrExportError(
+				'canvas-limit',
+				'PDF QR rasterization exceeded the canvas size limit on this device. Try a different format.'
+			);
+		}
 
 		const { PDFDocument } = await import('pdf-lib');
 		const pdf = await PDFDocument.create();
@@ -652,7 +741,17 @@
 			else if (exportFormat === 'svg') await downloadSVG();
 			else await downloadPDF();
 		} catch (err) {
-			engineError = err instanceof Error ? `Download failed: ${err.message}` : 'Download failed.';
+			/* Map reason → message so the user sees what's actionable.
+			 * canvas-limit fires on iOS Safari at 4K + frame; the user
+			 * can drop to 2K or disable the frame. engine + pdf are
+			 * library-internal faults. Anything else is unexpected. */
+			if (err instanceof QrExportError) {
+				engineError = err.message;
+			} else if (err instanceof Error) {
+				engineError = `Download failed: ${err.message}`;
+			} else {
+				engineError = 'Download failed.';
+			}
 		} finally {
 			exporting = false;
 		}
@@ -887,6 +986,7 @@
 					<span class="permalink-label">
 						{#if copyState === 'copied'}LINK COPIED
 						{:else if copyState === 'dropped'}COPIED — LOGO NOT IN LINK
+						{:else if copyState === 'manual'}LINK IN ADDRESS BAR — COPY MANUALLY
 						{:else}COPY LINK{/if}
 					</span>
 					<span class="permalink-glyph" aria-hidden="true">⌁</span>
@@ -896,6 +996,12 @@
 				<p class="permalink-note">
 					Logo is too large to include in the link — recipient will see the QR without it.
 					Re-attaching the logo on their end recreates the design.
+				</p>
+			{/if}
+			{#if copyState === 'manual'}
+				<p class="permalink-note">
+					Clipboard access was blocked (insecure origin or denied permission). The link is in
+					your address bar — select it and copy by hand.
 				</p>
 			{/if}
 		</div>
