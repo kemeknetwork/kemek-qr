@@ -36,3 +36,8 @@ adrs/
 # Local runbook for native-app store submissions (developer-account
 # context + draft submission steps; commit later if/when sanitized)
 ops/deploy/app-stores.md
+
+# Local design-study scratch — source PNGs + composed comparison
+# sheets for scripts/build-demo-plates.mjs. Outputs live alongside
+# inputs here so nothing depends on /tmp.
+.specimen-study/
