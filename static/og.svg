@@ -56,18 +56,18 @@
 	</text>
 	<text x="80" y="565" xml:space="preserve" font-family="ui-monospace, 'Menlo', monospace" font-size="20" letter-spacing="2.5"><tspan fill="#e0492c" font-weight="500">KMK·QR</tspan><tspan fill="#f9eedb" opacity="0.42">   ·   </tspan><tspan fill="#f9eedb" opacity="0.55">PNG / SVG / PDF</tspan><tspan fill="#f9eedb" opacity="0.42">   ·   </tspan><tspan fill="#f9eedb" opacity="0.55">EDITION I — V·MMXXVI</tspan></text>
 
-	<!-- Specimen card on the right. The QR itself is a styled PNG
+	<!-- Specimen card on the right. The QR is an inverted styled PNG
 	     produced by kemek/qr's own app — dogfooding the product the
-	     OG card is selling. White background is baked into the PNG,
-	     so no separate quiet-zone tile needed under it. -->
+	     OG card is selling. Its own dark ground carries the contrast
+	     against the cream modules and sits flush on the plate panel;
+	     no cream quiet-zone tile under it. -->
 	<g transform="translate(910 70)">
 		<rect width="210" height="490" fill="#16130d" stroke="#f9eedb" stroke-opacity="0.34" stroke-width="1"/>
 		<text x="20" y="55" font-family="ui-monospace, 'Menlo', monospace" font-size="22" letter-spacing="3" fill="#f9eedb" opacity="0.6">PLATE</text>
 		<text x="105" y="142" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="82" fill="#e0492c" letter-spacing="-2">01</text>
 		<line x1="0" y1="180" x2="210" y2="180" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
 
-		<rect x="16" y="195" width="178" height="178" fill="#f9eedb"/>
-		<image href="brand/qr.png" x="20" y="199" width="170" height="170"/>
+		<image href="brand/qr.png" x="16" y="195" width="178" height="178"/>
 
 		<line x1="0" y1="398" x2="210" y2="398" stroke="#f9eedb" stroke-width="1" opacity="0.2"/>
 		<text x="105" y="433" text-anchor="middle" font-family="ui-monospace, 'Menlo', monospace" font-size="22" letter-spacing="3" fill="#f9eedb" opacity="0.65">SCAN ME</text>
