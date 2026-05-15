@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { LANDING_COPY } from './landing-copy';
-	import { CONTENT_TYPES, PLATE, type ContentType } from './types';
+	import { CONTENT_TYPES, PLATE, ROUTE_FOR_TYPE, TYPE_LABELS, type ContentType } from './types';
 
 	type Props = {
 		/* When set, the matching plate renders muted + non-clickable
@@ -29,10 +29,10 @@
 		{@const o = LANDING_COPY[t]}
 		{@const isCurrent = t === current}
 		<li class:is-current={isCurrent}>
-			<a href={o.path} aria-current={isCurrent ? 'page' : undefined}>
+			<a href={ROUTE_FOR_TYPE[t]} aria-current={isCurrent ? 'page' : undefined}>
 				<span class="plate-index-num">PL.{PLATE[t]}</span>
 				<span class="plate-index-body">
-					<span class="plate-index-label">{o.shortLabel}</span>
+					<span class="plate-index-label">{TYPE_LABELS[t]}</span>
 					<span class="plate-index-h1">{labelKind === 'h1' ? o.h1 : o.plateLabel}</span>
 				</span>
 				<span class="plate-index-arrow" aria-hidden="true">→</span>

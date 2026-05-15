@@ -4,14 +4,14 @@
 	import PlateIndex from './PlateIndex.svelte';
 	import QRAnatomy from './QRAnatomy.svelte';
 	import { LANDING_COPY } from './landing-copy';
-	import { PLATE, type ContentType } from './types';
+	import { PLATE, ROUTE_FOR_TYPE, TYPE_LABELS, type ContentType } from './types';
 
 	let { type }: { type: ContentType } = $props();
 	const copy = $derived(LANDING_COPY[type]);
 	const plate = $derived(PLATE[type]);
 
 	const SITE = 'https://qr.kemek.com';
-	const canonicalUrl = $derived(`${SITE}${copy.path}`);
+	const canonicalUrl = $derived(`${SITE}${ROUTE_FOR_TYPE[type]}`);
 
 	const jsonLd = $derived({
 		'@context': 'https://schema.org',
@@ -76,7 +76,7 @@
 		</div>
 
 		<div class="title-block-body">
-			<span class="title-rubric">FIGURE A · {copy.shortLabel} ENCODE</span>
+			<span class="title-rubric">FIGURE A · {TYPE_LABELS[type]} ENCODE</span>
 			<h1 class="hero-title">{copy.h1}</h1>
 			<p class="hero-sub">{copy.sub}</p>
 
