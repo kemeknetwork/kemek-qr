@@ -5,10 +5,5 @@ export default defineConfig({
 		environment: 'jsdom',
 		include: ['src/**/*.test.ts'],
 		globals: false
-	},
-	resolve: {
-		alias: {
-			$lib: '/src/lib'
-		}
 	}
 });
