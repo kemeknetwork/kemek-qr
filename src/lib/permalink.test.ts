@@ -271,6 +271,56 @@ describe('decode validation', () => {
 		expect(dec?.type).toBe('phone');
 		expect(dec?.content).toEqual({}); /* number stripped, no crash */
 	});
+	it('rejects payloads larger than MAX_PAYLOAD_LEN before parsing', () => {
+		/* Hand-built oversize payload — the encoder won't produce this,
+		 * but a malicious client can. Must return null without running
+		 * atob/JSON.parse on the multi-KB string (DoS gate). */
+		const oversize = `#s=v1.${'A'.repeat(9000)}`;
+		expect(decodePermalink(oversize)).toBeNull();
+	});
+	it('drops SVG data URLs from logo permalink field', () => {
+		/* Render-time safe (image-isolation boundary), but the SVG
+		 * download path serializes the data URL into the user's .svg
+		 * file — opening that standalone executes embedded scripts.
+		 * Refuse SVG on the permalink lane entirely. */
+		const svgHash = `#s=v1.${btoa(
+			JSON.stringify({
+				t: 'url',
+				c: { url: 'https://kemek.com' },
+				l: 'data:image/svg+xml;base64,PHN2Zy8+'
+			})
+		)
+			.replace(/\+/g, '-')
+			.replace(/\//g, '_')
+			.replace(/=+$/, '')}`;
+		const dec = decodePermalink(svgHash);
+		expect(dec).not.toBeNull();
+		expect(dec?.logoDataUrl).toBeUndefined();
+	});
+	it('accepts PNG / JPEG / WebP data URLs on the logo permalink field', () => {
+		const pngHash = `#s=v1.${btoa(
+			JSON.stringify({ t: 'url', l: 'data:image/png;base64,iVBORw0KGgo=' })
+		)
+			.replace(/\+/g, '-')
+			.replace(/\//g, '_')
+			.replace(/=+$/, '')}`;
+		expect(decodePermalink(pngHash)?.logoDataUrl).toBe('data:image/png;base64,iVBORw0KGgo=');
+	});
+	it('drops content string fields longer than MAX_CONTENT_FIELD_LEN', () => {
+		/* A 5 KB text payload survives scalar typecheck (it's a string,
+		 * default is a string) but crashes the QR encoder. The field
+		 * length cap (4 KB) catches it at validation. Stays under the
+		 * total-payload cap (8 KB base64 ≈ 6 KB raw JSON budget) so
+		 * the OUTER DoS gate doesn't reject the whole envelope first. */
+		const giantText = 'a'.repeat(5000);
+		const hash = `#s=v1.${btoa(JSON.stringify({ t: 'text', c: { text: giantText } }))
+			.replace(/\+/g, '-')
+			.replace(/\//g, '_')
+			.replace(/=+$/, '')}`;
+		const dec = decodePermalink(hash);
+		expect(dec?.type).toBe('text');
+		expect(dec?.content).toEqual({}); /* text dropped, no crash */
+	});
 	it('drops content boolean keys with wrong scalar type', () => {
 		const corruptHash = `#s=v1.${btoa(
 			JSON.stringify({

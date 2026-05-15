@@ -68,6 +68,37 @@ export type PermalinkState<T extends ContentType = ContentType> = StylingState &
 
 const MAX_URL_LEN = 6000;
 
+/* Hard upper bound on the base64url payload the decoder will accept.
+ * Set generously over MAX_URL_LEN so every encode-side output passes,
+ * while still capping the parse-time DoS lever — without this gate a
+ * 100 MB hash would run `atob` + `JSON.parse` (both single-threaded
+ * blocking) before any validator gets a chance to reject it. */
+const MAX_PAYLOAD_LEN = 8192;
+
+/* Per-field cap on string content values inside the decoded
+ * permalink payload. Defaults like text/SSID/email body are
+ * empty strings, so validateContent's `typeof === typeof default`
+ * gate accepts any string length. A multi-MB value passes validation
+ * cleanly and then crashes the QR encoder downstream. 4 KB is room
+ * for every realistic content type (URLs ~ 2 KB practical, vCard
+ * fields << 256, SMS body 1 KB) and an order of magnitude under the
+ * MAX_PAYLOAD_LEN total. */
+const MAX_CONTENT_FIELD_LEN = 4096;
+
+/* Logo data-URL allowlist. The receiver embeds whatever data URL
+ * lands here into a <svg:image href> — render-time safe via the
+ * image-isolation boundary (browsers don't execute scripts in
+ * referenced SVG resources), but the user's SVG download path
+ * serializes the same data URL into their .svg file, and opening
+ * that file standalone executes embedded scripts. The simplest
+ * cure is to refuse SVG on the permalink lane entirely: receivers
+ * can't be tricked into shipping a self-XSS payload. PNG/JPEG/WebP/
+ * GIF cover every realistic logo use. The base64 alphabet anchor
+ * also closes `data:image/png,<raw bytes>` (non-base64) which
+ * qr-code-styling would fail on anyway. */
+const LOGO_DATA_URL_RE = /^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/;
+const MAX_LOGO_DATA_URL_LEN = 7000;
+
 const DOT_TYPES: ReadonlySet<DotType> = new Set([
 	'square',
 	'rounded',
@@ -250,7 +281,13 @@ function validateContent<T extends ContentType>(type: T, c: unknown): Partial<Co
 	const out: Record<string, unknown> = {};
 	for (const k of Object.keys(defaults)) {
 		if (!(k in obj)) continue;
-		if (typeof obj[k] === typeof defaults[k]) out[k] = obj[k];
+		const v = obj[k];
+		if (typeof v !== typeof defaults[k]) continue;
+		/* String fields get a per-field length cap so a permalink can't
+		 * carry a multi-MB SSID/text/body that survives validation only
+		 * to crash the QR encoder downstream. See MAX_CONTENT_FIELD_LEN. */
+		if (typeof v === 'string' && v.length > MAX_CONTENT_FIELD_LEN) continue;
+		out[k] = v;
 	}
 	return out as Partial<ContentMap[T]>;
 }
@@ -259,6 +296,7 @@ export function decodePermalink(hash: string): DecodedPermalink | null {
 	const raw = hash.startsWith('#') ? hash.slice(1) : hash;
 	const m = raw.match(/^s=v1\.(.+)$/);
 	if (!m) return null;
+	if (m[1].length > MAX_PAYLOAD_LEN) return null;
 
 	let parsed: unknown;
 	try {
@@ -285,7 +323,13 @@ export function decodePermalink(hash: string): DecodedPermalink | null {
 	if (isOneOf(w.d, DOT_TYPES)) out.dot = w.d;
 	if (isOneOf(w.e, ECC_VALUES)) out.ecc = w.e;
 	if (isNumberInRange(w.ls, 0.05, 0.5)) out.logoSize = w.ls;
-	if (typeof w.l === 'string' && w.l.startsWith('data:image/')) out.logoDataUrl = w.l;
+	if (
+		typeof w.l === 'string' &&
+		w.l.length <= MAX_LOGO_DATA_URL_LEN &&
+		LOGO_DATA_URL_RE.test(w.l)
+	) {
+		out.logoDataUrl = w.l;
+	}
 	if (isOneOf(w.ef, EYE_FRAME_VALUES)) out.eyeFrame = w.ef;
 	if (isOneOf(w.eb, EYE_BALL_VALUES)) out.eyeBall = w.eb;
 	if (w.g === true) {
