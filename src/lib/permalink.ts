@@ -122,9 +122,15 @@ function isStringMaxLen(v: unknown, max: number): v is string {
 	return typeof v === 'string' && v.length <= max;
 }
 
+/* Wire-format schema. Fields are typed at their intended target types
+ * for the BUILD side — buildWire's object-literal assignment is the only
+ * place these types are enforced, and that's exactly where we want
+ * compile-time safety. On the DECODE side we treat each field as
+ * `unknown` (see decodePermalink) because the input is caller-supplied
+ * JSON; per-field validators do the narrowing. */
 type WireV1 = {
 	t?: ContentType;
-	c?: Record<string, unknown>;
+	c?: ContentMap[ContentType];
 	f?: string;
 	b?: string;
 	d?: DotType;
@@ -167,7 +173,7 @@ function fromBase64Url(s: string): string {
 function buildWire<T extends ContentType>(state: PermalinkState<T>, includeLogo: boolean): WireV1 {
 	const w: WireV1 = {
 		t: state.type,
-		c: state.content as unknown as Record<string, unknown>,
+		c: state.content,
 		f: state.fg,
 		b: state.bg,
 		d: state.dot,
@@ -226,23 +232,27 @@ export function encodePermalink<T extends ContentType>(
 
 export type DecodedPermalink = Partial<StylingState> & {
 	type?: ContentType;
-	content?: Record<string, unknown>;
+	content?: Partial<ContentMap[ContentType]>;
 };
 
-/* Validate per-type content shape: drop any unknown keys but trust
- * scalar values to be strings/booleans where the form expects them.
- * Form components call .toString()/coerce defensively, so a bad value
- * surfaces as an empty field rather than a crash. Allowed keys come
+/* Validate per-type content shape: drop any unknown keys AND any keys
+ * whose value type doesn't match the default's type. Allowed keys come
  * from DEFAULT_CONTENT so the two stay in lockstep — adding a field to
- * a content shape automatically extends what the decoder accepts. */
-function validateContent(type: ContentType, c: unknown): Record<string, unknown> | null {
+ * a content shape automatically extends what the decoder accepts. The
+ * `typeof default === typeof value` gate closes a real crash vector:
+ * a permalink with `{phone: {number: 12345}}` (number, not string)
+ * would otherwise pass through and crash `encodePhone.number.replace()`
+ * downstream inside the debounced render effect. */
+function validateContent<T extends ContentType>(type: T, c: unknown): Partial<ContentMap[T]> | null {
 	if (!c || typeof c !== 'object') return null;
 	const obj = c as Record<string, unknown>;
+	const defaults = DEFAULT_CONTENT[type] as Record<string, unknown>;
 	const out: Record<string, unknown> = {};
-	for (const k of Object.keys(DEFAULT_CONTENT[type])) {
-		if (k in obj) out[k] = obj[k];
+	for (const k of Object.keys(defaults)) {
+		if (!(k in obj)) continue;
+		if (typeof obj[k] === typeof defaults[k]) out[k] = obj[k];
 	}
-	return out;
+	return out as Partial<ContentMap[T]>;
 }
 
 export function decodePermalink(hash: string): DecodedPermalink | null {
@@ -258,7 +268,11 @@ export function decodePermalink(hash: string): DecodedPermalink | null {
 	}
 	if (!parsed || typeof parsed !== 'object') return null;
 
-	const w = parsed as WireV1;
+	/* Treat every wire field as unknown — the input is caller-supplied
+	 * JSON from a URL hash, so the type-level optionality of WireV1
+	 * (which exists for buildWire's compile-time safety) overstates
+	 * what we actually know. Per-field validators do the narrowing. */
+	const w = parsed as Partial<Record<keyof WireV1, unknown>>;
 	const out: DecodedPermalink = {};
 
 	if (isOneOf(w.t, TYPES_SET)) out.type = w.t;
@@ -289,4 +303,20 @@ export function decodePermalink(hash: string): DecodedPermalink | null {
 	if (isOneOf(w.pnp, PNG_SIZE_VALUES)) out.pngSize = w.pnp;
 
 	return out;
+}
+
+/* Session-storage wrappers. localStorage stores the wire payload
+ * WITHOUT the `s=` URL-fragment prefix so the stored string and the
+ * URL hash representation can diverge if we ever change either. Owning
+ * both the encode + decode sides here keeps Generator.svelte from
+ * knowing the wire-format key. The encode side still applies the
+ * logo-drop rule so a session restored later is round-trippable to a
+ * shareable URL without the user losing a logo silently. */
+export function encodeSession<T extends ContentType>(state: PermalinkState<T>): string {
+	const { hash } = encodePermalink(state, '');
+	return hash.slice(2); /* strip the 's=' prefix */
+}
+
+export function decodeSession(raw: string): DecodedPermalink | null {
+	return decodePermalink(`s=${raw}`);
 }

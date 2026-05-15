@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { decodePermalink, encodePermalink, type PermalinkState } from './permalink';
+import {
+	decodePermalink,
+	decodeSession,
+	encodePermalink,
+	encodeSession,
+	type PermalinkState
+} from './permalink';
 
 const baseStyling = {
 	fg: '#1A1815',
@@ -246,5 +252,54 @@ describe('decode validation', () => {
 			auth: 'WPA',
 			hidden: false
 		});
+	});
+	it('drops content keys whose scalar type mismatches the default', () => {
+		/* Crafted (or merely corrupted) permalinks could deliver a number
+		 * where the encoder expects a string. Pre-0.34.20 this passed
+		 * through and crashed encoder methods like encodePhone's
+		 * .number.replace() inside the debounced render effect. */
+		const corruptHash = `#s=v1.${btoa(
+			JSON.stringify({
+				t: 'phone',
+				c: { number: 12345 } /* number, not string */
+			})
+		)
+			.replace(/\+/g, '-')
+			.replace(/\//g, '_')
+			.replace(/=+$/, '')}`;
+		const dec = decodePermalink(corruptHash);
+		expect(dec?.type).toBe('phone');
+		expect(dec?.content).toEqual({}); /* number stripped, no crash */
+	});
+	it('drops content boolean keys with wrong scalar type', () => {
+		const corruptHash = `#s=v1.${btoa(
+			JSON.stringify({
+				t: 'wifi',
+				c: { ssid: 'x', password: 'y', auth: 'WPA', hidden: 'yes' } /* string, expected boolean */
+			})
+		)
+			.replace(/\+/g, '-')
+			.replace(/\//g, '_')
+			.replace(/=+$/, '')}`;
+		const dec = decodePermalink(corruptHash);
+		expect(dec?.content).toEqual({ ssid: 'x', password: 'y', auth: 'WPA' });
+		expect(dec?.content).not.toHaveProperty('hidden');
+	});
+});
+
+describe('session storage round-trip', () => {
+	it('encodeSession + decodeSession round-trips without the s= prefix', () => {
+		const state: PermalinkState<'url'> = {
+			...baseStyling,
+			type: 'url',
+			content: { url: 'https://kemek.com' }
+		};
+		const raw = encodeSession(state);
+		expect(raw.startsWith('s=')).toBe(false);
+		expect(raw.startsWith('v1.')).toBe(true);
+		const dec = decodeSession(raw);
+		expect(dec?.type).toBe('url');
+		expect(dec?.content).toEqual({ url: 'https://kemek.com' });
+		expect(dec?.fg).toBe('#1A1815');
 	});
 });

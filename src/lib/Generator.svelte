@@ -3,7 +3,9 @@
 	import type QRCodeStyling from 'qr-code-styling';
 	import {
 		decodePermalink,
+		decodeSession,
 		encodePermalink,
+		encodeSession,
 		PNG_SIZE_PX,
 		type DecodedPermalink,
 		type DotType,
@@ -21,8 +23,7 @@
 		DEFAULT_CONTENT,
 		TYPE_LABELS,
 		type ContentMap,
-		type ContentType,
-		type WifiAuth
+		type ContentType
 	} from '$lib/types';
 
 	/* The content type is fixed by the route (prop). Cross-type
@@ -176,9 +177,15 @@
 		 * Mismatches keep the styling but ignore the content (which
 		 * is shaped for the wrong form). */
 		if (decoded.type === type && decoded.content) {
+			/* TS resists writing to a union-keyed indexed access — `content[type] = …`
+			 * would require the RHS to satisfy ContentMap[K] for every K in
+			 * ContentType simultaneously. The single LHS cast tells the compiler
+			 * we're keyed by a single K at runtime (guaranteed by the type-match
+			 * guard above). Both spreads stay typed: content[type] is the union
+			 * of payload shapes, decoded.content is Partial<ContentMap[ContentType]>. */
 			(content as Record<ContentType, unknown>)[type] = {
-				...(content[type] as Record<string, unknown>),
-				...(decoded.content as Record<string, unknown>)
+				...content[type],
+				...decoded.content
 			};
 		}
 		if (decoded.fg !== undefined) fgColor = decoded.fg;
@@ -215,7 +222,7 @@
 			} else {
 				try {
 					const raw = localStorage.getItem(sessionKey);
-					if (raw) applyDecoded(decodePermalink(`s=${raw}`));
+					if (raw) applyDecoded(decodeSession(raw));
 				} catch {
 					/* localStorage can throw in private mode or with
 					 * quota exhaustion — silent fallback to defaults. */
@@ -248,8 +255,7 @@
 		if (saveTimer) clearTimeout(saveTimer);
 		saveTimer = setTimeout(() => {
 			try {
-				const result = encodePermalink(snapshot, '');
-				localStorage.setItem(sessionKey, result.hash.replace(/^s=/, ''));
+				localStorage.setItem(sessionKey, encodeSession(snapshot));
 			} catch {
 				/* QuotaExceededError most likely (large logo + many
 				 * sibling-route sessions). The next field edit
@@ -955,7 +961,7 @@
 				<div class="field-row" style="padding-top: 0.85rem;">
 					<label class="color-field">
 						<span class="field-label">SECURITY</span>
-						<select class="select" bind:value={content.wifi.auth as WifiAuth}>
+						<select class="select" bind:value={content.wifi.auth}>
 							<option value="WPA">WPA / WPA2 / WPA3</option>
 							<option value="WEP">WEP</option>
 							<option value="nopass">None (open)</option>
