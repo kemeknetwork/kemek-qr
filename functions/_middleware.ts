@@ -25,12 +25,18 @@
  *
  * ## Privacy invariants — do not relax without updating about copy
  *
- * - **No IP capture.** `context.request.headers.get('cf-connecting-ip')`
- *   is intentionally not read or logged.
+ * - **No raw IP at rest.** The IP is read transiently in-memory to
+ *   compute the rate-limit fingerprint (SHA-256 of `ip|ua|daySalt`),
+ *   then discarded. Only the hash is written to KV, with a 60-second
+ *   TTL and a daily-rotating salt so the hash space is
+ *   non-correlatable across days. Never logged, never returned, never
+ *   leaked downstream.
  * - **No cookies set or read.** Middleware never touches Set-Cookie
  *   or the Cookie header.
  * - **No unique identifier per visitor.** Country and PoP code are
- *   the highest-cardinality fields; both are aggregate populations.
+ *   the highest-cardinality logged fields; both are aggregate
+ *   populations. The rate-limit fingerprint is a hash, expires in
+ *   60 s, and is not joined with any logged field.
  * - **No client-side code.** Middleware runs server-side; the
  *   visitor's browser sees an identical static response.
  * - **Asset fetches are filtered out.** Only HTML page-view requests
@@ -50,8 +56,16 @@
  * @cloudflare/workers-types as a devDep. Only the methods we use. */
 type KVNamespace = {
 	get: (key: string) => Promise<string | null>;
-	put: (key: string, value: string) => Promise<void>;
+	put: (key: string, value: string, options?: { expirationTtl?: number }) => Promise<void>;
 };
+
+/* Pageview rate-limit cooldown window. A given (ip, ua) tuple
+ * increments the counter at most once per COOLDOWN_SECONDS. Set
+ * generously enough that a normal visitor reload doesn't get
+ * double-counted, tight enough that a curl flood is throttled to
+ * ~1 increment per minute per fingerprint. Combined with daily
+ * salt rotation, a flooder can't accumulate state across days. */
+const COOLDOWN_SECONDS = 60;
 
 type EventContext = {
 	request: Request;
@@ -86,11 +100,41 @@ export async function onRequest(context: EventContext): Promise<Response> {
 				ref: context.request.headers.get('referer') ?? null
 			})
 		);
-		if (context.env.PV_COUNTER) {
-			context.waitUntil(incrementCounter(context.env.PV_COUNTER));
+		const kv = context.env.PV_COUNTER;
+		if (kv) {
+			/* Rate-limit the increment: hash (ip, ua, daySalt) into a
+			 * short-lived KV cooldown key; only the first request per
+			 * (fingerprint, COOLDOWN_SECONDS window) actually bumps the
+			 * counter. The raw IP is read transiently to compute the
+			 * hash and is never persisted; the hash itself expires after
+			 * 60 s and is daily-salted so it can't be replayed across
+			 * days. See the "Privacy invariants" block above. */
+			const ip = context.request.headers.get('cf-connecting-ip') ?? '0.0.0.0';
+			const ua = context.request.headers.get('user-agent') ?? '';
+			const daySalt = Math.floor(Date.now() / 86_400_000).toString();
+			const fingerprint = await sha256Hex(`${ip}|${ua}|${daySalt}`);
+			const cooldownKey = `cd:${fingerprint}`;
+			const seen = await kv.get(cooldownKey);
+			if (!seen) {
+				context.waitUntil(
+					Promise.all([
+						kv.put(cooldownKey, '1', { expirationTtl: COOLDOWN_SECONDS }),
+						incrementCounter(kv)
+					])
+				);
+			}
 		}
 	}
 	return context.next();
+}
+
+/* SHA-256 → lowercase hex. Used by the pageview rate-limit
+ * fingerprint above. crypto.subtle is available in the Cloudflare
+ * Workers runtime (and in modern browsers, though this code never
+ * runs there). */
+async function sha256Hex(s: string): Promise<string> {
+	const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+	return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 /* Best-effort counter. KV writes are eventually consistent and
