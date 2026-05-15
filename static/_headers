@@ -1,0 +1,32 @@
+# Security response headers — kemek-qr
+#
+# Cloudflare Pages applies this file at deploy time. Each path glob
+# attaches the indented headers below it to matching responses.
+#
+# Decisions (Pass 2 security review, 2026-05-15):
+# - CSP carries 'unsafe-inline' on script-src and style-src. The
+#   load-bearing FOUC firewall script in app.html validates its
+#   localStorage input against a literal allowlist before setting
+#   data-theme; there are no other inline scripts and no path that
+#   renders user-supplied strings into HTML, so the practical XSS
+#   surface is ~0 even with 'unsafe-inline'. Svelte's inline
+#   `style:--token={value}` syntax also requires 'unsafe-inline' on
+#   style-src — no escape from that without giving up the Svelte 5
+#   reactive-token pattern. Pinning a SHA-256 of the FOUC script was
+#   considered and rejected (any edit invalidates).
+# - connect-src 'self' explicitly excludes cloudflareinsights.com.
+#   The brand stance ("no third-party assets, no tracking pixels") is
+#   load-bearing; if CFWA ever gets accidentally toggled on in the
+#   dashboard, CSP enforcement catches it.
+# - img-src adds data: + blob: for qr-code-styling's data-URL outputs
+#   and the logo preview pipeline.
+# - frame-ancestors 'none' + X-Frame-Options: DENY are belt-and-
+#   suspenders against clickjacking on every modern + legacy browser.
+
+/*
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=(), interest-cohort=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
