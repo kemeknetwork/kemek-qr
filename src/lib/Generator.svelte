@@ -348,6 +348,23 @@
 			input.value = '';
 			return;
 		}
+		/* Block SVG uploads. Render-time it's safe (qr-code-styling
+		 * embeds the logo via <svg:image href>, which sandboxes scripts
+		 * the same way <img src> does), but: (a) the SVG download path
+		 * inlines the logo into a .svg file the user can re-open
+		 * standalone, where embedded scripts DO execute — drive-by
+		 * self-XSS via crafted permalinks; (b) SVG logos can fetch
+		 * external resources (<image href="https://attacker/..."/>),
+		 * which would break the "zero outbound during QR generation"
+		 * brand promise. Cure: refuse SVG at the upload boundary, same
+		 * as the permalink lane refuses it (see LOGO_DATA_URL_RE in
+		 * lib/permalink.ts). Designers who need vector logos should
+		 * pre-rasterize. */
+		if (file.type === 'image/svg+xml') {
+			logoError = `${file.name}: SVG logos aren't supported — try PNG or WebP.`;
+			input.value = '';
+			return;
+		}
 		if (file.size > MAX_LOGO_BYTES) {
 			logoError = `${file.name} is over 4 MB — pick a smaller image.`;
 			input.value = '';
@@ -656,6 +673,12 @@
 		inner.setAttribute('height', String(qrSize));
 		const innerSerialized = new XMLSerializer().serializeToString(inner);
 
+		/* Element-content-only escape. The output is interpolated
+		 * between <text>...</text> below; that context requires &<>
+		 * escaping but not " or '. If a future caller ever moves a
+		 * user string into an SVG attribute value, this function must
+		 * gain `"` and `'` to .replace() chain or the call site needs
+		 * its own attribute-safe escape. */
 		const escapeXml = (s: string) =>
 			s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -1336,7 +1359,7 @@
 				<label class="logo-upload">
 					<input
 						type="file"
-						accept="image/png,image/svg+xml,image/jpeg"
+						accept="image/png,image/jpeg,image/webp"
 						onchange={handleLogoUpload}
 					/>
 					<span>{logoDataUrl ? 'REPLACE FILE' : 'UPLOAD FILE'}</span>

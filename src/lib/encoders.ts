@@ -54,11 +54,24 @@ export function encodeWifi(c: WifiContent): string {
 	return `WIFI:T:${c.auth};S:${ssid};P:${password};H:${hidden};;`;
 }
 
-/* vCard line escape: backslash, semicolon, comma, newlines per RFC 6350.
- * vCard 3.0 wraps long lines at 75 octets; we omit folding because most
- * scanners tolerate unfolded lines and folding bloats QR payload. */
+/* vCard line escape: backslash, line breaks (CR/CRLF/LF), comma,
+ * semicolon per RFC 6350. CR/CRLF are normalized to the same `\n`
+ * escape sequence — a raw `\r` from a Windows clipboard paste would
+ * otherwise pass through verbatim and corrupt iOS Contacts parsing
+ * (which treats the unescaped CR as a partial line terminator).
+ * Contract: value-position only. The output is NOT safe to inject
+ * into a vCard property's parameter section (e.g. `TYPE=…`) because
+ * `=` is not escaped. Every call site here interpolates into
+ * value-position only; preserve that invariant on any addition.
+ * vCard 3.0 line-folding at 75 octets is intentionally omitted —
+ * most scanners tolerate unfolded lines and folding bloats QR
+ * payload. */
 function escapeVCard(s: string): string {
-	return s.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;');
+	return s
+		.replace(/\\/g, '\\\\')
+		.replace(/\r\n?|\n/g, '\\n')
+		.replace(/,/g, '\\,')
+		.replace(/;/g, '\\;');
 }
 
 export function encodeVCard(c: VCardContent): string {
