@@ -38,15 +38,14 @@ const CSS_PADDING = 4;
 
 const PLAYWRIGHT_HUNTS = [
 	process.env.PLAYWRIGHT_MODULE,
-	resolve(ROOT, 'node_modules/playwright'),
-	'/home/kv/dev/projects/kemek-digest/node_modules/playwright',
-	'/home/kv/dev/projects/bitcoin-astrolabe/node_modules/playwright'
+	resolve(ROOT, 'node_modules/playwright')
 ].filter(Boolean);
 const playwrightDir = PLAYWRIGHT_HUNTS.find((p) => existsSync(p));
 if (!playwrightDir) {
 	console.error(
 		'render-lockups: no Playwright install found. Either `npm i -D playwright` here, ' +
-			'or set PLAYWRIGHT_MODULE to a path that has it.'
+			'or set PLAYWRIGHT_MODULE to a path that has it (e.g. ' +
+			'PLAYWRIGHT_MODULE=/path/to/another-project/node_modules/playwright).'
 	);
 	process.exit(1);
 }
@@ -55,7 +54,6 @@ const { chromium } = require(playwrightDir);
 
 const CANDIDATE_CHROMES = [
 	process.env.PLAYWRIGHT_CHROMIUM,
-	'/tmp/chrome-cft/chrome/linux-148.0.7778.97/chrome-linux64/chrome',
 	'/usr/bin/google-chrome',
 	'/usr/bin/chromium',
 	'/usr/bin/chromium-browser'

@@ -59,12 +59,13 @@ const SLASH_MARGIN_EM = 0.06;
  * masthead puts it. The masthead uses CSS `align-items: center` on
  * an inline-flex container; both the mark and the wordmark line-box
  * are centered on the same horizontal axis. But the *visual* center
- * of lowercase Fraunces sits slightly BELOW the line-box center
- * (cap-height extends further up than the descender extends down),
- * and the mark is additionally lifted 1 px (`transform:
- * translateY(-1px)` in `.brand-mark`). Net: in the rendered
- * masthead, the wordmark's optical center sits ~ 3 px below the
- * mark's optical center. Replicating that here. */
+ * of lowercase Fraunces sits BELOW the line-box center (cap-height
+ * extends further up than the descender extends down), and the mark
+ * is additionally lifted 1 px (`transform: translateY(-1px)` in
+ * `.brand-mark`). The 8 px value here was tuned empirically against
+ * the masthead screenshot reference until pixel diff fell under the
+ * tolerance — see scripts/render-lockups.mjs for the canonical
+ * pixel-pull from the live rendered DOM. */
 const WORDMARK_BASELINE_NUDGE_PX = 8;
 
 /* Padding (SVG units) around the mark + wordmark on all four sides.
