@@ -119,9 +119,16 @@
 		};
 	}
 
+	/* ECC auto-resolution rule: when 'auto', a logo bumps to H (30 %
+	 * recovery is what makes the logo cutout survive a scan), plain
+	 * codes use M (15 %, the everyday default). One source of truth
+	 * for both buildOpts and the resolvedECC display $derived below. */
+	function resolveEcc(level: ECC, hasLogo: boolean): 'L' | 'M' | 'Q' | 'H' {
+		return level === 'auto' ? (hasLogo ? 'H' : 'M') : level;
+	}
+
 	function buildOpts() {
-		const ecc: 'L' | 'M' | 'Q' | 'H' =
-			errorCorrection === 'auto' ? (logoDataUrl ? 'H' : 'M') : errorCorrection;
+		const ecc = resolveEcc(errorCorrection, logoDataUrl !== null);
 		const encoded = encode(type, content[type]);
 		const gradient = buildGradient();
 		return {
@@ -445,6 +452,24 @@
 	 * label length — short labels get a huge font, long ones get a
 	 * smaller font. The band grows proportionally so the layout
 	 * stays balanced. */
+	/* Frame-label font size as a fraction of the QR's own width
+	 * (NOT the framed total). Single source of truth driving three
+	 * surfaces: canvas PNG export (frameLabelMetrics below), SVG/PDF
+	 * export (computeFrameLayout → composeFramedSvg), and the live
+	 * preview CSS (.qr-frame-label-{S,M,L} read these via inline
+	 * custom properties set on .qr-frame). XL is dynamic and uses
+	 * 0.06 only as its initial estimate before measureText fits.
+	 *
+	 * Pre-0.34.21 the JS used these literals and the CSS hardcoded
+	 * 3.5cqw / 5.5cqw / 8cqw — same axis, different numbers — so
+	 * preview and export drifted by ~10-15 %. */
+	const FRAME_LABEL_RATIOS: Record<Exclude<FrameLabelSize, 'XL'>, number> = {
+		S: 0.045,
+		M: 0.06,
+		L: 0.085
+	};
+	const FRAME_LABEL_XL_SEED_RATIO = 0.06;
+
 	function frameLabelMetrics(
 		qrSize: number,
 		label: string,
@@ -452,7 +477,7 @@
 	): { fontPx: number; labelBand: number } {
 		const totalW = qrSize + Math.round(qrSize * 0.05) * 2;
 		if (size === 'XL') {
-			let fontPx = Math.round(qrSize * 0.06);
+			let fontPx = Math.round(qrSize * FRAME_LABEL_XL_SEED_RATIO);
 			const tempCanvas = document.createElement('canvas');
 			const tempCtx = tempCanvas.getContext('2d');
 			if (tempCtx && label.trim().length > 0) {
@@ -472,8 +497,7 @@
 			}
 			return { fontPx, labelBand: Math.round(fontPx * 1.7) };
 		}
-		const ratios = { S: 0.045, M: 0.06, L: 0.085 } as const;
-		const fontPx = Math.round(qrSize * ratios[size]);
+		const fontPx = Math.round(qrSize * FRAME_LABEL_RATIOS[size]);
 		return { fontPx, labelBand: Math.round(fontPx * 2.38) };
 	}
 
@@ -757,9 +781,7 @@
 		}
 	}
 
-	let resolvedECC = $derived(
-		errorCorrection === 'auto' ? (logoDataUrl ? 'H' : 'M') : errorCorrection
-	);
+	let resolvedECC = $derived(resolveEcc(errorCorrection, logoDataUrl !== null));
 	let dotLabel = $derived(dotOptions.find((d) => d.value === dotType)?.label ?? '—');
 
 	const ECC_HINTS: Record<ECC, string> = {
@@ -886,6 +908,10 @@
 						class:qr-frame-on={frameEnabled}
 						style:--frame-fg={fgColor}
 						style:--frame-bg={bgColor}
+						style:--label-ratio-s={FRAME_LABEL_RATIOS.S}
+						style:--label-ratio-m={FRAME_LABEL_RATIOS.M}
+						style:--label-ratio-l={FRAME_LABEL_RATIOS.L}
+						style:--label-ratio-xl-seed={FRAME_LABEL_XL_SEED_RATIO}
 					>
 						<div
 							bind:this={qrContainer}
@@ -1716,20 +1742,24 @@
 		font-family: var(--font-display);
 		font-variation-settings: 'opsz' 36;
 	}
-	/* S/M/L map to fixed fractions of the container width; M matches
-	 * the previous default. XL is dynamic — the formula divides 88 %
-	 * of frame width by `--label-len * 0.78` (mono char-width factor
-	 * × letter-spacing) so the rendered text fills 88 % regardless
-	 * of label length. clamp() floors very long labels at a readable
-	 * size and ceils single-char labels so they don't dwarf the QR. */
+	/* S/M/L read the SAME ratios the JS export uses — see
+	 * FRAME_LABEL_RATIOS in the script block; one source of truth.
+	 * The `* 90cqw` factor converts a ratio-of-qrSize into a
+	 * ratio-of-container: .qr-frame.qr-frame-on has 5 % padding each
+	 * side, so the QR's display width is 90 % of the container's
+	 * inline-size. font-size = (ratio × qrSize) = (ratio × 90 % ×
+	 * container) = calc(ratio × 90cqw). XL stays dynamic — the
+	 * formula divides 88 % of frame width by `--label-len * 0.78`
+	 * (mono char-width factor × letter-spacing) so the rendered text
+	 * fills 88 % regardless of label length. */
 	.qr-frame-label-S {
-		font-size: 3.5cqw;
+		font-size: calc(var(--label-ratio-s) * 90cqw);
 	}
 	.qr-frame-label-M {
-		font-size: 5.5cqw;
+		font-size: calc(var(--label-ratio-m) * 90cqw);
 	}
 	.qr-frame-label-L {
-		font-size: 8cqw;
+		font-size: calc(var(--label-ratio-l) * 90cqw);
 	}
 	.qr-frame-label-XL {
 		font-size: clamp(12px, calc(112cqw / max(var(--label-len, 7), 1)), 28cqw);
