@@ -1,6 +1,7 @@
 <script lang="ts">
 	import ExplainerSection from '$lib/ExplainerSection.svelte';
 	import PlateIndex from '$lib/PlateIndex.svelte';
+	import TitleBlock from '$lib/TitleBlock.svelte';
 
 	const SITE = 'https://qr.kemek.com';
 	const canonicalUrl = `${SITE}/about`;
@@ -42,34 +43,16 @@
 </svelte:head>
 
 <section class="hero" aria-label="Title block">
-	<div class="title-block">
-		<div class="title-block-corner title-block-tl">
-			<span class="rubric">SHEET</span>
-			<span class="value plate-large">∞</span>
-		</div>
-		<div class="title-block-corner title-block-tr">
-			<span class="rubric">SCALE</span>
-			<span class="value">N · T · S</span>
-		</div>
-		<div class="title-block-corner title-block-bl">
-			<span class="rubric">EDITION</span>
-			<span class="value value-version">v{__APP_VERSION__}</span>
-		</div>
-		<div class="title-block-corner title-block-br">
-			<span class="rubric">FILE</span>
-			<span class="value">KMK·QR·ABOUT</span>
-		</div>
-
-		<div class="title-block-body">
-			<span class="title-rubric">COLOPHON · ABOUT THIS SPECIFICATION</span>
-			<h1 class="hero-title">A QR code generator that doesn’t want anything from you.</h1>
-			<p class="hero-sub">
-				kemek/qr is a free utility from KeMeK Network. It runs entirely in your browser — no upload,
-				no account, no expiry, no tracking. This page explains exactly what that means and where the
-				limits are.
-			</p>
-		</div>
-	</div>
+	<TitleBlock
+		compact
+		tl={{ rubric: 'SHEET', value: '∞', plateLarge: true }}
+		tr={{ rubric: 'SCALE', value: 'N · T · S' }}
+		bl={{ rubric: 'EDITION', value: `v${__APP_VERSION__}`, versionValue: true }}
+		br={{ rubric: 'FILE', value: 'KMK·QR·ABOUT' }}
+		rubric="COLOPHON · ABOUT THIS SPECIFICATION"
+		title="A QR code generator that doesn’t want anything from you."
+		sub="kemek/qr is a free utility from KeMeK Network. It runs entirely in your browser — no upload, no account, no expiry, no tracking. This page explains exactly what that means and where the limits are."
+	/>
 </section>
 
 <section class="explainer">
@@ -221,207 +204,13 @@
 </section>
 
 <style>
-	/* Reuses the title-block + section + prose + plate-index styles
-	 * from LandingPage.svelte by copy — Svelte's scoped styles don't
-	 * cross component boundaries, so duplication beats a brittle
-	 * :global() shared sheet. Style additions here are limited to
-	 * what's already in LandingPage; if those drift, drift this too. */
+	/* Title-block frame / corners / typography ship from
+	 * `lib/TitleBlock.svelte` (compact prop on this page). */
 	.hero {
 		max-width: var(--max-w);
 		margin: 0 auto;
 		padding: clamp(2.5rem, 6vw, 4rem) var(--gutter) clamp(1.5rem, 4vw, 2.5rem);
 		animation: fade-up var(--duration-slow) var(--ease) both;
-	}
-	.title-block {
-		position: relative;
-		border: 1px solid var(--rule-strong);
-		background: var(--paper);
-		padding: clamp(1.25rem, 4vw, 2rem);
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-		grid-template-rows: auto 1fr auto;
-	}
-	.title-block-corner {
-		min-width: 0;
-	}
-	.title-block::before,
-	.title-block::after {
-		content: '';
-		position: absolute;
-		pointer-events: none;
-		color: var(--accent);
-	}
-	.title-block::before {
-		inset: -1px auto auto -1px;
-		width: 14px;
-		height: 14px;
-		border-top: 2px solid currentColor;
-		border-left: 2px solid currentColor;
-	}
-	.title-block::after {
-		inset: auto -1px -1px auto;
-		width: 14px;
-		height: 14px;
-		border-bottom: 2px solid currentColor;
-		border-right: 2px solid currentColor;
-	}
-	.title-block-corner {
-		display: flex;
-		flex-direction: column;
-		gap: 0.2rem;
-		font-family: var(--font-mono);
-		padding: 0 0.5rem;
-	}
-	.title-block-tl {
-		justify-self: start;
-		grid-row: 1;
-		grid-column: 1;
-		padding-left: 0;
-	}
-	.title-block-tr {
-		justify-self: end;
-		text-align: right;
-		grid-row: 1;
-		grid-column: 2;
-		padding-right: 0;
-	}
-	.title-block-bl {
-		justify-self: start;
-		grid-row: 3;
-		grid-column: 1;
-		padding-left: 0;
-	}
-	.title-block-br {
-		justify-self: end;
-		text-align: right;
-		grid-row: 3;
-		grid-column: 2;
-		padding-right: 0;
-	}
-	.title-block-corner .rubric {
-		font-size: 12px;
-		letter-spacing: 0.32em;
-		color: var(--micro);
-		text-transform: uppercase;
-	}
-	.title-block-corner .value {
-		font-size: 14px;
-		letter-spacing: 0.14em;
-		color: var(--ink);
-		text-transform: uppercase;
-		font-feature-settings: 'tnum';
-	}
-	/* SemVer convention is "v0.25.1" — keep the lowercase `v` instead
-	 * of the all-caps treatment the other corner rubrics use. */
-	.title-block-corner .value-version {
-		text-transform: none;
-		letter-spacing: 0.06em;
-	}
-	.plate-large {
-		font-family: var(--font-display);
-		font-size: clamp(1.6rem, 3.7vw, 2.55rem);
-		font-weight: 400;
-		font-style: italic;
-		color: var(--accent);
-		letter-spacing: -0.02em;
-		font-variation-settings: 'opsz' 36;
-		line-height: 1;
-		margin-top: 0.1rem;
-	}
-	@media (max-width: 540px) {
-		.title-block-corner .rubric {
-			font-size: 11px;
-			letter-spacing: 0.26em;
-		}
-		.title-block-corner .value {
-			font-size: 13px;
-			letter-spacing: 0.1em;
-		}
-		.plate-large {
-			font-size: clamp(1.35rem, 6.4vw, 1.85rem);
-			margin-top: 0.05rem;
-		}
-	}
-	@media (max-width: 380px) {
-		.title-block-corner .value:not(.plate-large) {
-			font-size: 12px;
-			letter-spacing: 0.04em;
-		}
-	}
-
-	.title-block-body {
-		grid-row: 2;
-		grid-column: 1 / -1;
-		padding: clamp(1.4rem, 4vw, 2.5rem) clamp(0.25rem, 2vw, 2rem);
-		text-align: center;
-		position: relative;
-		min-width: 0;
-	}
-	.title-block-body::before,
-	.title-block-body::after {
-		content: '';
-		position: absolute;
-		left: 0;
-		right: 0;
-		height: 1px;
-		background: var(--rule);
-	}
-	.title-block-body::before {
-		top: 0;
-	}
-	.title-block-body::after {
-		bottom: 0;
-	}
-
-	.title-rubric {
-		display: inline-block;
-		max-width: 100%;
-		font-family: var(--font-mono);
-		font-size: 13px;
-		letter-spacing: 0.32em;
-		text-transform: uppercase;
-		color: var(--accent);
-		margin-bottom: 1.1rem;
-		padding: 0.35rem 0.7rem;
-		border: 1px solid var(--accent);
-		overflow-wrap: anywhere;
-	}
-	.hero-title {
-		font-family: var(--font-display);
-		font-weight: 400;
-		font-size: clamp(1.85rem, 5.4vw + 0.55rem, 4rem);
-		line-height: 1.06;
-		letter-spacing: -0.025em;
-		margin: 0 auto 1.2rem;
-		color: var(--ink);
-		max-width: min(22ch, 100%);
-		font-variation-settings: 'opsz' 144;
-		text-wrap: balance;
-		overflow-wrap: anywhere;
-	}
-	@media (max-width: 540px) {
-		.title-rubric {
-			font-size: 12px;
-			letter-spacing: 0.24em;
-			padding: 0.3rem 0.55rem;
-			margin-bottom: 0.85rem;
-		}
-	}
-	@media (max-width: 380px) {
-		.title-rubric {
-			font-size: 11px;
-			letter-spacing: 0.18em;
-			padding: 0.28rem 0.45rem;
-		}
-	}
-	.hero-sub {
-		font-family: var(--font-mono);
-		font-size: var(--fs-sm);
-		color: var(--ghost);
-		margin: 0 auto 1.5rem;
-		max-width: 60ch;
-		line-height: 1.65;
-		letter-spacing: 0.01em;
 	}
 
 	.explainer {

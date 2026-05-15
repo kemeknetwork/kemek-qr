@@ -3,6 +3,7 @@
 	import Generator from './Generator.svelte';
 	import PlateIndex from './PlateIndex.svelte';
 	import QRAnatomy from './QRAnatomy.svelte';
+	import TitleBlock from './TitleBlock.svelte';
 	import { LANDING_COPY } from './landing-copy';
 	import { PLATE, ROUTE_FOR_TYPE, TYPE_LABELS, type ContentType } from './types';
 
@@ -57,63 +58,48 @@
 </svelte:head>
 
 <section class="hero" aria-label="Title block">
-	<div class="title-block">
-		<div class="title-block-corner title-block-tl">
-			<span class="rubric">PLATE</span>
-			<span class="value plate-large">{plate}</span>
-		</div>
-		<div class="title-block-corner title-block-tr">
-			<span class="rubric">SCALE</span>
-			<span class="value">1 : 1</span>
-		</div>
-		<div class="title-block-corner title-block-bl">
-			<span class="rubric">EDITION</span>
-			<span class="value value-version">v{__APP_VERSION__}</span>
-		</div>
-		<div class="title-block-corner title-block-br">
-			<span class="rubric">FILE</span>
-			<span class="value">KMK·QR·{plate}</span>
+	<TitleBlock
+		tl={{ rubric: 'PLATE', value: plate, plateLarge: true }}
+		tr={{ rubric: 'SCALE', value: '1 : 1' }}
+		bl={{ rubric: 'EDITION', value: `v${__APP_VERSION__}`, versionValue: true }}
+		br={{ rubric: 'FILE', value: `KMK·QR·${plate}` }}
+		rubric={`FIGURE A · ${TYPE_LABELS[type]} ENCODE`}
+		title={copy.h1}
+		sub={copy.sub}
+	>
+		<div class="hero-cta-wrap">
+			<a href="#p-01" class="hero-cta">
+				<span class="hero-cta-label">Create QR code</span>
+				<span class="hero-cta-arrow" aria-hidden="true">↓</span>
+			</a>
 		</div>
 
-		<div class="title-block-body">
-			<span class="title-rubric">FIGURE A · {TYPE_LABELS[type]} ENCODE</span>
-			<h1 class="hero-title">{copy.h1}</h1>
-			<p class="hero-sub">{copy.sub}</p>
-
-			<div class="hero-cta-wrap">
-				<a href="#p-01" class="hero-cta">
-					<span class="hero-cta-label">Create QR code</span>
-					<span class="hero-cta-arrow" aria-hidden="true">↓</span>
-				</a>
+		<dl class="title-meta">
+			<div>
+				<dt>process</dt>
+				<dd>client-side · zero upload</dd>
 			</div>
-
-			<dl class="title-meta">
-				<div>
-					<dt>process</dt>
-					<dd>client-side · zero upload</dd>
-				</div>
-				<div>
-					<dt>cost</dt>
-					<dd>free · no signup · no expiry</dd>
-				</div>
-				<div>
-					<dt>format</dt>
-					<dd>PNG · SVG · PDF</dd>
-				</div>
-				<div>
-					<dt>license</dt>
-					<dd>
-						<a
-							class="title-meta-link"
-							href="https://github.com/KeMeK-Network/kemek-QR/blob/main/LICENSE"
-							target="_blank"
-							rel="license noopener">MIT</a
-						> · open source
-					</dd>
-				</div>
-			</dl>
-		</div>
-	</div>
+			<div>
+				<dt>cost</dt>
+				<dd>free · no signup · no expiry</dd>
+			</div>
+			<div>
+				<dt>format</dt>
+				<dd>PNG · SVG · PDF</dd>
+			</div>
+			<div>
+				<dt>license</dt>
+				<dd>
+					<a
+						class="title-meta-link"
+						href="https://github.com/KeMeK-Network/kemek-QR/blob/main/LICENSE"
+						target="_blank"
+						rel="license noopener">MIT</a
+					> · open source
+				</dd>
+			</div>
+		</dl>
+	</TitleBlock>
 </section>
 
 <Generator {type} />
@@ -149,223 +135,15 @@
 </section>
 
 <style>
-	/* ─── Hero / title block ───────────────────────────────────
-	   The page opens with a drafting-sheet title block: corner
-	   cells with rubrics, large plate number, the H1 sitting in
-	   the center band like the title of a published spec sheet. */
+	/* Hero / title-block frame and body typography ship from
+	 * `lib/TitleBlock.svelte`. Slotted-content styles below
+	 * (.hero-cta-*, .title-meta-*) stay local — Svelte class
+	 * hashing scopes them to this consuming page. */
 	.hero {
 		max-width: var(--max-w);
 		margin: 0 auto;
 		padding: clamp(2.5rem, 6vw, 4rem) var(--gutter) clamp(1.5rem, 4vw, 2.5rem);
 		animation: fade-up var(--duration-slow) var(--ease) both;
-	}
-	.title-block {
-		position: relative;
-		border: 1px solid var(--rule-strong);
-		background: var(--paper);
-		padding: clamp(1.25rem, 4vw, 2rem);
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-		grid-template-rows: auto 1fr auto;
-		gap: 0;
-	}
-	.title-block-corner {
-		min-width: 0;
-	}
-	.title-block::before,
-	.title-block::after {
-		content: '';
-		position: absolute;
-		pointer-events: none;
-		color: var(--accent);
-	}
-	/* corner ticks on the title block frame */
-	.title-block::before {
-		inset: -1px auto auto -1px;
-		width: 14px;
-		height: 14px;
-		border-top: 2px solid currentColor;
-		border-left: 2px solid currentColor;
-	}
-	.title-block::after {
-		inset: auto -1px -1px auto;
-		width: 14px;
-		height: 14px;
-		border-bottom: 2px solid currentColor;
-		border-right: 2px solid currentColor;
-	}
-
-	.title-block-corner {
-		display: flex;
-		flex-direction: column;
-		gap: 0.2rem;
-		font-family: var(--font-mono);
-		padding: 0 0.5rem;
-	}
-	.title-block-tl {
-		justify-self: start;
-		grid-row: 1;
-		grid-column: 1;
-		padding-left: 0;
-	}
-	.title-block-tr {
-		justify-self: end;
-		text-align: right;
-		grid-row: 1;
-		grid-column: 2;
-		padding-right: 0;
-	}
-	.title-block-bl {
-		justify-self: start;
-		grid-row: 3;
-		grid-column: 1;
-		padding-left: 0;
-	}
-	.title-block-br {
-		justify-self: end;
-		text-align: right;
-		grid-row: 3;
-		grid-column: 2;
-		padding-right: 0;
-	}
-	.title-block-corner .rubric {
-		font-size: 14px;
-		letter-spacing: 0.32em;
-		color: var(--micro);
-		text-transform: uppercase;
-	}
-	.title-block-corner .value {
-		font-size: 16px;
-		letter-spacing: 0.14em;
-		color: var(--ink);
-		text-transform: uppercase;
-		font-feature-settings: 'tnum';
-	}
-	/* Version string shows the actual lowercase `v` from package.json
-	 * rather than the all-caps treatment the other corner rubrics use
-	 * — semantic-versioning convention is "v0.25.1", not "V0.25.1". */
-	.title-block-corner .value-version {
-		text-transform: none;
-		letter-spacing: 0.06em;
-	}
-	.plate-large {
-		font-family: var(--font-display);
-		font-size: clamp(1.85rem, 4.25vw, 2.95rem);
-		font-weight: 400;
-		font-style: italic;
-		color: var(--accent);
-		letter-spacing: -0.02em;
-		font-variation-settings: 'opsz' 36;
-		line-height: 1;
-		margin-top: 0.1rem;
-	}
-	@media (max-width: 540px) {
-		.title-block-corner .rubric {
-			font-size: 13px;
-			letter-spacing: 0.26em;
-		}
-		.title-block-corner .value {
-			font-size: 15px;
-			letter-spacing: 0.1em;
-		}
-		.plate-large {
-			font-size: clamp(1.55rem, 7.4vw, 2.15rem);
-			margin-top: 0.05rem;
-		}
-	}
-	/* Engineering-spec four-corner schedule preserved at every size.
-	 * Cells shrink with the body but stay present — the metaphor is
-	 * load-bearing for the brand. The minmax(0, 1fr) tracks above
-	 * keep them honest no matter how long their tnum values are. */
-	@media (max-width: 380px) {
-		.title-block-corner .value:not(.plate-large) {
-			font-size: 13px;
-			letter-spacing: 0.04em;
-		}
-	}
-
-	.title-block-body {
-		grid-row: 2;
-		grid-column: 1 / -1;
-		padding: clamp(1.4rem, 4vw, 2.5rem) clamp(0.25rem, 2vw, 2rem);
-		text-align: center;
-		position: relative;
-		/* min-width: 0 prevents intrinsic-content children (long h1
-		 * text, links with tnum digits) from forcing the grid track
-		 * wider than the column. Required because grid-column 1 / -1
-		 * spans both 2-column tracks. */
-		min-width: 0;
-	}
-	.title-block-body::before,
-	.title-block-body::after {
-		content: '';
-		position: absolute;
-		left: 0;
-		right: 0;
-		height: 1px;
-		background: var(--rule);
-	}
-	.title-block-body::before {
-		top: 0;
-	}
-	.title-block-body::after {
-		bottom: 0;
-	}
-
-	.title-rubric {
-		display: inline-block;
-		max-width: 100%;
-		font-family: var(--font-mono);
-		font-size: 15px;
-		letter-spacing: 0.3em;
-		text-transform: uppercase;
-		color: var(--accent);
-		margin-bottom: 1.1rem;
-		padding: 0.4rem 0.8rem;
-		border: 1px solid var(--accent);
-		overflow-wrap: anywhere;
-	}
-	.hero-title {
-		font-family: var(--font-display);
-		font-weight: 400;
-		font-size: clamp(2.13rem, 6.2vw + 0.63rem, 4.6rem);
-		line-height: 1.06;
-		letter-spacing: -0.025em;
-		margin: 0 auto 1.2rem;
-		color: var(--ink);
-		/* `ch` is font-relative — at fluid display sizes, 22ch can
-		 * compute wider than the container at intermediate widths,
-		 * causing horizontal overflow. min(22ch, 100%) keeps the
-		 * 22ch cap on big displays while clamping to container width
-		 * everywhere else. */
-		max-width: min(22ch, 100%);
-		font-variation-settings: 'opsz' 144;
-		text-wrap: balance;
-		overflow-wrap: anywhere;
-	}
-	@media (max-width: 540px) {
-		.title-rubric {
-			font-size: 14px;
-			letter-spacing: 0.24em;
-			padding: 0.35rem 0.6rem;
-			margin-bottom: 0.85rem;
-		}
-	}
-	@media (max-width: 380px) {
-		.title-rubric {
-			font-size: 13px;
-			letter-spacing: 0.18em;
-			padding: 0.32rem 0.5rem;
-		}
-	}
-	.hero-sub {
-		font-family: var(--font-mono);
-		font-size: 17px;
-		color: var(--ghost);
-		margin: 0 auto 1.5rem;
-		max-width: 60ch;
-		line-height: 1.65;
-		letter-spacing: 0.01em;
 	}
 
 	/* Mobile-only "Create QR code" CTA — anchors to #p-01 (the form's
@@ -399,7 +177,7 @@
 		letter-spacing: 0.2em;
 		text-transform: uppercase;
 		text-decoration: none;
-		box-shadow: 0 12px 28px -16px var(--accent-deep, rgba(197, 58, 31, 0.55));
+		box-shadow: 0 12px 28px -16px var(--accent-deep);
 		transition:
 			background var(--duration-fast) var(--ease),
 			color var(--duration-fast) var(--ease),
@@ -414,7 +192,7 @@
 	}
 	.hero-cta:active {
 		transform: translateY(1px);
-		box-shadow: 0 6px 12px -8px var(--accent-deep, rgba(197, 58, 31, 0.5));
+		box-shadow: 0 6px 12px -8px var(--accent-deep);
 	}
 	.hero-cta-arrow {
 		font-size: 20px;
@@ -437,7 +215,7 @@
 		transition: color var(--duration-fast) var(--ease);
 	}
 	.title-meta-link:hover {
-		color: var(--accent-deep, var(--accent));
+		color: var(--accent-deep);
 	}
 	.title-meta div {
 		display: flex;
@@ -458,7 +236,7 @@
 		overflow-wrap: break-word;
 		max-width: 100%;
 	}
-	/* Intermediate widths: 4 cells in a row get cramped between 720 px
+	/* Intermediate widths: 4 cells in a row get cramped between 720
 	 * and 900 px (narrow desktop / large tablet). 2×2 grid with
 	 * minmax(0, 1fr) tracks keeps cells legible AND lets each cell
 	 * shrink with the container — the bare `auto` form would let the
