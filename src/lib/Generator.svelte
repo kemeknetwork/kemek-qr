@@ -608,18 +608,13 @@
 		setTimeout(() => URL.revokeObjectURL(url), 1000);
 	}
 
-	/* Discriminated export error so downloadActive can map a failure
-	 * reason to an actionable user message (4K-on-iOS canvas limit,
-	 * engine fault, PDF embed error) instead of flattening them all
-	 * into one generic "Download failed: …" string. */
-	type ExportErrorReason = 'canvas-limit' | 'engine' | 'pdf';
-	class QrExportError extends Error {
-		reason: ExportErrorReason;
-		constructor(reason: ExportErrorReason, message: string) {
-			super(message);
-			this.reason = reason;
-		}
-	}
+	/* Export-specific error class. The message at the throw site
+	 * carries all the user-actionable detail (iOS canvas-limit,
+	 * engine fault, PDF embed); downloadActive's catch reads
+	 * err.message directly. Subclassing Error is just the type
+	 * discriminant so non-export errors fall through to the generic
+	 * "Download failed:" branch. */
+	class QrExportError extends Error {}
 
 	async function downloadPNG() {
 		if (!QRCodeStylingClass) return;
@@ -639,7 +634,6 @@
 				 * just over that. canvas.toBlob returns null silently. */
 				const culprit4K = pngSize === '4K' ? '4K + frame ' : '';
 				throw new QrExportError(
-					'canvas-limit',
 					`${culprit4K}exceeds the canvas size limit on this device. Try 2K, or disable the frame.`
 				);
 			}
@@ -697,7 +691,7 @@
 			type: 'svg'
 		});
 		const blob = (await exporter.getRawData('svg')) as Blob | null;
-		if (!blob) throw new QrExportError('engine', 'SVG rasterization returned no data.');
+		if (!blob) throw new QrExportError('SVG rasterization returned no data.');
 		const text = await blob.text();
 		const finalText = frameEnabled ? composeFramedSvg(text, exportSize, frameLabel) : text;
 		const finalBlob = new Blob([finalText], { type: 'image/svg+xml' });
@@ -725,7 +719,6 @@
 		const qrBlob = (await exporter.getRawData('png')) as Blob | null;
 		if (!qrBlob) {
 			throw new QrExportError(
-				'canvas-limit',
 				'PDF QR rasterization exceeded the canvas size limit on this device. Try a different format.'
 			);
 		}
@@ -787,10 +780,10 @@
 			else if (exportFormat === 'svg') await downloadSVG();
 			else await downloadPDF();
 		} catch (err) {
-			/* Map reason → message so the user sees what's actionable.
-			 * canvas-limit fires on iOS Safari at 4K + frame; the user
-			 * can drop to 2K or disable the frame. engine + pdf are
-			 * library-internal faults. Anything else is unexpected. */
+			/* QrExportError carries an actionable, user-facing message
+			 * (4K canvas-limit, "try 2K or disable the frame", etc.) —
+			 * surface verbatim. Any other Error class is unexpected;
+			 * prefix it so it's distinguishable in DevTools. */
 			if (err instanceof QrExportError) {
 				engineError = err.message;
 			} else if (err instanceof Error) {
@@ -933,7 +926,6 @@
 						style:--label-ratio-s={FRAME_LABEL_RATIOS.S}
 						style:--label-ratio-m={FRAME_LABEL_RATIOS.M}
 						style:--label-ratio-l={FRAME_LABEL_RATIOS.L}
-						style:--label-ratio-xl-seed={FRAME_LABEL_XL_SEED_RATIO}
 					>
 						<div
 							bind:this={qrContainer}

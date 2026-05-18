@@ -3,25 +3,20 @@
 # Cloudflare Pages applies this file at deploy time. Each path glob
 # attaches the indented headers below it to matching responses.
 #
-# Decisions (Pass 2 security review, 2026-05-15):
-# - CSP carries 'unsafe-inline' on script-src and style-src. The
-#   load-bearing FOUC firewall script in app.html validates its
-#   localStorage input against a literal allowlist before setting
-#   data-theme; there are no other inline scripts and no path that
-#   renders user-supplied strings into HTML, so the practical XSS
-#   surface is ~0 even with 'unsafe-inline'. Svelte's inline
-#   `style:--token={value}` syntax also requires 'unsafe-inline' on
-#   style-src — no escape from that without giving up the Svelte 5
-#   reactive-token pattern. Pinning a SHA-256 of the FOUC script was
-#   considered and rejected (any edit invalidates).
-# - connect-src 'self' explicitly excludes cloudflareinsights.com.
-#   The brand stance ("no third-party assets, no tracking pixels") is
-#   load-bearing; if CFWA ever gets accidentally toggled on in the
-#   dashboard, CSP enforcement catches it.
-# - img-src adds data: + blob: for qr-code-styling's data-URL outputs
-#   and the logo preview pipeline.
-# - frame-ancestors 'none' + X-Frame-Options: DENY are belt-and-
-#   suspenders against clickjacking on every modern + legacy browser.
+# Locked decision: CSP carries 'unsafe-inline' on script-src and
+# style-src. Full rationale, inline-script enumeration (FOUC firewall
+# + per-route SvelteKit hydration bootstrap + JSON-LD blocks across
+# the page-shell + each landing + about), alternatives considered
+# (SHA-256 hash pinning, nonce-based CSP via Pages Function), and
+# revisit triggers all live in adrs/0003-csp-unsafe-inline.md (the
+# canonical home). Do not relitigate without a real driver.
+#
+# Other CSP carve-outs (img-src data: blob:, font-src data:,
+# connect-src 'self' explicitly excluding cloudflareinsights.com,
+# frame-ancestors 'none' + X-Frame-Options DENY) are described in
+# the same ADR; their reasoning is brief and lives there to keep
+# this file from drifting out of sync with the canonical decision
+# record.
 
 /*
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
