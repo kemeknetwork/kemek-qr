@@ -321,6 +321,26 @@ describe('decode validation', () => {
 		expect(dec?.type).toBe('text');
 		expect(dec?.content).toEqual({}); /* text dropped, no crash */
 	});
+	it('drops content string-literal-union values outside the union', () => {
+		/* `auth: 'BOGUS'` is a string and passes the scalar typecheck,
+		 * but isn't a member of WifiAuth = 'WPA' | 'WEP' | 'nopass'.
+		 * Without enum validation it would land in state typed as
+		 * WifiAuth holding a non-WifiAuth string and produce a
+		 * malformed WIFI: payload downstream. */
+		const corruptHash = `#s=v1.${btoa(
+			JSON.stringify({
+				t: 'wifi',
+				c: { ssid: 'x', password: 'y', auth: 'BOGUS', hidden: false }
+			})
+		)
+			.replace(/\+/g, '-')
+			.replace(/\//g, '_')
+			.replace(/=+$/, '')}`;
+		const dec = decodePermalink(corruptHash);
+		expect(dec?.type).toBe('wifi');
+		expect(dec?.content).toEqual({ ssid: 'x', password: 'y', hidden: false });
+		expect(dec?.content).not.toHaveProperty('auth');
+	});
 	it('drops content boolean keys with wrong scalar type', () => {
 		const corruptHash = `#s=v1.${btoa(
 			JSON.stringify({

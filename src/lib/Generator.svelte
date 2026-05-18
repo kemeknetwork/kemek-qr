@@ -55,6 +55,13 @@
 	let exportFormat = $state<'png' | 'svg' | 'pdf'>('png');
 	let exporting = $state(false);
 	let engineError = $state<string | null>(null);
+	/* Soft-warn surface for "the URL had a hash that looked like a
+	 * kemek-qr share, but the decoder rejected it" — distinct from
+	 * engineError (runtime fault) because this is a structural input
+	 * failure. Auto-clears so a transient mis-share doesn't haunt the
+	 * page after the user has moved on. */
+	let decodeError = $state<string | null>(null);
+	let decodeErrorTimer: ReturnType<typeof setTimeout> | null = null;
 	/* Latches once the autosave write hits a non-quota exception so we
 	 * don't smash localStorage on every subsequent keystroke after the
 	 * subsystem proves degraded. Quota errors don't latch — those are
@@ -230,7 +237,22 @@
 		 * the sender's QR, not their own last edits. */
 		if (typeof window !== 'undefined') {
 			if (window.location.hash) {
-				applyDecoded(decodePermalink(window.location.hash));
+				const decoded = decodePermalink(window.location.hash);
+				if (decoded) {
+					applyDecoded(decoded);
+				} else {
+					/* The URL carried a hash that looked like a kemek-qr
+					 * share but failed the decoder gates (length cap,
+					 * malformed base64, validation drops, etc.). Surface
+					 * a soft-warn so the recipient knows the design they
+					 * were expecting didn't restore — auto-clears after
+					 * 8 s so a transient mis-share doesn't haunt the
+					 * page after they've moved on. */
+					decodeError =
+						"This share link couldn't be decoded — showing defaults instead.";
+					if (decodeErrorTimer) clearTimeout(decodeErrorTimer);
+					decodeErrorTimer = setTimeout(() => (decodeError = null), 8000);
+				}
 			} else {
 				try {
 					const raw = localStorage.getItem(sessionKey);
@@ -946,6 +968,12 @@
 						<div class="engine-error" role="alert">
 							<span class="engine-error-eyebrow">PROTOCOL ERROR</span>
 							<p>{engineError}</p>
+						</div>
+					{/if}
+					{#if decodeError}
+						<div class="engine-error decode-error" role="status">
+							<span class="engine-error-eyebrow">LINK NOT ON FILE</span>
+							<p>{decodeError}</p>
 						</div>
 					{/if}
 				</div>
@@ -2458,6 +2486,16 @@
 		margin: 0;
 		line-height: 1.5;
 		max-width: 32ch;
+	}
+	/* Soft-warn variant. Lower visual weight than the runtime-fault
+	 * .engine-error (uses --ghost color instead of --accent-deep) so
+	 * a transient "link couldn't decode" message doesn't read as
+	 * "your QR is broken". Auto-clears after 8 s in onMount. */
+	.engine-error.decode-error {
+		color: var(--ghost);
+	}
+	.engine-error.decode-error .engine-error-eyebrow {
+		color: var(--ink-soft);
 	}
 	.logo-error {
 		font-family: var(--font-mono);

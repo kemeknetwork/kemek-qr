@@ -19,7 +19,13 @@
  * 0.1.0 shape.
  */
 
-import { CONTENT_TYPES, DEFAULT_CONTENT, type ContentMap, type ContentType } from './types';
+import {
+	CONTENT_TYPES,
+	DEFAULT_CONTENT,
+	type ContentMap,
+	type ContentType,
+	type WifiAuth
+} from './types';
 
 export type DotType = 'square' | 'rounded' | 'dots' | 'classy' | 'classy-rounded' | 'extra-rounded';
 
@@ -99,6 +105,17 @@ const MAX_CONTENT_FIELD_LEN = 4096;
 const LOGO_DATA_URL_RE = /^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/;
 const MAX_LOGO_DATA_URL_LEN = 7000;
 
+/* Module-load invariant: the envelope-size cap MUST exceed the
+ * URL-length cap. If MAX_URL_LEN ever grows past MAX_PAYLOAD_LEN
+ * the decoder would silently reject the encoder's own outputs —
+ * fail loud at import time instead. */
+if (MAX_PAYLOAD_LEN <= MAX_URL_LEN) {
+	throw new Error(
+		`permalink.ts: MAX_PAYLOAD_LEN (${MAX_PAYLOAD_LEN}) must exceed MAX_URL_LEN (${MAX_URL_LEN}); ` +
+			`the decoder rejects payloads bigger than MAX_PAYLOAD_LEN but the encoder produces up to MAX_URL_LEN.`
+	);
+}
+
 const DOT_TYPES: ReadonlySet<DotType> = new Set([
 	'square',
 	'rounded',
@@ -122,6 +139,19 @@ const EYE_BALL_VALUES: ReadonlySet<EyeBallType> = new Set(['square', 'dot', 'rou
 const FRAME_LABEL_SIZE_VALUES: ReadonlySet<FrameLabelSize> = new Set(['S', 'M', 'L', 'XL']);
 const FRAME_LABEL_FONT_VALUES: ReadonlySet<FrameLabelFont> = new Set(['mono', 'display']);
 const PNG_SIZE_VALUES: ReadonlySet<PngSize> = new Set(['1K', '2K', '4K']);
+
+/* String-literal-union members of content payloads. validateContent's
+ * scalar `typeof === typeof default` gate accepts any string for a
+ * field whose default is a string — including unbranded enum-typed
+ * fields like wifi.auth. Without this lookup, a crafted permalink
+ * with `auth: 'BOGUS'` would land in state typed as WifiAuth but
+ * holding a non-WifiAuth string. Downstream encodeWifi would emit
+ * a malformed-but-non-crashing `WIFI:T:BOGUS;…` payload. Adding new
+ * enum-typed content fields means adding their value-set here. */
+const WIFI_AUTH_VALUES: ReadonlySet<WifiAuth> = new Set(['WPA', 'WEP', 'nopass']);
+const CONTENT_ENUM_VALUES: { [K in ContentType]?: { [field: string]: ReadonlySet<string> } } = {
+	wifi: { auth: WIFI_AUTH_VALUES }
+};
 
 /* Mixed-case because the permalink decoder sees raw user input
  * from the URL hash, which may have been shared with either case.
@@ -275,6 +305,7 @@ function validateContent<T extends ContentType>(type: T, c: unknown): Partial<Co
 	if (!c || typeof c !== 'object') return null;
 	const obj = c as Record<string, unknown>;
 	const defaults = DEFAULT_CONTENT[type] as Record<string, unknown>;
+	const enumFields = CONTENT_ENUM_VALUES[type];
 	const out: Record<string, unknown> = {};
 	for (const k of Object.keys(defaults)) {
 		if (!(k in obj)) continue;
@@ -284,6 +315,10 @@ function validateContent<T extends ContentType>(type: T, c: unknown): Partial<Co
 		 * carry a multi-MB SSID/text/body that survives validation only
 		 * to crash the QR encoder downstream. See MAX_CONTENT_FIELD_LEN. */
 		if (typeof v === 'string' && v.length > MAX_CONTENT_FIELD_LEN) continue;
+		/* String-literal-union fields (e.g. wifi.auth) need their value
+		 * checked against the union — typeof gates a string but doesn't
+		 * narrow `'BOGUS'` out of `WifiAuth`. */
+		if (enumFields && k in enumFields && !enumFields[k].has(v as string)) continue;
 		out[k] = v;
 	}
 	return out as Partial<ContentMap[T]>;
