@@ -88,7 +88,7 @@ Each type has its own route with type-specific form fields, explainer copy targe
 - **Contrast readout** — live WCAG ratio + verbal state (`CONTRAST 12.6:1 · DARK ON LIGHT` / `LOW` / `INVERTED`). Informational, never gates download. Catches `#FFFFFF` on `#FFFFFE`-style mistakes before you ship an unscannable code.
 - **Dot shapes** — 6 variants from `qr-code-styling`.
 - **Eye frame** — 4 variants. **Eye ball** — 3 variants.
-- **Logo embedding** — upload PNG / SVG / JPG, sized 5–35% of the QR. Read with `FileReader` and composited locally — never uploaded.
+- **Logo embedding** — upload PNG / JPG / WebP (up to 4 MB), sized 5–35% of the QR. Read with `FileReader` and composited locally — never uploaded.
 - **Outer frame** — optional with custom label, mono or display font, S/M/L/XL size.
 - **Error correction** — `AUTO` (M when plain · H when logo embedded), or manual L / M / Q / H. Each level has an inline hint explaining its recovery percentage.
 
@@ -207,7 +207,7 @@ src/
 │   ├── wifi/+page.svelte      one route per content type
 │   └── ...
 ├── lib/
-│   ├── Generator.svelte       the shared core component (~2200 LOC)
+│   ├── Generator.svelte       the shared core component
 │   ├── ColorPicker.svelte     custom drafting-spec modal picker
 │   ├── LandingPage.svelte     per-type landing page shell
 │   ├── QRAnatomy.svelte       schematic of QR functional regions
