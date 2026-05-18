@@ -45,9 +45,9 @@
 <section class="hero" aria-label="Title block">
 	<TitleBlock
 		compact
-		tl={{ rubric: 'SHEET', value: '∞', plateLarge: true }}
+		tl={{ rubric: 'SHEET', value: '∞' }}
 		tr={{ rubric: 'SCALE', value: 'N · T · S' }}
-		bl={{ rubric: 'EDITION', value: `v${__APP_VERSION__}`, versionValue: true }}
+		bl={{ rubric: 'EDITION', value: `v${__APP_VERSION__}` }}
 		br={{ rubric: 'FILE', value: 'KMK·QR·ABOUT' }}
 		rubric="COLOPHON · ABOUT THIS SPECIFICATION"
 		title="A QR code generator that doesn’t want anything from you."

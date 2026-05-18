@@ -13,18 +13,16 @@
 
 	import type { Snippet } from 'svelte';
 
+	/* All-caps two-line corner label: rubric on top, value below.
+	 * Treatment is positional, not per-cell: TL always gets the
+	 * `.plate-large` large-italic-display treatment (plate number /
+	 * sheet glyph / status code); BL always gets the `.value-version`
+	 * condensed-lowercase treatment for the version string. TR and
+	 * BR render the plain `.value` style. If a future call site
+	 * needs a different shape, narrow then. */
 	type CornerCell = {
-		/* All-caps two-line corner label: rubric on top, value below. */
 		rubric: string;
 		value: string;
-		/* Top-left number treatment: large italic display face. Used on
-		 * the per-type landings (plate number) and error page (status
-		 * code). About uses a literal '∞' here. */
-		plateLarge?: boolean;
-		/* Version strings (`vX.Y.Z`) read as semver, not as a tracked
-		 * uppercase rubric value — applies condensed letter-spacing
-		 * and preserves the lowercase `v`. */
-		versionValue?: boolean;
 	};
 
 	let {
@@ -57,27 +55,19 @@
 <div class="title-block" class:compact>
 	<div class="title-block-corner title-block-tl">
 		<span class="rubric">{tl.rubric}</span>
-		<span class="value" class:plate-large={tl.plateLarge} class:value-version={tl.versionValue}
-			>{tl.value}</span
-		>
+		<span class="value plate-large">{tl.value}</span>
 	</div>
 	<div class="title-block-corner title-block-tr">
 		<span class="rubric">{tr.rubric}</span>
-		<span class="value" class:plate-large={tr.plateLarge} class:value-version={tr.versionValue}
-			>{tr.value}</span
-		>
+		<span class="value">{tr.value}</span>
 	</div>
 	<div class="title-block-corner title-block-bl">
 		<span class="rubric">{bl.rubric}</span>
-		<span class="value" class:plate-large={bl.plateLarge} class:value-version={bl.versionValue}
-			>{bl.value}</span
-		>
+		<span class="value value-version">{bl.value}</span>
 	</div>
 	<div class="title-block-corner title-block-br">
 		<span class="rubric">{br.rubric}</span>
-		<span class="value" class:plate-large={br.plateLarge} class:value-version={br.versionValue}
-			>{br.value}</span
-		>
+		<span class="value">{br.value}</span>
 	</div>
 
 	<div class="title-block-body">

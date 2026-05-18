@@ -22,9 +22,9 @@
 <section class="hero" aria-label="Title block">
 	<TitleBlock
 		compact
-		tl={{ rubric: 'PLATE', value: String(status), plateLarge: true }}
+		tl={{ rubric: 'PLATE', value: String(status) }}
 		tr={{ rubric: 'SCALE', value: 'N · T · S' }}
-		bl={{ rubric: 'EDITION', value: `v${__APP_VERSION__}`, versionValue: true }}
+		bl={{ rubric: 'EDITION', value: `v${__APP_VERSION__}` }}
 		br={{ rubric: 'FILE', value: fileTag }}
 		rubric="ERRATUM · UNFILED REFERENCE"
 		title={`${message}.`}
