@@ -55,11 +55,13 @@
 	let exportFormat = $state<'png' | 'svg' | 'pdf'>('png');
 	let exporting = $state(false);
 	let engineError = $state<string | null>(null);
-	/* Soft-warn surface for "the URL had a hash that looked like a
-	 * kemek-qr share, but the decoder rejected it" — distinct from
+	/* Soft-warn surface for "the URL had a share-shaped hash
+	 * (`#s=v1.…`) but the decoder rejected it" — distinct from
 	 * engineError (runtime fault) because this is a structural input
-	 * failure. Auto-clears so a transient mis-share doesn't haunt the
-	 * page after the user has moved on. */
+	 * failure. Triggered only when the hash starts with `s=v1.` so
+	 * legitimate non-share anchor links (`#p-01`, `#about`) don't
+	 * false-positive. Auto-clears so a transient mis-share doesn't
+	 * haunt the page after the user has moved on. */
 	let decodeError = $state<string | null>(null);
 	let decodeErrorTimer: ReturnType<typeof setTimeout> | null = null;
 	/* Latches once the autosave write hits a non-quota exception so we
@@ -232,19 +234,26 @@
 	let restored = false;
 
 	onMount(async () => {
-		/* Hash takes priority over session storage so a shared link
-		 * always overrides what's saved locally — the recipient sees
-		 * the sender's QR, not their own last edits. */
+		/* Share-shaped hash takes priority over session storage so a
+		 * shared link always overrides what's saved locally — the
+		 * recipient sees the sender's QR, not their own last edits.
+		 *
+		 * Non-share hashes (`#p-01` scroll anchors, plain `#about`,
+		 * anything that doesn't start with `s=v1.`) fall through to
+		 * the localStorage fallback. Earlier versions gated on any
+		 * non-empty hash, which produced a false-positive "LINK NOT
+		 * ON FILE" toast on direct navigation to an anchor target. */
 		if (typeof window !== 'undefined') {
-			if (window.location.hash) {
+			const isShareHash = window.location.hash.startsWith('#s=v1.');
+			if (isShareHash) {
 				const decoded = decodePermalink(window.location.hash);
 				if (decoded) {
 					applyDecoded(decoded);
 				} else {
-					/* The URL carried a hash that looked like a kemek-qr
-					 * share but failed the decoder gates (length cap,
-					 * malformed base64, validation drops, etc.). Surface
-					 * a soft-warn so the recipient knows the design they
+					/* The URL carried a share-shaped hash (`#s=v1.…`) that
+					 * the decoder rejected: length cap, malformed base64,
+					 * validation drops, array-root JSON, etc. Surface a
+					 * soft-warn so the recipient knows the design they
 					 * were expecting didn't restore — auto-clears after
 					 * 8 s so a transient mis-share doesn't haunt the
 					 * page after they've moved on. */
@@ -794,9 +803,10 @@
 		if (exporting) return;
 		exporting = true;
 		try {
-			/* Same drain-on-success pattern as the render effect — a
+			/* Same clear-before-retry pattern as the render effect — a
 			 * 4K iOS canvas-limit error shouldn't survive a retry at
-			 * 2K, etc. */
+			 * 2K, etc. The catch block re-sets engineError on a fresh
+			 * failure; success leaves it null. */
 			engineError = null;
 			if (exportFormat === 'png') await downloadPNG();
 			else if (exportFormat === 'svg') await downloadSVG();
