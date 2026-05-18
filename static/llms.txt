@@ -4,7 +4,7 @@
 
 kemek-qr is a free utility published by KeMeK Network. No signup, no expiry, no third-party scripts on generator pages, no individual tracking. The core promise is *client-side generation*: when a visitor types a URL or contact card into the form, that string is encoded into a QR code by JavaScript running locally in the browser — nothing is uploaded, logged, or transmitted to a server. The host (Cloudflare Pages) sees only normal page requests; aggregate pageview counts are visible to KeMeK Network, individual visitors are not.
 
-Source code is MIT licensed. The repository becomes public after the launch stabilization period; until then the LICENSE text is visible in the site footer and shipped in the production build.
+Source code is MIT licensed and lives at [github.com/KeMeK-Network/kemek-QR](https://github.com/KeMeK-Network/kemek-QR). The brand name "KeMeK Network" and the kemek-qr mark are trademarks of KeMeK Network and are not covered by the MIT code license — see [static/brand/USAGE.md](https://qr.kemek.com/brand/USAGE.md) for the trademark carve-out and attribution guidance.
 
 ## Tool pages
 
@@ -28,7 +28,7 @@ Every generator page exposes the same styling controls:
 - Foreground and background colors (independent hex picker)
 - Module shape: square, dot, rounded, classy, classy-rounded, extra-rounded
 - Eye (finder pattern) shape and color, settable independently of module color
-- Logo embedding: upload PNG or SVG, sized as a fraction of the QR canvas
+- Logo embedding: upload PNG, JPG, or WebP (up to 4 MB), sized as a fraction of the QR canvas
 - Outer frame with a caption label; four font sizes (S / M / L / XL, with XL auto-fitting to label width)
 - Error correction level: L / M / Q / H
 - Permalink encoding: every setting is captured in the URL hash, so sharing a permalink restores the exact visual configuration on the other end
