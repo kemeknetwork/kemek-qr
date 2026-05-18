@@ -75,8 +75,8 @@
 		border: 1px solid var(--accent);
 		text-decoration: none;
 		transition:
-			background var(--duration) var(--ease),
-			color var(--duration) var(--ease);
+			background var(--duration-fast) var(--ease),
+			color var(--duration-fast) var(--ease);
 	}
 	.hero-cta:hover,
 	.hero-cta:focus-visible {

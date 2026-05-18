@@ -70,7 +70,21 @@
 		hasEyeDropper = typeof window !== 'undefined' && 'EyeDropper' in window;
 		try {
 			const raw = localStorage.getItem(SAVED_KEY);
-			if (raw) saved = JSON.parse(raw);
+			if (raw) {
+				/* The try/catch only catches parse errors, not type
+				 * mismatches. A tampered storage entry (browser
+				 * extension corruption, dev-tools edit, past-version
+				 * data shape) could slip through as `[1,2,3]` and
+				 * crash every downstream `.toUpperCase()` inside the
+				 * picker's reactive chain. Validate against the same
+				 * 6-digit hex regex the picker uses elsewhere. */
+				const parsed: unknown = JSON.parse(raw);
+				if (Array.isArray(parsed)) {
+					saved = parsed
+						.filter((c): c is string => typeof c === 'string' && /^#[0-9A-F]{6}$/i.test(c))
+						.slice(0, SAVED_MAX);
+				}
+			}
 		} catch {
 			/* saved is a luxury, not load-bearing */
 		}

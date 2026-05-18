@@ -312,6 +312,11 @@
 		if (renderTimer) clearTimeout(renderTimer);
 		renderTimer = setTimeout(() => {
 			try {
+				/* Clear a prior transient error before re-attempting —
+				 * without this, a NaN-angle slider drag or corrupt-permalink
+				 * fault leaves the PROTOCOL ERROR overlay latched even
+				 * after the user's next edit lands a valid render. */
+				engineError = null;
 				qrInstance?.update(opts);
 			} catch (err) {
 				/* qr-code-styling throws synchronously on certain bad
@@ -774,6 +779,10 @@
 		if (exporting) return;
 		exporting = true;
 		try {
+			/* Same drain-on-success pattern as the render effect — a
+			 * 4K iOS canvas-limit error shouldn't survive a retry at
+			 * 2K, etc. */
+			engineError = null;
 			if (exportFormat === 'png') await downloadPNG();
 			else if (exportFormat === 'svg') await downloadSVG();
 			else await downloadPDF();
