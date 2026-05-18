@@ -213,6 +213,17 @@ describe('decode validation', () => {
 		expect(decodePermalink('#s=v9.garbage')).toBeNull();
 		expect(decodePermalink('#s=v1.@@@')).toBeNull();
 	});
+	it('returns null on array-root JSON (not just non-object scalars)', () => {
+		/* `typeof [] === 'object'` so the shape check needs an explicit
+		 * Array.isArray gate. Without it, an array-rooted payload
+		 * would return an empty DecodedPermalink {} and silently
+		 * bypass the Generator's decodeError surfacing. */
+		const arrayHash = `#s=v1.${btoa(JSON.stringify(['a', 'b']))
+			.replace(/\+/g, '-')
+			.replace(/\//g, '_')
+			.replace(/=+$/, '')}`;
+		expect(decodePermalink(arrayHash)).toBeNull();
+	});
 	it('drops invalid fields without rejecting the whole payload', () => {
 		const state: PermalinkState<'url'> = {
 			...baseStyling,

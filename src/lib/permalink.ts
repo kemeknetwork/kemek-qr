@@ -108,7 +108,15 @@ const MAX_LOGO_DATA_URL_LEN = 7000;
 /* Module-load invariant: the envelope-size cap MUST exceed the
  * URL-length cap. If MAX_URL_LEN ever grows past MAX_PAYLOAD_LEN
  * the decoder would silently reject the encoder's own outputs —
- * fail loud at import time instead. */
+ * fail loud at import time instead.
+ *
+ * Note: the strict-`>` check is the minimum invariant, not a
+ * comfortable safety margin. The encoder's output length includes
+ * the `v1.` prefix plus base64url expansion of JSON-wrapped state,
+ * which inflates beyond the raw URL contribution. Current values
+ * (PAYLOAD 8192 vs URL 6000) provide ~36 % headroom empirically —
+ * if a future change tightens the cap relationship, verify the
+ * encoder's worst-case still fits, not just that this assert passes. */
 if (MAX_PAYLOAD_LEN <= MAX_URL_LEN) {
 	throw new Error(
 		`permalink.ts: MAX_PAYLOAD_LEN (${MAX_PAYLOAD_LEN}) must exceed MAX_URL_LEN (${MAX_URL_LEN}); ` +
@@ -147,7 +155,15 @@ const PNG_SIZE_VALUES: ReadonlySet<PngSize> = new Set(['1K', '2K', '4K']);
  * with `auth: 'BOGUS'` would land in state typed as WifiAuth but
  * holding a non-WifiAuth string. Downstream encodeWifi would emit
  * a malformed-but-non-crashing `WIFI:T:BOGUS;…` payload. Adding new
- * enum-typed content fields means adding their value-set here. */
+ * enum-typed content fields means adding their value-set here.
+ *
+ * IMPORTANT: the optional `?` shape is intentional — content types
+ * legitimately omit entries when they have no string-literal-union
+ * fields (e.g. url, text, vcard, email, sms, phone, geo today). TS
+ * does NOT enforce that a future enum-typed field gets registered
+ * here. The comment is the contract; a future `email.priority:
+ * 'normal' | 'urgent'` would type-check fine while bypassing the
+ * union narrowing until manually added below. */
 const WIFI_AUTH_VALUES: ReadonlySet<WifiAuth> = new Set(['WPA', 'WEP', 'nopass']);
 const CONTENT_ENUM_VALUES: { [K in ContentType]?: { [field: string]: ReadonlySet<string> } } = {
 	wifi: { auth: WIFI_AUTH_VALUES }
@@ -336,7 +352,13 @@ export function decodePermalink(hash: string): DecodedPermalink | null {
 	} catch {
 		return null;
 	}
-	if (!parsed || typeof parsed !== 'object') return null;
+	/* Arrays pass `typeof === 'object'` but aren't valid envelopes.
+	 * Without the Array.isArray gate, `JSON.parse('["a"]')` would
+	 * slip through the shape check, every field validator would
+	 * silently fail, and the function would return an empty
+	 * DecodedPermalink `{}` instead of null — bypassing the
+	 * Generator's decodeError toast that fires only on null. */
+	if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
 
 	/* Treat every wire field as unknown — the input is caller-supplied
 	 * JSON from a URL hash, so the type-level optionality of WireV1

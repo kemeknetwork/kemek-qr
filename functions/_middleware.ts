@@ -97,7 +97,12 @@ export async function onRequest(context: EventContext): Promise<Response> {
 				country: cf?.country ?? null,
 				colo: cf?.colo ?? null,
 				ua: (context.request.headers.get('user-agent') ?? '').slice(0, 120),
-				ref: context.request.headers.get('referer') ?? null
+				/* Cap referer at twice the UA budget — referers tend
+				 * toward longer URLs (full path + query string). A
+				 * hostile client can otherwise set an arbitrarily-large
+				 * Referer (CF allows tens of KB) and pollute the log
+				 * line, burning the 7-day Pages tail retention window. */
+				ref: (context.request.headers.get('referer') ?? '').slice(0, 240) || null
 			})
 		);
 		const kv = context.env.PV_COUNTER;

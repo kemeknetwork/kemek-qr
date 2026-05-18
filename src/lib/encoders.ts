@@ -98,6 +98,15 @@ export function encodeEmail(c: EmailContent): string {
 	return `mailto:${to}${tail}`;
 }
 
+/* SMSTO is a de-facto Android convention without a formal escape
+ * syntax. CR/LF in `body` passes through verbatim — multi-line
+ * rendering is scanner-dependent: some Android stock messaging
+ * apps preserve line breaks in the pre-filled draft, others
+ * truncate at the first newline. Differs from encodeVCard (which
+ * normalizes CRLF/CR/LF → escaped `\n`) and encodeEmail (which
+ * percent-encodes via encodeURIComponent). User-typed multi-line
+ * bodies are a legitimate use case; we don't strip them. Callers
+ * who need single-line guarantees should pre-strip at the UI. */
 export function encodeSms(c: SmsContent): string {
 	const num = c.number.replace(/\s/g, '');
 	return c.body ? `SMSTO:${num}:${c.body}` : `SMSTO:${num}:`;
