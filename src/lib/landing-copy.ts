@@ -6,21 +6,16 @@
 import type { ContentType } from './types';
 
 export type LandingCopy = {
-	/* H1 visible on the page. Includes the long-tail keyword naturally. */
 	h1: string;
-	/* One-paragraph subhead (mono, in brand voice) under the H1. */
 	sub: string;
-	/* <title> for the tab. Pattern: 'Free [type] QR Code Generator — No Signup, Privacy-First | KeMeK'. */
+	/* Pattern: 'Free [type] QR Code Generator — No Signup, Privacy-First | KeMeK'. */
 	metaTitle: string;
-	/* <meta name="description"> — under 160 chars, no marketing fluff. */
 	metaDesc: string;
 	/* Tighter mixed-case label used in cross-page plate indexes
 	 * (e.g. About → plate index) where the full h1 would over-repeat
 	 * "Free … QR code generator" eight times in a list. */
 	plateLabel: string;
-	/* Body paragraphs rendered in order under the generator. Plain text. */
 	paragraphs: string[];
-	/* Two-column FAQ entries; each renders as a subsection with its own H3. */
 	faq: { q: string; a: string }[];
 };
 

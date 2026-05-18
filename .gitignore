@@ -41,3 +41,6 @@ ops/deploy/app-stores.md
 # sheets for scripts/build-demo-plates.mjs. Outputs live alongside
 # inputs here so nothing depends on /tmp.
 .specimen-study/
+
+# Code review scratch — findings, triage notes, before fixes are committed
+.review/

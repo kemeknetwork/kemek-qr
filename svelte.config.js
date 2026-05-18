@@ -3,7 +3,8 @@ import adapter from '@sveltejs/adapter-static';
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	compilerOptions: {
-		// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
+		// Force runes mode for the project, except for libraries (node_modules
+		// keeps legacy-store semantics so older Svelte 4 deps still compile).
 		runes: ({ filename }) => (filename.split(/[/\\]/).includes('node_modules') ? undefined : true)
 	},
 	kit: {

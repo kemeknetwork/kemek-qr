@@ -21,8 +21,9 @@
 		 * the per-type landings (plate number) and error page (status
 		 * code). About uses a literal '∞' here. */
 		plateLarge?: boolean;
-		/* Version-style condensed letter-spacing — `v0.34.20` reads as
-		 * a semver string, not a tracked uppercase rubric value. */
+		/* Version strings (`vX.Y.Z`) read as semver, not as a tracked
+		 * uppercase rubric value — applies condensed letter-spacing
+		 * and preserves the lowercase `v`. */
 		versionValue?: boolean;
 	};
 

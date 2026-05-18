@@ -462,24 +462,15 @@
 		display: '"Fraunces Variable", "Fraunces", Georgia, serif'
 	};
 
-	/* Compute label font size + reserved label-band height for the
-	 * given size. For S/M/L the font is a fixed fraction of the QR
-	 * width. For XL the font is measured (via canvas measureText) to
-	 * fill 88 % of the framed image's total width regardless of
-	 * label length — short labels get a huge font, long ones get a
-	 * smaller font. The band grows proportionally so the layout
-	 * stays balanced. */
 	/* Frame-label font size as a fraction of the QR's own width
 	 * (NOT the framed total). Single source of truth driving three
 	 * surfaces: canvas PNG export (frameLabelMetrics below), SVG/PDF
 	 * export (computeFrameLayout → composeFramedSvg), and the live
 	 * preview CSS (.qr-frame-label-{S,M,L} read these via inline
-	 * custom properties set on .qr-frame). XL is dynamic and uses
-	 * 0.06 only as its initial estimate before measureText fits.
-	 *
-	 * Pre-0.34.21 the JS used these literals and the CSS hardcoded
-	 * 3.5cqw / 5.5cqw / 8cqw — same axis, different numbers — so
-	 * preview and export drifted by ~10-15 %. */
+	 * custom properties set on .qr-frame). XL is dynamic — measured
+	 * via canvas measureText to fill 88 % of frame width regardless
+	 * of label length — and uses XL_SEED_RATIO only as its initial
+	 * estimate before the measureText fit. */
 	const FRAME_LABEL_RATIOS: Record<Exclude<FrameLabelSize, 'XL'>, number> = {
 		S: 0.045,
 		M: 0.06,
@@ -654,10 +645,9 @@
 		}
 	}
 
-	/* Wrap the qr-code-styling SVG output in an outer SVG that adds a
-	 * border rect and label text below. Uses DOMParser to inject the
-	 * original SVG as a nested element — browsers and most SVG viewers
-	 * render nested <svg> correctly. */
+	/* Uses DOMParser to inject the qr-code-styling SVG as a nested
+	 * <svg> element inside the outer frame — browsers and most SVG
+	 * viewers render nested <svg> correctly. */
 	function composeFramedSvg(qrSvgText: string, qrSize: number, label: string): string {
 		const { padding, borderWidth, half, fontPx, labelHeight, totalW, totalH } = computeFrameLayout(
 			qrSize,

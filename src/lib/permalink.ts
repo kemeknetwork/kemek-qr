@@ -135,12 +135,9 @@ const TYPES_SET: ReadonlySet<ContentType> = new Set(CONTENT_TYPES);
  * decoder can assign `out.field = w.x` without `as` casts. Adding
  * a new wire field becomes a one-liner using the matching helper. */
 function isOneOf<T extends string>(v: unknown, set: ReadonlySet<T>): v is T {
-	/* The `set as ReadonlySet<string>` cast is narrowly scoped here so
-	 * `.has(v)` accepts an `unknown`-narrowed-to-`string` value —
-	 * `Set<T>.has()` insists on `T` typing-wise, but at runtime any
-	 * value works and a non-T input correctly returns false. The
-	 * function's `v is T` predicate gives the caller a real narrowing,
-	 * so call sites stay cast-free. */
+	/* Cast scoped here so `.has(v)` accepts an unknown-narrowed-to-
+	 * string. The `v is T` predicate gives callers real narrowing
+	 * without per-site `as` casts. */
 	return typeof v === 'string' && (set as ReadonlySet<string>).has(v);
 }
 function isHexColor(v: unknown): v is string {

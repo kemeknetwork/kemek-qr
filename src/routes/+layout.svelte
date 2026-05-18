@@ -13,9 +13,10 @@
 	 * bundle. Three files cover every glyph rendered above the fold:
 	 * Fraunces Variable for the hero title, JetBrains Mono 400 for
 	 * body labels, JetBrains Mono 500 for the masthead pill + plate
-	 * nav. Italic Fraunces (used by the title-rubric and version
-	 * value) is small enough that synthesized italic from the
-	 * variable normal axis is acceptable during preload. */
+	 * nav. Italic Fraunces is rendered via the variable normal
+	 * axis's synthesized italic during preload — accurate enough
+	 * for the few small italic surfaces (plate-large numerals,
+	 * FAQ headings, brand-slash, current-plate-index entry). */
 	import frauncesNormalUrl from '@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2?url';
 	import mono400Url from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2?url';
 	import mono500Url from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-500-normal.woff2?url';

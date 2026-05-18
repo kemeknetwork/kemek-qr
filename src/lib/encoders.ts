@@ -27,10 +27,8 @@ import type {
 	WifiContent
 } from './types';
 
-/* Typed dispatch table: TS narrows `ContentMap[K]` per key, so each
- * entry's argument type matches the encoder's parameter without
- * runtime casts. Adding a new content type is one row here +
- * one entry in `ContentMap` — TS enforces both ends. */
+/* Adding a new content type is one row in ENCODERS below + one
+ * entry in `ContentMap` (lib/types.ts) — TS enforces both ends. */
 type EncoderTable = { readonly [K in ContentType]: (c: ContentMap[K]) => string };
 
 /* WiFi field escape: backslash, semicolon, comma, colon, double-quote.

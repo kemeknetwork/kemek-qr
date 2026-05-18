@@ -45,11 +45,6 @@
 </section>
 
 <style>
-	/* Title-block + hero + explainer styles mirror about/+page.svelte
-	 * (which in turn mirrors LandingPage.svelte). Tier 2 of the M1
-	 * refactor is the planned TitleBlock component extract that would
-	 * eliminate this 3-way duplication; until that lands, drift this
-	 * file in lockstep when the others change. */
 	/* Title-block frame / corners / typography ship from
 	 * `lib/TitleBlock.svelte` (compact prop). The smaller back-link
 	 * CTA below is page-local — it's a different visual treatment
