@@ -44,3 +44,6 @@ ops/deploy/app-stores.md
 
 # Code review scratch — findings, triage notes, before fixes are committed
 .review/
+
+# Trademark filing artifacts — specimens, screenshots, draft text
+.trademark/

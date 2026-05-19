@@ -8,7 +8,8 @@ import type { ContentType } from './types';
 export type LandingCopy = {
 	h1: string;
 	sub: string;
-	/* Pattern: 'Free [type] QR Code Generator — No Signup, Privacy-First | KeMeK'. */
+	/* Pattern: 'Free [type] QR Code Generator — No Signup | KeMeK'.
+	 * Must stay under 60 chars for Google SERP rendering. */
 	metaTitle: string;
 	metaDesc: string;
 	/* Tighter mixed-case label used in cross-page plate indexes
@@ -25,7 +26,7 @@ export const LANDING_COPY: Record<ContentType, LandingCopy> = {
 	url: {
 		h1: 'Free URL QR code generator',
 		sub: 'Encode any link to a QR code that scans, prints, and travels with you. Logo, color, and styling included — no account, no upload.',
-		metaTitle: `Free URL QR Code Generator — No Signup, Privacy-First | ${BRAND}`,
+		metaTitle: `Free URL QR Code Generator — No Signup | ${BRAND}`,
 		metaDesc:
 			'Generate QR codes for any URL. Free, no signup, no tracking. Customize colors, dot styles, and logo. Download PNG, SVG, or PDF straight from your browser.',
 		plateLabel: 'URL QR code generator',
@@ -53,7 +54,7 @@ export const LANDING_COPY: Record<ContentType, LandingCopy> = {
 	text: {
 		h1: 'Free text QR code generator',
 		sub: 'Encode any string — a note, a poem, an offline message — into a QR code. Plain text, no scheme, no destination. Decoded by the scanner directly.',
-		metaTitle: `Free Text QR Code Generator — No Signup, Privacy-First | ${BRAND}`,
+		metaTitle: `Free Text QR Code Generator — No Signup | ${BRAND}`,
 		metaDesc:
 			'Generate QR codes for plain text. Free, no signup. Useful for notes, codes, instructions, anything that does not need to open in a browser.',
 		plateLabel: 'Text QR code generator',
@@ -81,7 +82,7 @@ export const LANDING_COPY: Record<ContentType, LandingCopy> = {
 	wifi: {
 		h1: 'Free WiFi QR code generator',
 		sub: 'Encode an SSID, password, and security type into a QR code so guests can join your network with a single scan. Generated locally — credentials never leave your browser.',
-		metaTitle: `Free WiFi QR Code Generator — No Signup, Privacy-First | ${BRAND}`,
+		metaTitle: `Free WiFi QR Code Generator — No Signup | ${BRAND}`,
 		metaDesc:
 			'Make a WiFi QR code that joins your network with one scan. Supports WPA/WPA2/WPA3, WEP, open. No signup, no tracking. Credentials stay in your browser.',
 		plateLabel: 'WiFi QR code generator',
@@ -109,7 +110,7 @@ export const LANDING_COPY: Record<ContentType, LandingCopy> = {
 	vcard: {
 		h1: 'Free vCard QR code generator',
 		sub: 'Pack contact details — name, organization, phone, email, address — into a QR code that adds you straight to someone’s phonebook. vCard 3.0, broadly supported.',
-		metaTitle: `Free vCard QR Code Generator — No Signup, Privacy-First | ${BRAND}`,
+		metaTitle: `Free vCard QR Code Generator — No Signup | ${BRAND}`,
 		metaDesc:
 			'Make a vCard QR for your contact info. Scans into iPhone and Android contacts. Free, no signup, no tracking. Generated entirely in your browser.',
 		plateLabel: 'vCard QR code generator',
@@ -137,7 +138,7 @@ export const LANDING_COPY: Record<ContentType, LandingCopy> = {
 	email: {
 		h1: 'Free email QR code generator',
 		sub: 'Encode a mailto: link with optional subject and body. Scanning opens a pre-filled draft in the recipient’s mail app — no need to copy your address.',
-		metaTitle: `Free Email QR Code Generator — No Signup, Privacy-First | ${BRAND}`,
+		metaTitle: `Free Email QR Code Generator — No Signup | ${BRAND}`,
 		metaDesc:
 			'Generate a QR code that opens an email draft when scanned. Pre-fill subject and body. Free, no signup, no tracking. Encoded in your browser.',
 		plateLabel: 'Email QR code generator',
@@ -161,7 +162,7 @@ export const LANDING_COPY: Record<ContentType, LandingCopy> = {
 	sms: {
 		h1: 'Free SMS QR code generator',
 		sub: 'Encode a phone number and an optional message body. Scanning opens a pre-filled SMS draft — useful for opt-in promotions, support shortcuts, and check-ins.',
-		metaTitle: `Free SMS QR Code Generator — No Signup, Privacy-First | ${BRAND}`,
+		metaTitle: `Free SMS QR Code Generator — No Signup | ${BRAND}`,
 		metaDesc:
 			'QR codes that open a pre-filled SMS draft when scanned. Free, no signup, no tracking. Generated entirely in your browser.',
 		plateLabel: 'SMS QR code generator',
@@ -185,7 +186,7 @@ export const LANDING_COPY: Record<ContentType, LandingCopy> = {
 	phone: {
 		h1: 'Free phone QR code generator',
 		sub: 'Encode a phone number into a QR. Scanning offers a one-tap dial. tel: format, supported by every camera that scans QR codes.',
-		metaTitle: `Free Phone QR Code Generator — No Signup, Privacy-First | ${BRAND}`,
+		metaTitle: `Free Phone QR Code Generator — No Signup | ${BRAND}`,
 		metaDesc:
 			'Generate QR codes that dial a phone number when scanned. Free, no signup, no tracking. Encoded in your browser.',
 		plateLabel: 'Phone QR code generator',
@@ -209,7 +210,7 @@ export const LANDING_COPY: Record<ContentType, LandingCopy> = {
 	geo: {
 		h1: 'Free geo location QR code generator',
 		sub: 'Encode latitude and longitude into a QR. Scanning opens the recipient’s default maps app, optionally with a labeled pin.',
-		metaTitle: `Free Geo Location QR Code Generator — No Signup, Privacy-First | ${BRAND}`,
+		metaTitle: `Free Geo QR Code Generator — No Signup | ${BRAND}`,
 		metaDesc:
 			'QR codes that open a map pin when scanned. Latitude / longitude with optional label. Free, no signup, no tracking. Generated entirely in your browser.',
 		plateLabel: 'Geo location QR code generator',
