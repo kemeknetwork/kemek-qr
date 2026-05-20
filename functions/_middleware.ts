@@ -113,20 +113,32 @@ export async function onRequest(context: EventContext): Promise<Response> {
 			 * counter. The raw IP is read transiently to compute the
 			 * hash and is never persisted; the hash itself expires after
 			 * 60 s and is daily-salted so it can't be replayed across
-			 * days. See the "Privacy invariants" block above. */
-			const ip = context.request.headers.get('cf-connecting-ip') ?? '0.0.0.0';
-			const ua = context.request.headers.get('user-agent') ?? '';
-			const daySalt = Math.floor(Date.now() / 86_400_000).toString();
-			const fingerprint = await sha256Hex(`${ip}|${ua}|${daySalt}`);
-			const cooldownKey = `cd:${fingerprint}`;
-			const seen = await kv.get(cooldownKey);
-			if (!seen) {
-				context.waitUntil(
-					Promise.all([
-						kv.put(cooldownKey, '1', { expirationTtl: COOLDOWN_SECONDS }),
-						incrementCounter(kv)
-					])
-				);
+			 * days. See the "Privacy invariants" block above.
+			 *
+			 * Wrap the awaited KV read in try/catch: when CF Workers KV
+			 * subrequests fail (e.g. the 2026-05-20 1006 incident), an
+			 * unhandled rejection here surfaces as a 500 to every
+			 * visitor — violating this file's own "non-critical, must
+			 * never block a request" contract. Swallow the failure and
+			 * still fall through to context.next(); the worst case is
+			 * one missed counter bump per affected request. */
+			try {
+				const ip = context.request.headers.get('cf-connecting-ip') ?? '0.0.0.0';
+				const ua = context.request.headers.get('user-agent') ?? '';
+				const daySalt = Math.floor(Date.now() / 86_400_000).toString();
+				const fingerprint = await sha256Hex(`${ip}|${ua}|${daySalt}`);
+				const cooldownKey = `cd:${fingerprint}`;
+				const seen = await kv.get(cooldownKey);
+				if (!seen) {
+					context.waitUntil(
+						Promise.all([
+							kv.put(cooldownKey, '1', { expirationTtl: COOLDOWN_SECONDS }),
+							incrementCounter(kv)
+						])
+					);
+				}
+			} catch {
+				/* intentional: decorative counter, swallow failures */
 			}
 		}
 	}
