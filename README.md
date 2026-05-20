@@ -114,22 +114,22 @@ Hash-only (never query string — the hash isn't sent over the network even in C
 - **Logo files read locally.** `FileReader` + Canvas. Never uploaded.
 - **No client-side analytics.** No Google Analytics, no Plausible, no Umami — nothing that injects a script tag and pings a server while you generate.
 - **No cookies, no third-party scripts.** First-party page-view counter (KV-backed, server-side only) tracks aggregate visits to the marketing pages. Generator pages stay clean.
-- **Repo is open-source MIT.** [View the source](https://github.com/KeMeK-Network/kemek-qr) and verify the claims.
+- **Repo is open-source MIT.** [View the source](https://github.com/KeMeK-Network/kemek-QR) and verify the claims.
 
 ---
 
 ## Performance
 
-Lighthouse mobile audit on the live deployment (last run May 2026 at v0.31.x):
+Lighthouse mobile audit on the live deployment (last run May 2026 at v0.34.25):
 
 | Category       | Score   |
 | -------------- | ------- |
-| Performance    | **94**  |
+| Performance    | **88**  |
 | Accessibility  | **100** |
 | Best Practices | **100** |
 | SEO            | **100** |
 
-LCP 2.74s · FCP 2.17s · CLS 0 · TBT 14ms. Dark mode tested separately and lands at the same scores with zero color-contrast audits firing.
+LCP 3.4s · FCP 2.5s · CLS 0 · TBT 10ms. Desktop audit on the same revision lands at Perf 99 · A11y 100 · BP 100 · SEO 100 (LCP 0.9s · FCP 0.8s · CLS 0 · TBT 0ms). Dark mode tested separately and lands at the same scores with zero color-contrast audits firing.
 
 Production bundle is ~80 KB of JS gzipped + WOFF2 font subsets preloaded for LCP. `qr-code-styling` runs on the main thread (small enough; the QR render is < 16 ms even on mid-range mobile).
 
@@ -158,8 +158,8 @@ The CSS is part of the product feel; a free utility doesn't need a framework's o
 Requires Node 20+. No global tooling needed.
 
 ```sh
-git clone https://github.com/KeMeK-Network/kemek-qr.git
-cd kemek-qr
+git clone https://github.com/KeMeK-Network/kemek-QR.git
+cd kemek-QR
 npm install
 
 npm run dev          # http://localhost:5184

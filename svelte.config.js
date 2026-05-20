@@ -15,7 +15,15 @@ const config = {
 		// silently appear as duplicate-content for the homepage).
 		// SvelteKit's router runs in the shell and renders +error.svelte
 		// for the actual UI.
-		adapter: adapter({ fallback: '404.html' })
+		adapter: adapter({ fallback: '404.html' }),
+		// Inline per-route CSS chunks ≤50 KB (raw, not gzipped) into <head>.
+		// Critical-path audit identified 3 render-blocking CSS files on the
+		// LCP path at 522-672 ms each. Lighthouse reports gzipped sizes
+		// (19/7/2.6 KB) but Vite/SvelteKit measure raw bytes — actual files
+		// are 40/34/8 KB, so threshold sits above the largest at 50_000.
+		// Removes those RTTs so the masthead pill paints immediately. Cost
+		// is ~50 KB raw added to HTML (gzipped ~10 KB), edge-cached by CF.
+		inlineStyleThreshold: 50_000
 	}
 };
 

@@ -47,3 +47,6 @@ ops/deploy/app-stores.md
 
 # Trademark filing artifacts — specimens, screenshots, draft text
 .trademark/
+
+# Lighthouse audit artifacts — local-only audit JSON + HTML reports
+.lighthouse/
