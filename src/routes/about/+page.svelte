@@ -165,11 +165,15 @@
 			<span class="dropmark" aria-hidden="true">02</span>
 			The
 			<strong>AUTO</strong> setting in the generator picks
-			<strong>M</strong> when the code is plain and
-			<strong>H</strong> when a logo is embedded. The logo physically obscures part of the data region,
-			and H builds enough redundancy that the obscured cells get reconstructed at scan time. If you're
-			embedding a logo at the default 25% size, AUTO is almost always the right call. Manual override
-			is there for the cases AUTO doesn't anticipate.
+			<strong>M</strong> as the everyday-default baseline and
+			<strong>H</strong> when a logo is embedded. For short payloads — most URLs, contact rows, brief text
+			— AUTO quietly takes the stronger
+			<strong>Q</strong>
+			or <strong>H</strong> level when it fits in the same minimum version M would land on, free recovery
+			margin at no module-count cost. The logo case stays at H because the logo physically obscures part
+			of the data region and H builds enough redundancy to reconstruct the obscured cells at scan time.
+			If you're embedding a logo at the default 25% size, AUTO is almost always the right call. Manual
+			override is there for the cases AUTO doesn't anticipate.
 		</p>
 		<p>
 			<span class="dropmark" aria-hidden="true">03</span>

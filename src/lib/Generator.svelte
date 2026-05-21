@@ -17,6 +17,7 @@
 		type PngSize
 	} from '$lib/permalink';
 	import { encode } from '$lib/encoders';
+	import { capacityVersionFor } from '$lib/qr-capacity';
 	import ColorPicker from '$lib/ColorPicker.svelte';
 	import { contrastBand, contrastRatio, effectiveFg, isInverted } from '$lib/contrast';
 	import {
@@ -128,17 +129,32 @@
 		};
 	}
 
-	/* ECC auto-resolution rule: when 'auto', a logo bumps to H (30 %
-	 * recovery is what makes the logo cutout survive a scan), plain
-	 * codes use M (15 %, the everyday default). One source of truth
-	 * for both buildOpts and the resolvedECC display $derived below. */
-	function resolveEcc(level: ECC, hasLogo: boolean): 'L' | 'M' | 'Q' | 'H' {
-		return level === 'auto' ? (hasLogo ? 'H' : 'M') : level;
+	/* ECC auto-resolution rule: a logo always bumps to H (30 % recovery
+	 * is what lets the logo cutout get reconstructed at scan time). For
+	 * plain (no-logo) AUTO, M is the everyday-default baseline — but if
+	 * the payload is short enough that Q or H fit in the same minimum
+	 * version M would land on, take the stronger level for free (same
+	 * module count, more recovery margin). Manual L/M/Q/H pass through
+	 * verbatim. One source of truth for both buildOpts and the
+	 * resolvedECC display $derived below. */
+	function resolveEcc(
+		level: ECC,
+		hasLogo: boolean,
+		encodedBytes: number
+	): 'L' | 'M' | 'Q' | 'H' {
+		if (level !== 'auto') return level;
+		if (hasLogo) return 'H';
+		const versionAtM = capacityVersionFor(encodedBytes, 'M');
+		if (versionAtM === null) return 'M';
+		if (capacityVersionFor(encodedBytes, 'H') === versionAtM) return 'H';
+		if (capacityVersionFor(encodedBytes, 'Q') === versionAtM) return 'Q';
+		return 'M';
 	}
 
 	function buildOpts() {
-		const ecc = resolveEcc(errorCorrection, logoDataUrl !== null);
 		const encoded = encode(type, content[type]);
+		const encodedBytes = new TextEncoder().encode(encoded).length;
+		const ecc = resolveEcc(errorCorrection, logoDataUrl !== null, encodedBytes);
 		const gradient = buildGradient();
 		return {
 			width: 480,
@@ -828,11 +844,16 @@
 		}
 	}
 
-	let resolvedECC = $derived(resolveEcc(errorCorrection, logoDataUrl !== null));
+	let encodedBytes = $derived(
+		new TextEncoder().encode(encode(type, content[type])).length
+	);
+	let resolvedECC = $derived(
+		resolveEcc(errorCorrection, logoDataUrl !== null, encodedBytes)
+	);
 	let dotLabel = $derived(dotOptions.find((d) => d.value === dotType)?.label ?? '—');
 
 	const ECC_HINTS: Record<ECC, string> = {
-		auto: 'M when plain · H when logo embedded',
+		auto: 'M plain · Q or H free when short · H with logo',
 		L: '7% recovery · smallest code · indoor screen use',
 		M: '15% recovery · the everyday default',
 		Q: '25% recovery · holds up to scuffs and print wear',
