@@ -417,7 +417,7 @@
 				<span class="rights-year">MMXXVI</span>
 				· License:
 				<a
-					href="https://github.com/KeMeK-Network/kemek-QR/blob/main/LICENSE"
+					href="https://github.com/kemeknetwork/kemek-QR/blob/main/LICENSE"
 					target="_blank"
 					rel="license noopener">MIT</a
 				>

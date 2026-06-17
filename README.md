@@ -114,7 +114,7 @@ Hash-only (never query string — the hash isn't sent over the network even in C
 - **Logo files read locally.** `FileReader` + Canvas. Never uploaded.
 - **No client-side analytics.** No Google Analytics, no Plausible, no Umami — nothing that injects a script tag and pings a server while you generate.
 - **No cookies, no third-party scripts.** First-party page-view counter (KV-backed, server-side only) tracks aggregate visits to the marketing pages. Generator pages stay clean.
-- **Repo is open-source MIT.** [View the source](https://github.com/KeMeK-Network/kemek-QR) and verify the claims.
+- **Repo is open-source MIT.** [View the source](https://github.com/kemeknetwork/kemek-QR) and verify the claims.
 
 ---
 
@@ -158,7 +158,7 @@ The CSS is part of the product feel; a free utility doesn't need a framework's o
 Requires Node 20+. No global tooling needed.
 
 ```sh
-git clone https://github.com/KeMeK-Network/kemek-QR.git
+git clone https://github.com/kemeknetwork/kemek-QR.git
 cd kemek-QR
 npm install
 

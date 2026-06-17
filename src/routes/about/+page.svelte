@@ -136,7 +136,7 @@
 		<p>
 			<span class="dropmark" aria-hidden="true">01</span>
 			The kemek/qr source is
-			<a href="https://github.com/KeMeK-Network/kemek-QR">on GitHub</a>
+			<a href="https://github.com/kemeknetwork/kemek-QR">on GitHub</a>
 			under the MIT license. Read the code, fork it, run your own copy if you’d prefer. The privacy claims
 			on this page reduce to "we ship no telemetry code"; the source is the proof.
 		</p>
