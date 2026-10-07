@@ -198,7 +198,13 @@
 				crossOrigin: 'anonymous' as const,
 				margin: 4,
 				imageSize: logoSize,
-				hideBackgroundDots: true
+				hideBackgroundDots: true,
+				/* The library's default (true) re-fetches the logo with an
+				 * XHR to turn it into a data URL. Ours already is one, and
+				 * the site CSP's `connect-src 'self'` blocks fetching a
+				 * `data:` URL — the XHR never settles and the preview and
+				 * every logo export hang blank. */
+				saveAsBlob: false
 			}
 		};
 	}
