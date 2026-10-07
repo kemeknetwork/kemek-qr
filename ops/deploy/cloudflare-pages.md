@@ -188,6 +188,9 @@ npx wrangler pages dev build                  # boot the Pages emulator
 - Honors KV bindings if you pass them: `--kv PV_COUNTER` (creates a local-only KV namespace; data survives across runs in `.wrangler/`)
 - Logs `console.log` output to your terminal in real time — same shape as the production deployment tail
 
+`static/_routes.json` decides which requests invoke the Functions at all: pages and `/api/*` do, static assets (`/_app/*`, `/brand/*`, favicons, `robots.txt`, …) don't — 2 invocations per page load instead of ~24.
+`wrangler pages dev` honors it, so it is the place to check that a new top-level file in `static/` got its exclude entry.
+
 This would have caught the self-loop bug in 0.26.16 (the `/api/pageviews` endpoint inadvertently being counted as a page-view) before it shipped to production. Worth adding to the pre-promote checklist for any commit touching `functions/`.
 
 ## Operational notes

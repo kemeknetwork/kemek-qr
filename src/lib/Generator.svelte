@@ -772,9 +772,11 @@
 		/* Start fetching pdf-lib now so its chunk download overlaps the
 		 * 2048 px rasterization; the no-op catch keeps a failed fetch
 		 * from surfacing as an unhandled rejection if rasterizing
-		 * throws first. */
-		const pdfLib = import('pdf-lib');
-		pdfLib.catch(() => {});
+		 * throws first. Destructure inside `.then` — the bundler only
+		 * tree-shakes a dynamic import whose used exports it can see
+		 * (a bare `import()` held in a variable kept all 311). */
+		const pdfDocument = import('pdf-lib').then(({ PDFDocument }) => PDFDocument);
+		pdfDocument.catch(() => {});
 		const exportSize = 2048;
 		const exporter = new QRCodeStylingClass(buildOpts(exportSize, 'canvas'));
 		const qrBlob = (await exporter.getRawData('png')) as Blob | null;
@@ -785,7 +787,7 @@
 		}
 		const png = frameEnabled ? await composeFramedPng(qrBlob, exportSize, frameLabel) : qrBlob;
 
-		const { PDFDocument } = await pdfLib;
+		const PDFDocument = await pdfDocument;
 		const pdf = await PDFDocument.create();
 		// A4 portrait in points (1 pt = 1/72 inch).
 		const pageW = 595;

@@ -1,7 +1,12 @@
 /* Server-side page-view counter for kemek-qr.
  *
- * Runs at the Cloudflare edge on every request to the Pages
- * project, BEFORE the static asset is served. Emits one structured
+ * Runs at the Cloudflare edge before the response for every page and
+ * `/api/*` request. Static assets never reach it: `static/_routes.json`
+ * excludes them, so a page load costs 2 Function invocations instead
+ * of ~24 against the free tier's daily cap. A new top-level file in
+ * `static/` needs an exclude entry there, or it costs an invocation
+ * (behaviour is unaffected — `isPageView` still passes it through).
+ * Emits one structured
  * JSON log line per page-view via `console.log`; the line lands in
  * the CF Pages deployment tail (free, 7-day retention) and can be
  * streamed live with:
