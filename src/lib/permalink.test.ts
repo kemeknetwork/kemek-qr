@@ -2,8 +2,10 @@ import { describe, it, expect } from 'vitest';
 import {
 	decodePermalink,
 	decodeSession,
+	DEFAULT_STYLING,
 	encodePermalink,
 	encodeSession,
+	isShareHash,
 	type PermalinkState
 } from './permalink';
 
@@ -73,6 +75,23 @@ describe('encode → decode round trip', () => {
 		expect(enc.logoDropped).toBe(true);
 		const dec = decodePermalink(enc.hash);
 		expect(dec?.logoDataUrl).toBeUndefined();
+	});
+
+	it('drops a logo under the URL cap whose encoded URL still exceeds it', () => {
+		/* 5000 chars passes the logo-length early exit (≤ 6000) but
+		 * base64 inflation pushes the full URL past the cap — this is
+		 * the path that has to run the with-logo encode to find out. */
+		const midDataUrl = `data:image/png;base64,${'A'.repeat(5000)}`;
+		const state: PermalinkState<'url'> = {
+			...baseStyling,
+			type: 'url',
+			content: { url: 'https://kemek.com' },
+			logoDataUrl: midDataUrl
+		};
+		const enc = encodePermalink(state, 'https://qr.kemek.com/');
+		expect(enc.logoDropped).toBe(true);
+		expect(enc.url.length).toBeLessThanOrEqual(6000);
+		expect(enc.hash).toBe(encodePermalink({ ...state, logoDataUrl: null }, '').hash);
 	});
 
 	it('keeps a small logo when it fits', () => {
@@ -382,5 +401,39 @@ describe('session storage round-trip', () => {
 		expect(dec?.type).toBe('url');
 		expect(dec?.content).toEqual({ url: 'https://kemek.com' });
 		expect(dec?.fg).toBe('#1A1815');
+	});
+});
+
+describe('isShareHash', () => {
+	it('matches the share prefix with or without the leading #', () => {
+		expect(isShareHash('#s=v1.abc')).toBe(true);
+		expect(isShareHash('s=v1.abc')).toBe(true);
+		/* broken payloads are still share-shaped — the caller warns */
+		expect(isShareHash('#s=v1.!!!')).toBe(true);
+	});
+	it('ignores in-page anchors and other fragments', () => {
+		expect(isShareHash('')).toBe(false);
+		expect(isShareHash('#p-01')).toBe(false);
+		expect(isShareHash('#about')).toBe(false);
+		expect(isShareHash('#s=v2.abc')).toBe(false);
+	});
+});
+
+describe('DEFAULT_STYLING', () => {
+	it('a default-styled frame omits size, font and PNG size from the wire', () => {
+		const state: PermalinkState<'url'> = {
+			...DEFAULT_STYLING,
+			frameEnabled: true,
+			type: 'url',
+			content: { url: 'https://kemek.com' }
+		};
+		const wire = JSON.parse(
+			atob(
+				encodePermalink(state, '').hash.slice('s=v1.'.length).replace(/-/g, '+').replace(/_/g, '/')
+			)
+		);
+		expect(wire).not.toHaveProperty('fls');
+		expect(wire).not.toHaveProperty('flf');
+		expect(wire).not.toHaveProperty('pnp');
 	});
 });

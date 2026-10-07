@@ -50,3 +50,15 @@ ops/deploy/app-stores.md
 
 # Lighthouse audit artifacts — local-only audit JSON + HTML reports
 .lighthouse/
+
+# Wrapper-managed state file: indicates origin push is failing
+ops/autonomous/.push-broken
+
+# Claude-local config — the whole dir is local, never committed
+.claude/
+
+# Run-log scratch file — local-only, like STATE.md
+RUNLOG.md
+
+# Playwright MCP artifacts (snapshots, console logs, downloads) — local-only
+.playwright-mcp/

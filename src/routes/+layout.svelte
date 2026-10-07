@@ -49,7 +49,6 @@
 
 	function applyTheme(next: Mode, persist = true) {
 		mode = next;
-		if (typeof document === 'undefined') return;
 		document.documentElement.setAttribute('data-theme', next);
 		/* `persist=false` is used by the system-preference listener so a
 		 * follow-the-OS change doesn't get written back to localStorage
@@ -79,8 +78,7 @@
 		/* If hydration finished on a different mode than the inline
 		 * FOUC script applied (rare — only when matchMedia disagrees
 		 * with the saved attribute), re-sync. */
-		const live = readInitialMode();
-		if (live !== mode) mode = live;
+		mode = readInitialMode();
 
 		const mq = window.matchMedia('(prefers-color-scheme: dark)');
 		const onSystemChange = () => {

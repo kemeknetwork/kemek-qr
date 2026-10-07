@@ -46,11 +46,12 @@
  *
  * ## Operational cost
  *
- * Middleware adds ~1-3 ms per request (single string concatenation
- * + one structured log line + a no-op pass-through). Acceptable
- * trade for visibility on a pure-static site. Upgrading to KV
- * counter (Tier 2) or Analytics Engine (Tier 3) would land here
- * the same way — extend the inside of the `if (isPageView)` block. */
+ * Non-page requests pay one path check and a pass-through. A page
+ * view adds one structured log line, a SHA-256 of the fingerprint
+ * and one awaited KV read (the cooldown check, ADR-0002); the two
+ * KV writes run after the response via waitUntil. Analytics Engine
+ * (Tier 3) would land the same way — inside the `if (isPageView)`
+ * block. */
 
 /* Minimal KV interface — declared inline rather than pulling in
  * @cloudflare/workers-types as a devDep. Only the methods we use. */
@@ -130,11 +131,14 @@ export async function onRequest(context: EventContext): Promise<Response> {
 				const cooldownKey = `cd:${fingerprint}`;
 				const seen = await kv.get(cooldownKey);
 				if (!seen) {
+					/* One catch for both deferred writes — a rejection here
+					 * can't reach the response, but uncaught it would log as
+					 * an unhandled error in the deployment tail. */
 					context.waitUntil(
 						Promise.all([
 							kv.put(cooldownKey, '1', { expirationTtl: COOLDOWN_SECONDS }),
 							incrementCounter(kv)
-						])
+						]).catch(() => {})
 					);
 				}
 			} catch {
@@ -161,15 +165,11 @@ async function sha256Hex(s: string): Promise<string> {
  * matters, not precision. Strictly accurate counting would need
  * Durable Objects; that's Tier 3 territory.
  *
- * Errors are swallowed silently — the counter is non-critical and
- * must never block a request or surface a 500 to the visitor. */
+ * Runs inside waitUntil, whose caller swallows failures — the
+ * counter is non-critical and must never surface to the visitor. */
 async function incrementCounter(kv: KVNamespace): Promise<void> {
-	try {
-		const current = parseInt((await kv.get('total')) ?? '0', 10);
-		await kv.put('total', String(current + 1));
-	} catch {
-		/* intentional: decorative counter, swallow failures */
-	}
+	const current = parseInt((await kv.get('total')) ?? '0', 10);
+	await kv.put('total', String(current + 1));
 }
 
 /* Page-view heuristic — the request hits a route (HTML) rather than
@@ -187,7 +187,5 @@ async function incrementCounter(kv: KVNamespace): Promise<void> {
 function isPageView(pathname: string): boolean {
 	if (pathname.startsWith('/api/')) return false;
 	const last = pathname.split('/').pop() ?? '';
-	if (!last) return true;
-	if (last.endsWith('.html')) return true;
-	return !last.includes('.');
+	return !last.includes('.') || last.endsWith('.html');
 }

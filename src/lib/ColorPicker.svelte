@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
+	import { parseHex } from '$lib/contrast';
 
 	type Props = {
 		value: string;
@@ -17,7 +18,6 @@
 	 * the portal the panel renders inside the form column off-screen
 	 * and the overlay's `inset: 0` only darkens that column. */
 	function portal(node: HTMLElement) {
-		if (typeof document === 'undefined') return;
 		document.body.appendChild(node);
 		return {
 			destroy() {
@@ -67,7 +67,7 @@
 	];
 
 	onMount(() => {
-		hasEyeDropper = typeof window !== 'undefined' && 'EyeDropper' in window;
+		hasEyeDropper = 'EyeDropper' in window;
 		try {
 			const raw = localStorage.getItem(SAVED_KEY);
 			if (raw) {
@@ -90,12 +90,6 @@
 		}
 	});
 
-	function hexToRgb(hex: string): [number, number, number] | null {
-		const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
-		if (!m) return null;
-		const n = parseInt(m[1], 16);
-		return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
-	}
 	function rgbToHex(r: number, g: number, b: number): string {
 		const c = (v: number) =>
 			Math.max(0, Math.min(255, Math.round(v)))
@@ -147,16 +141,22 @@
 		return [(r + m) * 255, (g + m) * 255, (b + m) * 255];
 	}
 
-	let lastEmitted = $state(value);
+	/* Point the HSL controls at a hex color. False when the hex doesn't
+	 * parse, leaving the controls where they were. */
+	function setHslFromHex(hex: string): boolean {
+		const rgb = parseHex(hex);
+		if (!rgb) return false;
+		[hue, sat, light] = rgbToHsl(...rgb);
+		return true;
+	}
+
+	/* Echo guard: the last hex this picker emitted, so the effect below
+	 * re-syncs HSL only on an outside change to `value`. Plain `let` —
+	 * the effect must not re-run when it is written. */
+	let lastEmitted = value;
 	$effect(() => {
 		if (value === lastEmitted) return;
-		const rgb = hexToRgb(value);
-		if (!rgb) return;
-		const [h, s, l] = rgbToHsl(...rgb);
-		hue = h;
-		sat = s;
-		light = l;
-		lastEmitted = value;
+		if (setHslFromHex(value)) lastEmitted = value;
 	});
 
 	function emit() {
@@ -185,7 +185,6 @@
 	 * the panel (landscape phones), in which case the `.body` wrapper
 	 * scrolls. */
 	function computePosition() {
-		if (typeof window === 'undefined') return;
 		const panelW = Math.min(PANEL_WIDTH, window.innerWidth - MARGIN * 2);
 		const panelH = panelEl?.offsetHeight ?? 460;
 
@@ -215,13 +214,7 @@
 	}
 
 	async function openPicker() {
-		const rgb = hexToRgb(value);
-		if (rgb) {
-			const [h, s, l] = rgbToHsl(...rgb);
-			hue = h;
-			sat = s;
-			light = l;
-		}
+		setHslFromHex(value);
 		/* Pre-position before showing so the first paint lands at the
 		 * right spot (we don't have panelH yet, so this uses the 460-px
 		 * estimate; recompute below once we can measure). */
@@ -289,13 +282,7 @@
 	}
 
 	function pickSwatch(hex: string) {
-		const rgb = hexToRgb(hex);
-		if (!rgb) return;
-		const [h, s, l] = rgbToHsl(...rgb);
-		hue = h;
-		sat = s;
-		light = l;
-		emit();
+		if (setHslFromHex(hex)) emit();
 	}
 
 	type EyeDropperCtor = new () => { open(): Promise<{ sRGBHex: string }> };
@@ -340,7 +327,7 @@
 	let padThumbStyle = $derived(`left: ${sat}%; top: ${100 - light}%`);
 	let hueThumbStyle = $derived(`top: ${(hue / 360) * 100}%`);
 
-	let rgb = $derived(hexToRgb(value) ?? [0, 0, 0]);
+	let rgb = $derived(parseHex(value) ?? [0, 0, 0]);
 	let rgbDisplay = $derived(rgb.map((v) => v.toString().padStart(3, '0')).join('·'));
 	let hslDisplay = $derived(
 		`${Math.round(hue).toString().padStart(3, '0')}° ${Math.round(sat).toString().padStart(2, '0')}% ${Math.round(light).toString().padStart(2, '0')}%`

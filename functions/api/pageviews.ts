@@ -32,14 +32,14 @@ export async function onRequestGet(context: EventContext): Promise<Response> {
 		'cache-control': 'public, max-age=60, s-maxage=60',
 		'content-type': 'application/json; charset=utf-8'
 	};
-	if (!context.env.PV_COUNTER) {
-		return new Response(JSON.stringify({ count: null }), { headers });
+	let count: number | null = null;
+	if (context.env.PV_COUNTER) {
+		try {
+			const raw = await context.env.PV_COUNTER.get('total');
+			count = raw === null ? 0 : parseInt(raw, 10);
+		} catch {
+			/* KV unreachable — answer { count: null }, never throw */
+		}
 	}
-	try {
-		const raw = await context.env.PV_COUNTER.get('total');
-		const count = raw === null ? 0 : parseInt(raw, 10);
-		return new Response(JSON.stringify({ count }), { headers });
-	} catch {
-		return new Response(JSON.stringify({ count: null }), { headers });
-	}
+	return Response.json({ count }, { headers });
 }

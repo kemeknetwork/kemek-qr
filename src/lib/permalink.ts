@@ -27,15 +27,43 @@ import {
 	type WifiAuth
 } from './types';
 
-export type DotType = 'square' | 'rounded' | 'dots' | 'classy' | 'classy-rounded' | 'extra-rounded';
+/* One list per enumerated styling option. The TS type, the decoder's
+ * allow-set and the generator's option buttons all derive from it, so
+ * adding a value is a one-line change — a value present in the UI but
+ * missing from a hand-written allow-set would type-check and then be
+ * dropped from every permalink and session without a sound. Array
+ * order is the UI order. */
+export const DOT_TYPES = [
+	'square',
+	'rounded',
+	'dots',
+	'classy',
+	'classy-rounded',
+	'extra-rounded'
+] as const;
+export type DotType = (typeof DOT_TYPES)[number];
 
-export type ECC = 'auto' | 'L' | 'M' | 'Q' | 'H';
+export const ECC_OPTIONS = ['auto', 'L', 'M', 'Q', 'H'] as const;
+export type ECC = (typeof ECC_OPTIONS)[number];
 
-export type EyeFrameType = 'square' | 'extra-rounded' | 'dot' | 'rounded';
-export type EyeBallType = 'square' | 'dot' | 'rounded';
-export type FrameLabelSize = 'S' | 'M' | 'L' | 'XL';
-export type FrameLabelFont = 'mono' | 'display';
-export type PngSize = '1K' | '2K' | '4K';
+export const EYE_FRAME_TYPES = ['square', 'rounded', 'extra-rounded', 'dot'] as const;
+export type EyeFrameType = (typeof EYE_FRAME_TYPES)[number];
+
+export const EYE_BALL_TYPES = ['square', 'rounded', 'dot'] as const;
+export type EyeBallType = (typeof EYE_BALL_TYPES)[number];
+
+export const FRAME_LABEL_SIZES = ['S', 'M', 'L', 'XL'] as const;
+export type FrameLabelSize = (typeof FRAME_LABEL_SIZES)[number];
+
+export const FRAME_LABEL_FONTS = ['mono', 'display'] as const;
+export type FrameLabelFont = (typeof FRAME_LABEL_FONTS)[number];
+
+export const PNG_SIZES = ['1K', '2K', '4K'] as const;
+export type PngSize = (typeof PNG_SIZES)[number];
+
+/* Frame-label length cap — the decoder rejects anything longer and the
+ * generator's input caps typing at the same number. */
+export const MAX_FRAME_LABEL_LEN = 64;
 
 /* Pixel width for each PngSize bucket. 4K sits right at the iOS Safari
  * canvas-area limit (16,777,216 px) — framed 4K exceeds it, so the
@@ -67,10 +95,38 @@ export type StylingState = {
 	pngSize: PngSize;
 };
 
+/* The generator's starting state. A field missing from a decoded
+ * permalink means "keep the receiver's default", and buildWire strips
+ * fields that equal these defaults — so both sides must read the same
+ * object, or changing a UI default would silently re-style every
+ * shared link that relied on the old one. */
+export const DEFAULT_STYLING: Readonly<StylingState> = {
+	fg: '#1A1815',
+	bg: '#F2EBDD',
+	dot: 'rounded',
+	ecc: 'auto',
+	logoSize: 0.25,
+	logoDataUrl: null,
+	gradientEnabled: false,
+	gradientFrom: '#1A1815',
+	gradientTo: '#C53A1F',
+	gradientAngle: 45,
+	eyeFrame: 'square',
+	eyeBall: 'square',
+	frameEnabled: false,
+	frameLabel: 'SCAN ME',
+	frameLabelSize: 'M',
+	frameLabelFont: 'mono',
+	pngSize: '1K'
+};
+
 export type PermalinkState<T extends ContentType = ContentType> = StylingState & {
 	type: T;
 	content: ContentMap[T];
 };
+
+/* `s=` names the fragment field; `v1.` versions the wire shape. */
+const SHARE_PREFIX = 's=v1.';
 
 const MAX_URL_LEN = 6000;
 
@@ -124,29 +180,13 @@ if (MAX_PAYLOAD_LEN <= MAX_URL_LEN) {
 	);
 }
 
-const DOT_TYPES: ReadonlySet<DotType> = new Set([
-	'square',
-	'rounded',
-	'dots',
-	'classy',
-	'classy-rounded',
-	'extra-rounded'
-]);
-
-const ECC_VALUES: ReadonlySet<ECC> = new Set(['auto', 'L', 'M', 'Q', 'H']);
-
-const EYE_FRAME_VALUES: ReadonlySet<EyeFrameType> = new Set([
-	'square',
-	'extra-rounded',
-	'dot',
-	'rounded'
-]);
-
-const EYE_BALL_VALUES: ReadonlySet<EyeBallType> = new Set(['square', 'dot', 'rounded']);
-
-const FRAME_LABEL_SIZE_VALUES: ReadonlySet<FrameLabelSize> = new Set(['S', 'M', 'L', 'XL']);
-const FRAME_LABEL_FONT_VALUES: ReadonlySet<FrameLabelFont> = new Set(['mono', 'display']);
-const PNG_SIZE_VALUES: ReadonlySet<PngSize> = new Set(['1K', '2K', '4K']);
+const DOT_TYPE_SET: ReadonlySet<DotType> = new Set(DOT_TYPES);
+const ECC_SET: ReadonlySet<ECC> = new Set(ECC_OPTIONS);
+const EYE_FRAME_SET: ReadonlySet<EyeFrameType> = new Set(EYE_FRAME_TYPES);
+const EYE_BALL_SET: ReadonlySet<EyeBallType> = new Set(EYE_BALL_TYPES);
+const FRAME_LABEL_SIZE_SET: ReadonlySet<FrameLabelSize> = new Set(FRAME_LABEL_SIZES);
+const FRAME_LABEL_FONT_SET: ReadonlySet<FrameLabelFont> = new Set(FRAME_LABEL_FONTS);
+const PNG_SIZE_SET: ReadonlySet<PngSize> = new Set(PNG_SIZES);
 
 /* String-literal-union members of content payloads. validateContent's
  * scalar `typeof === typeof default` gate accepts any string for a
@@ -268,19 +308,15 @@ function buildWire<T extends ContentType>(state: PermalinkState<T>, includeLogo:
 	if (state.frameEnabled) {
 		w.fr = true;
 		w.fl = state.frameLabel;
-		/* Skip default 'M' size + 'mono' font on the wire so plain
+		/* Skip the default size + font on the wire so plain
 		 * frame-label users get the shortest possible permalink. */
-		if (state.frameLabelSize !== 'M') w.fls = state.frameLabelSize;
-		if (state.frameLabelFont !== 'mono') w.flf = state.frameLabelFont;
+		if (state.frameLabelSize !== DEFAULT_STYLING.frameLabelSize) w.fls = state.frameLabelSize;
+		if (state.frameLabelFont !== DEFAULT_STYLING.frameLabelFont) w.flf = state.frameLabelFont;
 	}
-	/* Default '1K' stripped on the wire to keep permalinks short
+	/* Default PNG size stripped on the wire to keep permalinks short
 	 * (mirrors the fls / flf default-stripping pattern). */
-	if (state.pngSize !== '1K') w.pnp = state.pngSize;
+	if (state.pngSize !== DEFAULT_STYLING.pngSize) w.pnp = state.pngSize;
 	return w;
-}
-
-function encodeWire(w: WireV1): string {
-	return `v1.${toBase64Url(JSON.stringify(w))}`;
 }
 
 export type EncodeResult = {
@@ -294,14 +330,27 @@ export function encodePermalink<T extends ContentType>(
 	baseUrl: string
 ): EncodeResult {
 	const stripped = baseUrl.split('#')[0];
-	const withLogo = `${stripped}#s=${encodeWire(buildWire(state, true))}`;
+	const build = (includeLogo: boolean) => {
+		const hash = `${SHARE_PREFIX}${toBase64Url(JSON.stringify(buildWire(state, includeLogo)))}`;
+		return { hash, url: `${stripped}#${hash}` };
+	};
+	const withoutLogo = () => ({ ...build(false), logoDropped: !!state.logoDataUrl });
 
-	if (state.logoDataUrl && withLogo.length > MAX_URL_LEN) {
-		const withoutLogo = `${stripped}#s=${encodeWire(buildWire(state, false))}`;
-		return { hash: withoutLogo.split('#')[1], url: withoutLogo, logoDropped: true };
-	}
+	if (!state.logoDataUrl) return withoutLogo();
+	/* The encoded URL is longer than the logo it carries (base64 of
+	 * JSON only grows), so a logo already past the cap can skip the
+	 * with-logo encode — for a multi-MB upload that encode costs
+	 * hundreds of ms of main thread on every autosave. */
+	if (state.logoDataUrl.length > MAX_URL_LEN) return withoutLogo();
+	const withLogo = build(true);
+	return withLogo.url.length > MAX_URL_LEN ? withoutLogo() : { ...withLogo, logoDropped: false };
+}
 
-	return { hash: withLogo.split('#')[1], url: withLogo, logoDropped: false };
+/* True when a URL hash is shaped like a share link, whether or not it
+ * decodes. The generator uses this to tell a broken share link (warn)
+ * from an ordinary in-page anchor like `#p-01` (ignore). */
+export function isShareHash(hash: string): boolean {
+	return (hash.startsWith('#') ? hash.slice(1) : hash).startsWith(SHARE_PREFIX);
 }
 
 export type DecodedPermalink = Partial<StylingState> & {
@@ -317,7 +366,10 @@ export type DecodedPermalink = Partial<StylingState> & {
  * a permalink with `{phone: {number: 12345}}` (number, not string)
  * would otherwise pass through and crash `encodePhone.number.replace()`
  * downstream inside the debounced render effect. */
-function validateContent<T extends ContentType>(type: T, c: unknown): Partial<ContentMap[T]> | null {
+function validateContent<T extends ContentType>(
+	type: T,
+	c: unknown
+): Partial<ContentMap[T]> | null {
 	if (!c || typeof c !== 'object') return null;
 	const obj = c as Record<string, unknown>;
 	const defaults = DEFAULT_CONTENT[type] as Record<string, unknown>;
@@ -341,14 +393,13 @@ function validateContent<T extends ContentType>(type: T, c: unknown): Partial<Co
 }
 
 export function decodePermalink(hash: string): DecodedPermalink | null {
-	const raw = hash.startsWith('#') ? hash.slice(1) : hash;
-	const m = raw.match(/^s=v1\.(.+)$/);
-	if (!m) return null;
-	if (m[1].length > MAX_PAYLOAD_LEN) return null;
+	if (!isShareHash(hash)) return null;
+	const payload = (hash.startsWith('#') ? hash.slice(1) : hash).slice(SHARE_PREFIX.length);
+	if (!payload || payload.length > MAX_PAYLOAD_LEN) return null;
 
 	let parsed: unknown;
 	try {
-		parsed = JSON.parse(fromBase64Url(m[1]));
+		parsed = JSON.parse(fromBase64Url(payload));
 	} catch {
 		return null;
 	}
@@ -374,8 +425,8 @@ export function decodePermalink(hash: string): DecodedPermalink | null {
 	}
 	if (isHexColor(w.f)) out.fg = w.f;
 	if (isHexColor(w.b)) out.bg = w.b;
-	if (isOneOf(w.d, DOT_TYPES)) out.dot = w.d;
-	if (isOneOf(w.e, ECC_VALUES)) out.ecc = w.e;
+	if (isOneOf(w.d, DOT_TYPE_SET)) out.dot = w.d;
+	if (isOneOf(w.e, ECC_SET)) out.ecc = w.e;
 	if (isNumberInRange(w.ls, 0.05, 0.5)) out.logoSize = w.ls;
 	if (
 		typeof w.l === 'string' &&
@@ -384,8 +435,8 @@ export function decodePermalink(hash: string): DecodedPermalink | null {
 	) {
 		out.logoDataUrl = w.l;
 	}
-	if (isOneOf(w.ef, EYE_FRAME_VALUES)) out.eyeFrame = w.ef;
-	if (isOneOf(w.eb, EYE_BALL_VALUES)) out.eyeBall = w.eb;
+	if (isOneOf(w.ef, EYE_FRAME_SET)) out.eyeFrame = w.ef;
+	if (isOneOf(w.eb, EYE_BALL_SET)) out.eyeBall = w.eb;
 	if (w.g === true) {
 		out.gradientEnabled = true;
 		if (isHexColor(w.gf)) out.gradientFrom = w.gf;
@@ -394,11 +445,11 @@ export function decodePermalink(hash: string): DecodedPermalink | null {
 	}
 	if (w.fr === true) {
 		out.frameEnabled = true;
-		if (isStringMaxLen(w.fl, 64)) out.frameLabel = w.fl;
-		if (isOneOf(w.fls, FRAME_LABEL_SIZE_VALUES)) out.frameLabelSize = w.fls;
-		if (isOneOf(w.flf, FRAME_LABEL_FONT_VALUES)) out.frameLabelFont = w.flf;
+		if (isStringMaxLen(w.fl, MAX_FRAME_LABEL_LEN)) out.frameLabel = w.fl;
+		if (isOneOf(w.fls, FRAME_LABEL_SIZE_SET)) out.frameLabelSize = w.fls;
+		if (isOneOf(w.flf, FRAME_LABEL_FONT_SET)) out.frameLabelFont = w.flf;
 	}
-	if (isOneOf(w.pnp, PNG_SIZE_VALUES)) out.pngSize = w.pnp;
+	if (isOneOf(w.pnp, PNG_SIZE_SET)) out.pngSize = w.pnp;
 
 	return out;
 }

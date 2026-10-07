@@ -109,7 +109,7 @@ export function encodeEmail(c: EmailContent): string {
  * who need single-line guarantees should pre-strip at the UI. */
 export function encodeSms(c: SmsContent): string {
 	const num = c.number.replace(/\s/g, '');
-	return c.body ? `SMSTO:${num}:${c.body}` : `SMSTO:${num}:`;
+	return `SMSTO:${num}:${c.body}`;
 }
 
 export function encodePhone(c: PhoneContent): string {

@@ -4,9 +4,19 @@
 	import {
 		decodePermalink,
 		decodeSession,
+		DEFAULT_STYLING,
+		DOT_TYPES,
+		ECC_OPTIONS,
 		encodePermalink,
 		encodeSession,
+		EYE_BALL_TYPES,
+		EYE_FRAME_TYPES,
+		FRAME_LABEL_FONTS,
+		FRAME_LABEL_SIZES,
+		isShareHash,
+		MAX_FRAME_LABEL_LEN,
 		PNG_SIZE_PX,
+		PNG_SIZES,
 		type DecodedPermalink,
 		type DotType,
 		type ECC,
@@ -17,42 +27,42 @@
 		type PngSize
 	} from '$lib/permalink';
 	import { encode } from '$lib/encoders';
-	import { capacityVersionFor } from '$lib/qr-capacity';
+	import { capacityVersionFor, type EccLevel } from '$lib/qr-capacity';
 	import ColorPicker from '$lib/ColorPicker.svelte';
 	import { contrastBand, contrastRatio, effectiveFg, isInverted } from '$lib/contrast';
-	import {
-		DEFAULT_CONTENT,
-		TYPE_LABELS,
-		type ContentMap,
-		type ContentType
-	} from '$lib/types';
+	import { DEFAULT_CONTENT, TYPE_LABELS, type ContentMap, type ContentType } from '$lib/types';
 
 	/* The content type is fixed by the route (prop). Cross-type
 	 * navigation is anchor-link nav in the layout, not in-page tabs. */
 	let { type = 'url' as ContentType }: { type?: ContentType } = $props();
 	let content = $state<ContentMap>(structuredClone(DEFAULT_CONTENT));
-	let fgColor = $state('#1A1815');
-	let bgColor = $state('#F2EBDD');
-	let fgInput = $state('#1A1815');
-	let bgInput = $state('#F2EBDD');
-	let dotType = $state<DotType>('rounded');
-	let errorCorrection = $state<ECC>('auto');
-	let logoDataUrl = $state<string | null>(null);
+	let fgColor = $state(DEFAULT_STYLING.fg);
+	let bgColor = $state(DEFAULT_STYLING.bg);
+	let dotType = $state<DotType>(DEFAULT_STYLING.dot);
+	let errorCorrection = $state<ECC>(DEFAULT_STYLING.ecc);
+	let logoDataUrl = $state<string | null>(DEFAULT_STYLING.logoDataUrl);
 	let logoName = $state<string | null>(null);
-	let logoSize = $state(0.25);
-	let gradientEnabled = $state(false);
-	let gradientFrom = $state('#1A1815');
-	let gradientTo = $state('#C53A1F');
-	let gradientFromInput = $state('#1A1815');
-	let gradientToInput = $state('#C53A1F');
-	let gradientAngle = $state(45);
-	let eyeFrame = $state<EyeFrameType>('square');
-	let eyeBall = $state<EyeBallType>('square');
-	let frameEnabled = $state(false);
-	let frameLabel = $state('SCAN ME');
-	let frameLabelSize = $state<FrameLabelSize>('M');
-	let frameLabelFont = $state<FrameLabelFont>('mono');
-	let pngSize = $state<PngSize>('1K');
+	let logoSize = $state(DEFAULT_STYLING.logoSize);
+	let gradientEnabled = $state(DEFAULT_STYLING.gradientEnabled);
+	let gradientFrom = $state(DEFAULT_STYLING.gradientFrom);
+	let gradientTo = $state(DEFAULT_STYLING.gradientTo);
+	let gradientAngle = $state(DEFAULT_STYLING.gradientAngle);
+	let eyeFrame = $state<EyeFrameType>(DEFAULT_STYLING.eyeFrame);
+	let eyeBall = $state<EyeBallType>(DEFAULT_STYLING.eyeBall);
+	let frameEnabled = $state(DEFAULT_STYLING.frameEnabled);
+	let frameLabel = $state(DEFAULT_STYLING.frameLabel);
+	let frameLabelSize = $state<FrameLabelSize>(DEFAULT_STYLING.frameLabelSize);
+	let frameLabelFont = $state<FrameLabelFont>(DEFAULT_STYLING.frameLabelFont);
+	let pngSize = $state<PngSize>(DEFAULT_STYLING.pngSize);
+	/* Hex text-input drafts. Writable deriveds: a picker change re-derives
+	 * the draft from the committed color, while typing overrides it
+	 * locally until blur commits — so typed-in-progress text never
+	 * reaches qr-code-styling, and the picker's output never fights a
+	 * half-typed value. */
+	let fgInput = $derived(fgColor);
+	let bgInput = $derived(bgColor);
+	let gradientFromInput = $derived(gradientFrom);
+	let gradientToInput = $derived(gradientTo);
 	let exportFormat = $state<'png' | 'svg' | 'pdf'>('png');
 	let exporting = $state(false);
 	let engineError = $state<string | null>(null);
@@ -64,7 +74,6 @@
 	 * false-positive. Auto-clears so a transient mis-share doesn't
 	 * haunt the page after the user has moved on. */
 	let decodeError = $state<string | null>(null);
-	let decodeErrorTimer: ReturnType<typeof setTimeout> | null = null;
 	/* Latches once the autosave write hits a non-quota exception so we
 	 * don't smash localStorage on every subsequent keystroke after the
 	 * subsystem proves degraded. Quota errors don't latch — those are
@@ -74,29 +83,42 @@
 	let copyState = $state<'idle' | 'copied' | 'dropped' | 'manual'>('idle');
 	let copyTimer: ReturnType<typeof setTimeout> | null = null;
 
-	const dotOptions: { value: DotType; label: string }[] = [
-		{ value: 'square', label: 'SQUARE' },
-		{ value: 'rounded', label: 'ROUNDED' },
-		{ value: 'dots', label: 'DOTS' },
-		{ value: 'classy', label: 'CLASSY' },
-		{ value: 'classy-rounded', label: 'CLASSY+' },
-		{ value: 'extra-rounded', label: 'EXTRA' }
-	];
-
-	const eyeFrameOptions: { value: EyeFrameType; label: string }[] = [
-		{ value: 'square', label: 'SQUARE' },
-		{ value: 'rounded', label: 'ROUNDED' },
-		{ value: 'extra-rounded', label: 'EXTRA' },
-		{ value: 'dot', label: 'DOT' }
-	];
-
-	const eyeBallOptions: { value: EyeBallType; label: string }[] = [
-		{ value: 'square', label: 'SQUARE' },
-		{ value: 'rounded', label: 'ROUNDED' },
-		{ value: 'dot', label: 'DOT' }
-	];
-
-	const eccOptions: ECC[] = ['auto', 'L', 'M', 'Q', 'H'];
+	/* Button labels per option. The value lists live in permalink.ts;
+	 * a Record keyed by the derived type makes TS flag a value added
+	 * there without a label here. */
+	const DOT_LABELS: Record<DotType, string> = {
+		square: 'SQUARE',
+		rounded: 'ROUNDED',
+		dots: 'DOTS',
+		classy: 'CLASSY',
+		'classy-rounded': 'CLASSY+',
+		'extra-rounded': 'EXTRA'
+	};
+	const EYE_FRAME_LABELS: Record<EyeFrameType, string> = {
+		square: 'SQUARE',
+		rounded: 'ROUNDED',
+		'extra-rounded': 'EXTRA',
+		dot: 'DOT'
+	};
+	const EYE_BALL_LABELS: Record<EyeBallType, string> = {
+		square: 'SQUARE',
+		rounded: 'ROUNDED',
+		dot: 'DOT'
+	};
+	const FRAME_LABEL_FONT_LABELS: Record<FrameLabelFont, string> = {
+		mono: 'MONO',
+		display: 'DISPLAY'
+	};
+	const dotOptions = DOT_TYPES.map((value) => ({ value, label: DOT_LABELS[value] }));
+	const eyeFrameOptions = EYE_FRAME_TYPES.map((value) => ({
+		value,
+		label: EYE_FRAME_LABELS[value]
+	}));
+	const eyeBallOptions = EYE_BALL_TYPES.map((value) => ({ value, label: EYE_BALL_LABELS[value] }));
+	const frameLabelFontOptions = FRAME_LABEL_FONTS.map((value) => ({
+		value,
+		label: FRAME_LABEL_FONT_LABELS[value]
+	}));
 
 	let qrContainer: HTMLDivElement;
 	let qrInstance: InstanceType<typeof QRCodeStyling> | null = null;
@@ -137,11 +159,7 @@
 	 * module count, more recovery margin). Manual L/M/Q/H pass through
 	 * verbatim. One source of truth for both buildOpts and the
 	 * resolvedECC display $derived below. */
-	function resolveEcc(
-		level: ECC,
-		hasLogo: boolean,
-		encodedBytes: number
-	): 'L' | 'M' | 'Q' | 'H' {
+	function resolveEcc(level: ECC, hasLogo: boolean, encodedBytes: number): EccLevel {
 		if (level !== 'auto') return level;
 		if (hasLogo) return 'H';
 		const versionAtM = capacityVersionFor(encodedBytes, 'M');
@@ -151,21 +169,27 @@
 		return 'M';
 	}
 
-	function buildOpts() {
-		const encoded = encode(type, content[type]);
-		const encodedBytes = new TextEncoder().encode(encoded).length;
-		const ecc = resolveEcc(errorCorrection, logoDataUrl !== null, encodedBytes);
+	/* Derived once so a keystroke encodes the payload once, shared by
+	 * the render (buildOpts) and the ECC readout — and an edit that
+	 * leaves the payload unchanged doesn't re-render the preview. */
+	let encoded = $derived(encode(type, content[type]));
+	let encodedBytes = $derived(new TextEncoder().encode(encoded).length);
+	let resolvedECC = $derived(resolveEcc(errorCorrection, logoDataUrl !== null, encodedBytes));
+
+	/* The preview renders 480 px SVG; each export passes its own size and
+	 * renderer, and the quiet-zone margin scales with the size. */
+	function buildOpts(size = 480, kind: 'svg' | 'canvas' = 'svg') {
 		const gradient = buildGradient();
 		return {
-			width: 480,
-			height: 480,
-			type: 'svg' as const,
+			width: size,
+			height: size,
+			type: kind,
 			// qr-code-styling throws on empty `data`; fall back to the brand URL
 			// so an empty input renders a valid placeholder QR rather than crashing.
 			data: encoded.trim() || 'https://kemek.com',
 			image: logoDataUrl ?? undefined,
-			margin: qrMargin(480),
-			qrOptions: { errorCorrectionLevel: ecc },
+			margin: qrMargin(size),
+			qrOptions: { errorCorrectionLevel: resolvedECC },
 			dotsOptions: { color: fgColor, type: dotType, gradient },
 			backgroundOptions: { color: bgColor },
 			cornersSquareOptions: { color: fgColor, type: eyeFrame, gradient },
@@ -249,6 +273,11 @@
 
 	let restored = false;
 
+	/* User-facing fault text: `<what failed>: <why>` when the thrown
+	 * value carries a message, `<what failed>.` when it doesn't. */
+	const errorText = (what: string, err: unknown) =>
+		err instanceof Error ? `${what}: ${err.message}` : `${what}.`;
+
 	onMount(async () => {
 		/* Share-shaped hash takes priority over session storage so a
 		 * shared link always overrides what's saved locally — the
@@ -259,33 +288,28 @@
 		 * the localStorage fallback. Earlier versions gated on any
 		 * non-empty hash, which produced a false-positive "LINK NOT
 		 * ON FILE" toast on direct navigation to an anchor target. */
-		if (typeof window !== 'undefined') {
-			const isShareHash = window.location.hash.startsWith('#s=v1.');
-			if (isShareHash) {
-				const decoded = decodePermalink(window.location.hash);
-				if (decoded) {
-					applyDecoded(decoded);
-				} else {
-					/* The URL carried a share-shaped hash (`#s=v1.…`) that
-					 * the decoder rejected: length cap, malformed base64,
-					 * validation drops, array-root JSON, etc. Surface a
-					 * soft-warn so the recipient knows the design they
-					 * were expecting didn't restore — auto-clears after
-					 * 8 s so a transient mis-share doesn't haunt the
-					 * page after they've moved on. */
-					decodeError =
-						"This share link couldn't be decoded — showing defaults instead.";
-					if (decodeErrorTimer) clearTimeout(decodeErrorTimer);
-					decodeErrorTimer = setTimeout(() => (decodeError = null), 8000);
-				}
+		if (isShareHash(window.location.hash)) {
+			const decoded = decodePermalink(window.location.hash);
+			if (decoded) {
+				applyDecoded(decoded);
 			} else {
-				try {
-					const raw = localStorage.getItem(sessionKey);
-					if (raw) applyDecoded(decodeSession(raw));
-				} catch {
-					/* localStorage can throw in private mode or with
-					 * quota exhaustion — silent fallback to defaults. */
-				}
+				/* The URL carried a share-shaped hash (`#s=v1.…`) that
+				 * the decoder rejected: length cap, malformed base64,
+				 * validation drops, array-root JSON, etc. Surface a
+				 * soft-warn so the recipient knows the design they
+				 * were expecting didn't restore — auto-clears after
+				 * 8 s so a transient mis-share doesn't haunt the
+				 * page after they've moved on. */
+				decodeError = "This share link couldn't be decoded — showing defaults instead.";
+				setTimeout(() => (decodeError = null), 8000);
+			}
+		} else {
+			try {
+				const raw = localStorage.getItem(sessionKey);
+				if (raw) applyDecoded(decodeSession(raw));
+			} catch {
+				/* localStorage can throw in private mode or with
+				 * quota exhaustion — silent fallback to defaults. */
 			}
 		}
 		restored = true;
@@ -296,10 +320,7 @@
 			qrInstance = new QRCodeStylingClass(buildOpts());
 			qrInstance.append(qrContainer);
 		} catch (err) {
-			engineError =
-				err instanceof Error
-					? `QR engine failed to load: ${err.message}`
-					: 'QR engine failed to load.';
+			engineError = errorText('QR engine failed to load', err);
 		}
 	});
 
@@ -307,12 +328,10 @@
 	 * editing, scoped to this route's content type. Reload restores
 	 * the session unless the user landed via a hash permalink. */
 	const SAVE_DEBOUNCE_MS = 1000;
-	let saveTimer: ReturnType<typeof setTimeout> | null = null;
 	$effect(() => {
 		const snapshot = currentSnapshot();
-		if (!restored || typeof window === 'undefined') return;
-		if (saveTimer) clearTimeout(saveTimer);
-		saveTimer = setTimeout(() => {
+		if (!restored) return;
+		const saveTimer = setTimeout(() => {
 			if (sessionSaveBroken) return;
 			try {
 				localStorage.setItem(sessionKey, encodeSession(snapshot));
@@ -329,16 +348,11 @@
 					(err.name === 'QuotaExceededError' || err.name === 'NS_ERROR_DOM_QUOTA_REACHED');
 				if (!isQuota) {
 					sessionSaveBroken = true;
-					engineError =
-						err instanceof Error
-							? `Session autosave broken: ${err.message}`
-							: 'Session autosave broken.';
+					engineError = errorText('Session autosave broken', err);
 				}
 			}
 		}, SAVE_DEBOUNCE_MS);
-		return () => {
-			if (saveTimer) clearTimeout(saveTimer);
-		};
+		return () => clearTimeout(saveTimer);
 	});
 
 	/* Debounce QR re-renders so a typing burst coalesces into one update.
@@ -352,12 +366,10 @@
 	 * would never re-trigger it — manifesting as a dead preview while
 	 * downloads (which read buildOpts() at click time) still work. */
 	const RENDER_DEBOUNCE_MS = 80;
-	let renderTimer: ReturnType<typeof setTimeout> | null = null;
 	$effect(() => {
 		const opts = buildOpts();
 		if (!qrInstance) return;
-		if (renderTimer) clearTimeout(renderTimer);
-		renderTimer = setTimeout(() => {
+		const renderTimer = setTimeout(() => {
 			try {
 				/* Clear a prior transient error before re-attempting —
 				 * without this, a NaN-angle slider drag or corrupt-permalink
@@ -373,15 +385,10 @@
 				 * vanishes to window.onerror, and the preview blanks
 				 * silently. Surface via the same engineError channel
 				 * the onMount path uses. */
-				engineError =
-					err instanceof Error
-						? `QR render failed: ${err.message}`
-						: 'QR render failed.';
+				engineError = errorText('QR render failed', err);
 			}
 		}, RENDER_DEBOUNCE_MS);
-		return () => {
-			if (renderTimer) clearTimeout(renderTimer);
-		};
+		return () => clearTimeout(renderTimer);
 	});
 
 	/* 4 MB is generous for QR logos (typical brand marks are tens of KB)
@@ -489,7 +496,6 @@
 	}
 
 	async function copyPermalink() {
-		if (typeof window === 'undefined') return;
 		const result = encodePermalink(currentSnapshot(), window.location.href);
 		const ok = await clipboardCopy(result.url);
 		if (ok) {
@@ -516,13 +522,14 @@
 
 	/* Frame-label font size as a fraction of the QR's own width
 	 * (NOT the framed total). Single source of truth driving three
-	 * surfaces: canvas PNG export (frameLabelMetrics below), SVG/PDF
-	 * export (computeFrameLayout → composeFramedSvg), and the live
-	 * preview CSS (.qr-frame-label-{S,M,L} read these via inline
-	 * custom properties set on .qr-frame). XL is dynamic — measured
-	 * via canvas measureText to fill 88 % of frame width regardless
-	 * of label length — and uses XL_SEED_RATIO only as its initial
-	 * estimate before the measureText fit. */
+	 * surfaces: the PNG export and the PDF that re-embeds it
+	 * (computeFrameLayout → composeFramedPng), the SVG export
+	 * (computeFrameLayout → composeFramedSvg), and the live preview
+	 * CSS (.qr-frame-label-{S,M,L} read these via inline custom
+	 * properties set on .qr-frame). XL is dynamic — measured via
+	 * canvas measureText to fill 88 % of frame width regardless of
+	 * label length — and falls back to XL_SEED_RATIO only when it
+	 * can't measure (no 2D context, or an empty label). */
 	const FRAME_LABEL_RATIOS: Record<Exclude<FrameLabelSize, 'XL'>, number> = {
 		S: 0.045,
 		M: 0.06,
@@ -532,10 +539,10 @@
 
 	function frameLabelMetrics(
 		qrSize: number,
+		totalW: number,
 		label: string,
 		size: FrameLabelSize
 	): { fontPx: number; labelBand: number } {
-		const totalW = qrSize + Math.round(qrSize * 0.05) * 2;
 		if (size === 'XL') {
 			let fontPx = Math.round(qrSize * FRAME_LABEL_XL_SEED_RATIO);
 			const tempCanvas = document.createElement('canvas');
@@ -566,10 +573,24 @@
 	function computeFrameLayout(qrSize: number, label: string) {
 		const padding = Math.round(qrSize * 0.05);
 		const borderWidth = Math.max(2, Math.round(qrSize * 0.008));
-		const { fontPx, labelBand: labelHeight } = frameLabelMetrics(qrSize, label, frameLabelSize);
 		const totalW = qrSize + padding * 2;
+		const { fontPx, labelBand: labelHeight } = frameLabelMetrics(
+			qrSize,
+			totalW,
+			label,
+			frameLabelSize
+		);
 		const totalH = qrSize + padding * 2 + labelHeight;
-		return { padding, borderWidth, half: borderWidth / 2, fontPx, labelHeight, totalW, totalH };
+		const labelY = qrSize + padding * 2 + labelHeight / 2;
+		return {
+			padding,
+			borderWidth,
+			half: borderWidth / 2,
+			fontPx,
+			labelY,
+			totalW,
+			totalH
+		};
 	}
 
 	/* Compose the QR PNG inside an outer frame with a label band. We
@@ -579,7 +600,7 @@
 	 * the download. */
 	async function composeFramedPng(qrBlob: Blob, qrSize: number, label: string): Promise<Blob> {
 		const img = await blobToImage(qrBlob);
-		const { padding, borderWidth, half, fontPx, labelHeight, totalW, totalH } = computeFrameLayout(
+		const { padding, borderWidth, half, fontPx, labelY, totalW, totalH } = computeFrameLayout(
 			qrSize,
 			label
 		);
@@ -590,7 +611,7 @@
 		 * whatever fallback the OS provides. After this await, PNG
 		 * (and the PDF that re-embeds it) match the on-screen
 		 * preview. */
-		const primaryFamily = frameLabelFont === 'display' ? '"Fraunces Variable"' : '"JetBrains Mono"';
+		const primaryFamily = FRAME_LABEL_FONT_FAMILY[frameLabelFont].split(',')[0];
 		try {
 			await document.fonts.load(`500 ${fontPx}px ${primaryFamily}`);
 		} catch {
@@ -617,7 +638,6 @@
 		ctx.font = `500 ${fontPx}px ${FRAME_LABEL_FONT_FAMILY[frameLabelFont]}`;
 		ctx.textAlign = 'center';
 		ctx.textBaseline = 'middle';
-		const labelY = qrSize + padding * 2 + labelHeight / 2;
 		ctx.fillText(label, totalW / 2, labelY);
 
 		return new Promise((resolve, reject) => {
@@ -666,13 +686,7 @@
 	async function downloadPNG() {
 		if (!QRCodeStylingClass) return;
 		const exportSize = PNG_SIZE_PX[pngSize];
-		const exporter = new QRCodeStylingClass({
-			...buildOpts(),
-			width: exportSize,
-			height: exportSize,
-			margin: qrMargin(exportSize),
-			type: 'canvas'
-		});
+		const exporter = new QRCodeStylingClass(buildOpts(exportSize, 'canvas'));
 		if (frameEnabled) {
 			const blob = (await exporter.getRawData('png')) as Blob | null;
 			if (!blob) {
@@ -695,7 +709,7 @@
 	 * <svg> element inside the outer frame — browsers and most SVG
 	 * viewers render nested <svg> correctly. */
 	function composeFramedSvg(qrSvgText: string, qrSize: number, label: string): string {
-		const { padding, borderWidth, half, fontPx, labelHeight, totalW, totalH } = computeFrameLayout(
+		const { padding, borderWidth, half, fontPx, labelY, totalW, totalH } = computeFrameLayout(
 			qrSize,
 			label
 		);
@@ -723,20 +737,14 @@
   <rect x="0" y="0" width="${totalW}" height="${totalH}" fill="${bgColor}"/>
   <rect x="${half}" y="${half}" width="${totalW - borderWidth}" height="${totalH - borderWidth}" fill="none" stroke="${fgColor}" stroke-width="${borderWidth}"/>
   ${innerSerialized}
-  <text x="${totalW / 2}" y="${qrSize + padding * 2 + labelHeight / 2}" text-anchor="middle" dominant-baseline="middle" font-family='${FRAME_LABEL_FONT_FAMILY[frameLabelFont]}' font-weight="500" font-size="${fontPx}" fill="${fgColor}">${escapeXml(label)}</text>
+  <text x="${totalW / 2}" y="${labelY}" text-anchor="middle" dominant-baseline="middle" font-family='${FRAME_LABEL_FONT_FAMILY[frameLabelFont]}' font-weight="500" font-size="${fontPx}" fill="${fgColor}">${escapeXml(label)}</text>
 </svg>`;
 	}
 
 	async function downloadSVG() {
 		if (!QRCodeStylingClass) return;
 		const exportSize = 1024;
-		const exporter = new QRCodeStylingClass({
-			...buildOpts(),
-			width: exportSize,
-			height: exportSize,
-			margin: qrMargin(exportSize),
-			type: 'svg'
-		});
+		const exporter = new QRCodeStylingClass(buildOpts(exportSize, 'svg'));
 		const blob = (await exporter.getRawData('svg')) as Blob | null;
 		if (!blob) throw new QrExportError('SVG rasterization returned no data.');
 		const text = await blob.text();
@@ -755,57 +763,43 @@
 	 * font, different metrics) outweighed the benefit. */
 	async function downloadPDF() {
 		if (!QRCodeStylingClass) return;
+		/* Start fetching pdf-lib now so its chunk download overlaps the
+		 * 2048 px rasterization; the no-op catch keeps a failed fetch
+		 * from surfacing as an unhandled rejection if rasterizing
+		 * throws first. */
+		const pdfLib = import('pdf-lib');
+		pdfLib.catch(() => {});
 		const exportSize = 2048;
-		const exporter = new QRCodeStylingClass({
-			...buildOpts(),
-			width: exportSize,
-			height: exportSize,
-			margin: qrMargin(exportSize),
-			type: 'canvas'
-		});
+		const exporter = new QRCodeStylingClass(buildOpts(exportSize, 'canvas'));
 		const qrBlob = (await exporter.getRawData('png')) as Blob | null;
 		if (!qrBlob) {
 			throw new QrExportError(
 				'PDF QR rasterization exceeded the canvas size limit on this device. Try a different format.'
 			);
 		}
+		const png = frameEnabled ? await composeFramedPng(qrBlob, exportSize, frameLabel) : qrBlob;
 
-		const { PDFDocument } = await import('pdf-lib');
+		const { PDFDocument } = await pdfLib;
 		const pdf = await PDFDocument.create();
 		// A4 portrait in points (1 pt = 1/72 inch).
 		const pageW = 595;
 		const pageH = 842;
 		const page = pdf.addPage([pageW, pageH]);
 
-		if (frameEnabled) {
-			const framedBlob = await composeFramedPng(qrBlob, exportSize, frameLabel);
-			const framedBuffer = await framedBlob.arrayBuffer();
-			const framedEmbed = await pdf.embedPng(framedBuffer);
-			/* The framed PNG is wider-than-tall when the label band
-			 * grows (XL labels). Scale the longer dimension to fit
-			 * within ~480 pt and keep the same aspect ratio. */
-			const maxPt = 480;
-			const { width: pxW, height: pxH } = framedEmbed.size();
-			const scale = maxPt / Math.max(pxW, pxH);
-			const drawW = pxW * scale;
-			const drawH = pxH * scale;
-			page.drawImage(framedEmbed, {
-				x: (pageW - drawW) / 2,
-				y: (pageH - drawH) / 2,
-				width: drawW,
-				height: drawH
-			});
-		} else {
-			const qrBuffer = await qrBlob.arrayBuffer();
-			const qrEmbed = await pdf.embedPng(qrBuffer);
-			const qrPt = 400;
-			page.drawImage(qrEmbed, {
-				x: (pageW - qrPt) / 2,
-				y: (pageH - qrPt) / 2,
-				width: qrPt,
-				height: qrPt
-			});
-		}
+		/* A framed PNG is taller than wide (the label band sits below
+		 * the square QR), so scale its longer side to 480 pt; the bare
+		 * square QR gets 400 pt. Aspect ratio is kept either way. */
+		const embed = await pdf.embedPng(await png.arrayBuffer());
+		const { width: pxW, height: pxH } = embed.size();
+		const scale = (frameEnabled ? 480 : 400) / Math.max(pxW, pxH);
+		const drawW = pxW * scale;
+		const drawH = pxH * scale;
+		page.drawImage(embed, {
+			x: (pageW - drawW) / 2,
+			y: (pageH - drawH) / 2,
+			width: drawW,
+			height: drawH
+		});
 
 		const pdfBytes = await pdf.save();
 		// pdf-lib gives Uint8Array; copy into a tight ArrayBuffer for Blob
@@ -834,23 +828,15 @@
 			 * prefix it so it's distinguishable in DevTools. */
 			if (err instanceof QrExportError) {
 				engineError = err.message;
-			} else if (err instanceof Error) {
-				engineError = `Download failed: ${err.message}`;
 			} else {
-				engineError = 'Download failed.';
+				engineError = errorText('Download failed', err);
 			}
 		} finally {
 			exporting = false;
 		}
 	}
 
-	let encodedBytes = $derived(
-		new TextEncoder().encode(encode(type, content[type])).length
-	);
-	let resolvedECC = $derived(
-		resolveEcc(errorCorrection, logoDataUrl !== null, encodedBytes)
-	);
-	let dotLabel = $derived(dotOptions.find((d) => d.value === dotType)?.label ?? '—');
+	let dotLabel = $derived(DOT_LABELS[dotType]);
 
 	const ECC_HINTS: Record<ECC, string> = {
 		auto: 'M plain · Q or H free when short · H with logo',
@@ -932,24 +918,6 @@
 		gradientTo = next;
 		gradientToInput = next;
 	}
-
-	/* Color picker writes directly to fgColor/bgColor/gradientFrom/To;
-	 * mirror into the text input so the two views stay in sync without
-	 * binding the same variable twice (which would let typed-in-progress
-	 * text fight the picker's lowercased output, or feed invalid hex
-	 * mid-type to qr-code-styling which silently falls back). */
-	$effect(() => {
-		fgInput = fgColor;
-	});
-	$effect(() => {
-		bgInput = bgColor;
-	});
-	$effect(() => {
-		gradientFromInput = gradientFrom;
-	});
-	$effect(() => {
-		gradientToInput = gradientTo;
-	});
 </script>
 
 <section class="workshop">
@@ -1054,7 +1022,7 @@
 					role="radiogroup"
 					aria-label="PNG export size"
 				>
-					{#each ['1K', '2K', '4K'] as const as sz}
+					{#each PNG_SIZES as sz}
 						<label class="seg" class:active={pngSize === sz}>
 							<input type="radio" name="png-size" value={sz} bind:group={pngSize} />
 							{sz}
@@ -1099,8 +1067,8 @@
 			{/if}
 			{#if copyState === 'manual'}
 				<p class="permalink-note">
-					Clipboard access was blocked (insecure origin or denied permission). The link is in
-					your address bar — select it and copy by hand.
+					Clipboard access was blocked (insecure origin or denied permission). The link is in your
+					address bar — select it and copy by hand.
 				</p>
 			{/if}
 		</div>
@@ -1407,11 +1375,7 @@
 			<legend><span class="p-num">P-07</span> LOGO</legend>
 			<div class="logo-row">
 				<label class="logo-upload">
-					<input
-						type="file"
-						accept="image/png,image/jpeg,image/webp"
-						onchange={handleLogoUpload}
-					/>
+					<input type="file" accept="image/png,image/jpeg,image/webp" onchange={handleLogoUpload} />
 					<span>{logoDataUrl ? 'REPLACE FILE' : 'UPLOAD FILE'}</span>
 				</label>
 				{#if logoDataUrl}
@@ -1437,7 +1401,7 @@
 		<fieldset class="control-block">
 			<legend><span class="p-num">P-08</span> ERROR CORRECTION</legend>
 			<div class="segmented cols-5">
-				{#each eccOptions as ecc}
+				{#each ECC_OPTIONS as ecc}
 					<label class="seg" class:active={errorCorrection === ecc}>
 						<input type="radio" name="ecc" value={ecc} bind:group={errorCorrection} />
 						{ecc.toUpperCase()}
@@ -1459,7 +1423,7 @@
 					<input
 						type="text"
 						bind:value={frameLabel}
-						maxlength="64"
+						maxlength={MAX_FRAME_LABEL_LEN}
 						placeholder="SCAN ME"
 						spellcheck="false"
 					/>
@@ -1467,7 +1431,7 @@
 				<div class="field" style="padding-top: 0.85rem;">
 					<span class="field-label">SIZE</span>
 					<div class="segmented cols-4" role="radiogroup" aria-label="Frame label size">
-						{#each ['S', 'M', 'L', 'XL'] as const as sz}
+						{#each FRAME_LABEL_SIZES as sz}
 							<label class="seg" class:active={frameLabelSize === sz}>
 								<input
 									type="radio"
@@ -1483,7 +1447,7 @@
 				<div class="field" style="padding-top: 0.85rem;">
 					<span class="field-label">FONT</span>
 					<div class="segmented cols-2" role="radiogroup" aria-label="Frame label font">
-						{#each [{ value: 'mono' as const, label: 'MONO' }, { value: 'display' as const, label: 'DISPLAY' }] as opt}
+						{#each frameLabelFontOptions as opt}
 							<label class="seg" class:active={frameLabelFont === opt.value}>
 								<input
 									type="radio"
