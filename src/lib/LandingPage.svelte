@@ -77,11 +77,11 @@
 		<dl class="title-meta">
 			<div>
 				<dt>process</dt>
-				<dd>client-side · zero upload</dd>
+				<dd><span>client-side</span> · <span>zero upload</span></dd>
 			</div>
 			<div>
 				<dt>cost</dt>
-				<dd>free · no signup · no expiry</dd>
+				<dd><span>free</span> · <span>no signup</span> · <span>no expiry</span></dd>
 			</div>
 			<div>
 				<dt>format</dt>
@@ -95,7 +95,8 @@
 						href="https://github.com/kemeknetwork/kemek-QR/blob/main/LICENSE"
 						target="_blank"
 						rel="license noopener">MIT</a
-					> · open source
+					>
+					· <span>open source</span>
 				</dd>
 			</div>
 		</dl>
@@ -199,6 +200,19 @@
 		line-height: 1;
 		transform: translateY(1px);
 	}
+	/* Phone portrait: the plate's inner width (~260–330 px) can't hold
+	 * the 18 px / 0.2em label on one line, and a two-line "CREATE QR /
+	 * CODE" reads as broken. Span the plate, keep one line, tighten
+	 * the tracking. */
+	@media (max-width: 480px) {
+		.hero-cta {
+			display: flex;
+			width: 100%;
+			white-space: nowrap;
+			padding-inline: 1rem;
+			letter-spacing: 0.14em;
+		}
+	}
 
 	.title-meta {
 		display: grid;
@@ -236,12 +250,16 @@
 		overflow-wrap: break-word;
 		max-width: 100%;
 	}
-	/* Intermediate widths: 4 cells in a row get cramped between 720
-	 * and 900 px (narrow desktop / large tablet). 2×2 grid with
+	/* Wrap between "·" clauses, never inside one ("no / expiry"). */
+	.title-meta dd span {
+		white-space: nowrap;
+	}
+	/* Intermediate widths: 4 cells in a row get cramped below ~1100 px
+	 * (each value wrapped onto two lines at 1024). 2×2 grid with
 	 * minmax(0, 1fr) tracks keeps cells legible AND lets each cell
 	 * shrink with the container — the bare `auto` form would let the
 	 * widest cell push the grid past viewport width. */
-	@media (max-width: 900px) {
+	@media (max-width: 1100px) {
 		.title-meta {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}

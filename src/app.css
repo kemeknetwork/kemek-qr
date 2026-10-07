@@ -32,6 +32,11 @@
 	--micro: rgba(14, 11, 6, 0.71);
 	--accent: #c53a1f;
 	--accent-deep: #9c2d17;
+	/* Accent for SMALL text (< 18.66 px bold / 24 px regular) on any
+	 * surface, --paper-warm included. #c53a1f clears 4.5:1 on --paper
+	 * only (4.53) and fails on --paper-warm (4.22); this sibling holds
+	 * 4.76 on warm and 5.1 on paper while reading as the same red. */
+	--accent-text: #b8341b;
 	/* Texture tokens — paper grain dots + page-edge vignette. Pulled
 	 * out as variables so the dark-mode block can flip them to cream-
 	 * on-graphite without re-declaring the body backgrounds. */
@@ -98,6 +103,7 @@
 	--micro: rgba(249, 238, 219, 0.71);
 	--accent: #e0492c;
 	--accent-deep: #b13a23;
+	--accent-text: #e0492c;
 	--grain-1: rgba(235, 226, 203, 0.045);
 	--grain-2: rgba(235, 226, 203, 0.03);
 	--vignette: rgba(235, 226, 203, 0.05);

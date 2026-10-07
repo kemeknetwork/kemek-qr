@@ -3,7 +3,7 @@
 	import '../app.css';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { CONTENT_TYPES, PLATE, ROUTE_FOR_TYPE, TYPE_LABELS, type ContentType } from '$lib/types';
+	import { CONTENT_TYPES, PLATE, ROUTE_FOR_TYPE, TYPE_LABELS } from '$lib/types';
 	/* Vite `?url` imports resolve to the bundled, content-hashed asset
 	 * paths at build time, so the preload tags below land on the
 	 * exact filenames the @import-chain inside app.css will eventually
@@ -110,13 +110,12 @@
 		return () => mq.removeEventListener('change', onSystemChange);
 	});
 
-	const activeType = $derived.by<ContentType>(() => {
-		const path = page.url.pathname || '/';
-		if (path === '/') return 'url';
-		const match = (CONTENT_TYPES as readonly ContentType[]).find(
-			(t) => t !== 'url' && (path === ROUTE_FOR_TYPE[t] || path.startsWith(`${ROUTE_FOR_TYPE[t]}/`))
-		);
-		return match ?? 'url';
+	/* The plate the current route draws, or null off the generator
+	 * (/about, the 404) — the nav must not mark URL as the current page
+	 * on a page that isn't one. */
+	const activeType = $derived.by(() => {
+		const path = page.url.pathname.replace(/(.)\/$/, '$1');
+		return CONTENT_TYPES.find((t) => ROUTE_FOR_TYPE[t] === path) ?? null;
 	});
 
 	/* The colophon-link sits at the bottom of every page; SvelteKit's
@@ -351,19 +350,14 @@
 	</main>
 
 	{#if page.url.pathname !== '/about'}
-		<a
-			class="colophon-link"
-			href="/about"
-			aria-label="Read the colophon — about kemek/qr"
-			onclick={navigateToColophon}
-		>
+		<a class="colophon-link" href="/about" onclick={navigateToColophon}>
 			<span class="cl-tick cl-tick-tl" aria-hidden="true"></span>
 			<span class="cl-tick cl-tick-tr" aria-hidden="true"></span>
 			<span class="cl-tick cl-tick-bl" aria-hidden="true"></span>
 			<span class="cl-tick cl-tick-br" aria-hidden="true"></span>
 			<div class="cl-inner">
 				<div class="cl-marker">
-					<span class="cl-marker-num">§00</span>
+					<span class="cl-marker-num" aria-hidden="true">§00</span>
 					<span class="cl-marker-rubric">Colophon</span>
 				</div>
 				<div class="cl-headline">
@@ -411,16 +405,23 @@
 		</div>
 		<div class="colophon-rights-wrap">
 			<p class="colophon-rights">
-				<a href="https://kemek.com" target="_blank" rel="publisher noopener">KEMEK NETWORK</a> ©
-				<span class="rights-year">MMXXVI</span>
-				· License:
-				<a
-					href="https://github.com/kemeknetwork/kemek-QR/blob/main/LICENSE"
-					target="_blank"
-					rel="license noopener">MIT</a
+				<span class="rights-item"
+					><a href="https://kemek.com" target="_blank" rel="publisher noopener">KEMEK NETWORK</a> ©
+					<span class="rights-year">MMXXVI</span></span
+				>
+				·
+				<span class="rights-item"
+					>License: <a
+						href="https://github.com/kemeknetwork/kemek-QR/blob/main/LICENSE"
+						target="_blank"
+						rel="license noopener">MIT</a
+					></span
 				>
 				{#if pageviews !== null}
-					· Pageviews: <span class="pageviews-count">{pageviews.toLocaleString()}</span>
+					·
+					<span class="rights-item"
+						>Pageviews: <span class="pageviews-count">{pageviews.toLocaleString()}</span></span
+					>
 				{/if}
 			</p>
 		</div>
@@ -877,7 +878,7 @@
 		font-size: 15px;
 		font-weight: 600;
 		letter-spacing: 0.06em;
-		color: var(--accent);
+		color: var(--accent-text);
 	}
 	.cl-marker-rubric {
 		font-family: var(--font-mono);
@@ -1055,6 +1056,11 @@
 		color: var(--accent);
 		border-bottom-color: var(--accent);
 	}
+	/* Each "·"-separated clause wraps as a unit, so a narrow screen
+	 * breaks the line between clauses instead of stranding "MIT". */
+	.rights-item {
+		white-space: nowrap;
+	}
 	.rights-year {
 		font-feature-settings: 'tnum';
 	}
@@ -1163,10 +1169,15 @@
 			grid-area: toggle;
 			justify-self: end;
 		}
+		/* The pill never wraps, so its type scales with the viewport
+		 * (~23.5 px of row per px of font-size, plus gutters, padding
+		 * and border) and caps at 15.4 px. A fixed 15.4 px needed a
+		 * ~430 px screen; every phone narrower clipped "NO UPLOAD"
+		 * and the arrow off the right edge. */
 		.pill {
 			grid-area: pill;
 			justify-self: center;
-			font-size: 15.4px;
+			font-size: min(15.4px, calc((100vw - 74px) / 23.5));
 			letter-spacing: 0.08em;
 			padding: 0.5rem 0.94rem;
 			gap: 0.35rem;

@@ -1290,7 +1290,7 @@
 			<p class="contrast-readout" data-state={contrastState} aria-live="polite">
 				<span class="contrast-rubric">CONTRAST</span>
 				<span class="contrast-value">{contrastDisplay}:1</span>
-				<span class="contrast-sep">·</span>
+				<span class="contrast-sep" aria-hidden="true">·</span>
 				<span class="contrast-label">{contrastLabel}</span>
 			</p>
 		</fieldset>
@@ -1820,9 +1820,21 @@
 	.specimen-meta > div {
 		min-width: 0;
 	}
+	.specimen-meta > div {
+		padding: 0.65rem 0.85rem 0.7rem;
+		border-right: 1px solid var(--rule);
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+	.specimen-meta > div:last-child {
+		border-right: none;
+	}
 	/* Below 640 px the 3-cell row gets too tight for "PNG · 1024 PX"
 	 * to sit on one line, so collapse to a 1-column stack. Each cell
-	 * still has its dt/dd column treatment. */
+	 * still has its dt/dd column treatment. Must follow the base rules
+	 * above: at equal specificity the later `border-right` won, and the
+	 * stacked S-01/S-02 rows kept a stray right border. */
 	@media (max-width: 640px) {
 		.specimen-meta {
 			grid-template-columns: minmax(0, 1fr);
@@ -1834,16 +1846,6 @@
 		.specimen-meta > div:last-child {
 			border-bottom: none;
 		}
-	}
-	.specimen-meta > div {
-		padding: 0.65rem 0.85rem 0.7rem;
-		border-right: 1px solid var(--rule);
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-	}
-	.specimen-meta > div:last-child {
-		border-right: none;
 	}
 	.specimen-meta dt {
 		font-size: 15px;
@@ -1997,23 +1999,40 @@
 		background: var(--ink);
 	}
 
+	/* Side by side only where the row spans a wide single column
+	 * (760–880 px). Narrower, or in the two-column workshop's left
+	 * column, "DOWNLOAD PNG 1024 PX" beside COPY LINK wrapped both
+	 * labels (measured at 600 px and still at 1440 px), so the buttons
+	 * stack, as they do on phones. */
 	.action-row {
 		display: grid;
-		grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+		grid-template-columns: minmax(0, 1fr);
 		gap: 0.6rem;
+	}
+	@media (min-width: 760px) and (max-width: 880px) {
+		.action-row {
+			grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+		}
 	}
 	.download:disabled {
 		opacity: 0.55;
 		cursor: progress;
 	}
 	@media (max-width: 520px) {
-		.action-row {
-			grid-template-columns: 1fr;
-		}
 		.download {
 			padding: 1rem 1rem;
 			gap: 0.7rem;
 			letter-spacing: 0.12em;
+		}
+		/* Below ~385 px the full-width label still wrapped; scale it
+		 * with the viewport, capped at 20 px. Measured: the one-line
+		 * button is 13.18 px wide per px of font-size + 71.6 px, and
+		 * gets the viewport minus 37 px of gutter. */
+		.download {
+			font-size: min(20px, calc((100vw - 114px) / 13.2));
+		}
+		.download-size {
+			font-size: 0.85em;
 		}
 		.permalink {
 			padding: 1rem 0.85rem;
@@ -2163,6 +2182,22 @@
 		font-feature-settings: 'tnum';
 		padding-right: 0.55rem;
 		border-right: 1px solid var(--rule);
+		/* "P-08" must never break at its hyphen. */
+		white-space: nowrap;
+	}
+	/* Where the controls column is narrow — phone portrait, and the
+	 * two-column workshop just above its 880 px stack point — "P-08
+	 * ERROR CORRECTION" at 18 px / 0.2em is wider than the fieldset and
+	 * the legend broke into "P- / 08" over "ERROR / CORRECTION". */
+	@media (max-width: 480px), (min-width: 881px) and (max-width: 1060px) {
+		.control-block legend {
+			font-size: 16px;
+			letter-spacing: 0.14em;
+		}
+		.control-block legend .p-num {
+			font-size: 15px;
+			letter-spacing: 0.1em;
+		}
 	}
 
 	.field {
@@ -2323,6 +2358,22 @@
 	}
 	.segmented.cols-4 .seg:nth-child(4n) {
 		border-right: none;
+	}
+	/* Four-up rows on a phone leave ~70–80 px per cell; at 15 px / 0.12em
+	 * "ROUNDED" (P-05) ran into both cell borders. */
+	@media (max-width: 480px) {
+		.segmented.cols-4 .seg {
+			font-size: 13px;
+			letter-spacing: 0.06em;
+			padding-inline: 0.2rem;
+		}
+	}
+	/* Sub-360 px phones (iPhone SE 1st gen): one more step down. */
+	@media (max-width: 359px) {
+		.control-block legend {
+			font-size: 14px;
+			letter-spacing: 0.1em;
+		}
 	}
 	.segmented.cols-5 .seg {
 		border-bottom: none;
