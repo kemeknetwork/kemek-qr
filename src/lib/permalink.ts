@@ -95,11 +95,15 @@ export type StylingState = {
 	pngSize: PngSize;
 };
 
-/* The generator's starting state. A field missing from a decoded
- * permalink means "keep the receiver's default", and buildWire strips
- * fields that equal these defaults — so both sides must read the same
- * object, or changing a UI default would silently re-style every
- * shared link that relied on the old one. */
+/* The generator's starting state, read by both the generator and
+ * buildWire. A field missing from a decoded permalink means "use the
+ * receiver's default", and buildWire omits frameLabelSize,
+ * frameLabelFont and pngSize when they equal these values (and the
+ * gradient/frame groups when disabled). So for those fields the value
+ * here is part of the v1 wire contract: every link already shared
+ * relied on it, and changing it silently re-styles those links. Such a
+ * change needs a `v2.` prefix, or buildWire emitting the field
+ * explicitly — permalink.test.ts pins the values to catch it. */
 export const DEFAULT_STYLING: Readonly<StylingState> = {
 	fg: '#1A1815',
 	bg: '#F2EBDD',
@@ -158,7 +162,15 @@ const MAX_CONTENT_FIELD_LEN = 4096;
  * GIF cover every realistic logo use. The base64 alphabet anchor
  * also closes `data:image/png,<raw bytes>` (non-base64) which
  * qr-code-styling would fail on anyway. */
-const LOGO_DATA_URL_RE = /^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/;
+export const LOGO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'] as const;
+/* The upload handler validates against LOGO_MIME_TYPES too, so both
+ * trust boundaries share one allowlist (ADR-0004): a format the upload
+ * took but the decoder refused previewed fine, then vanished from the
+ * share link and the saved session without a word. `jpg` is accepted
+ * here only as an alias some hand-built data URLs use. */
+const LOGO_DATA_URL_RE = new RegExp(
+	`^data:image/(${[...LOGO_MIME_TYPES.map((t) => t.slice('image/'.length)), 'jpg'].join('|')});base64,[A-Za-z0-9+/=]+$`
+);
 const MAX_LOGO_DATA_URL_LEN = 7000;
 
 /* Module-load invariant: the envelope-size cap MUST exceed the
@@ -458,9 +470,10 @@ export function decodePermalink(hash: string): DecodedPermalink | null {
  * WITHOUT the `s=` URL-fragment prefix so the stored string and the
  * URL hash representation can diverge if we ever change either. Owning
  * both the encode + decode sides here keeps Generator.svelte from
- * knowing the wire-format key. The encode side still applies the
- * logo-drop rule so a session restored later is round-trippable to a
- * shareable URL without the user losing a logo silently. */
+ * knowing the wire-format key. The encode side applies the share-link
+ * logo-drop rule, so a session never holds a logo whose data URL is
+ * over ~4.4 KB: a larger logo is not restored on reload, and unlike
+ * COPY LINK nothing tells the user. */
 export function encodeSession<T extends ContentType>(state: PermalinkState<T>): string {
 	const { hash } = encodePermalink(state, '');
 	return hash.slice(2); /* strip the 's=' prefix */

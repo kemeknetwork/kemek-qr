@@ -21,8 +21,8 @@
 # connect-src 'self' also blocks fetch/XHR of `data:` URLs. The
 # generator's logo depends on that NOT happening: Generator.svelte
 # sets qr-code-styling's `saveAsBlob: false` so the library never
-# re-fetches the logo data URL (it did, and logos rendered blank in
-# production from 2026-05-15 until v0.34.31).
+# re-fetches the logo data URL — when it did, every logo rendered
+# blank and logo exports hung.
 
 /*
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload

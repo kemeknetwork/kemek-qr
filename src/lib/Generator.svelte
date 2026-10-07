@@ -14,6 +14,7 @@
 		FRAME_LABEL_FONTS,
 		FRAME_LABEL_SIZES,
 		isShareHash,
+		LOGO_MIME_TYPES,
 		MAX_FRAME_LABEL_LEN,
 		PNG_SIZE_PX,
 		PNG_SIZES,
@@ -173,7 +174,11 @@
 	 * the render (buildOpts) and the ECC readout — and an edit that
 	 * leaves the payload unchanged doesn't re-render the preview. */
 	let encoded = $derived(encode(type, content[type]));
-	let encodedBytes = $derived(new TextEncoder().encode(encoded).length);
+	/* What the QR actually holds. qr-code-styling throws on empty `data`,
+	 * so blank input renders the brand URL as a placeholder; ECC is sized
+	 * on these bytes so AUTO's free upgrade matches what is drawn. */
+	let qrData = $derived(encoded.trim() || 'https://kemek.com');
+	let encodedBytes = $derived(new TextEncoder().encode(qrData).length);
 	let resolvedECC = $derived(resolveEcc(errorCorrection, logoDataUrl !== null, encodedBytes));
 
 	/* The preview renders 480 px SVG; each export passes its own size and
@@ -184,9 +189,7 @@
 			width: size,
 			height: size,
 			type: kind,
-			// qr-code-styling throws on empty `data`; fall back to the brand URL
-			// so an empty input renders a valid placeholder QR rather than crashing.
-			data: encoded.trim() || 'https://kemek.com',
+			data: qrData,
 			image: logoDataUrl ?? undefined,
 			margin: qrMargin(size),
 			qrOptions: { errorCorrectionLevel: resolvedECC },
@@ -212,11 +215,15 @@
 	const sessionKey = $derived(`kemek-qr:session:${type}`);
 
 	/* When adding a styling/content field, update this snapshot — both
-	 * autosave and permalink-copy go through here. */
+	 * autosave and permalink-copy go through here. `$state.snapshot`
+	 * reads every nested content field, so the autosave effect tracks
+	 * typing (a bare `content[type]` reference didn't, and content-only
+	 * edits were never saved), and hands back a plain copy rather than
+	 * the live proxy. */
 	function currentSnapshot() {
 		return {
 			type,
-			content: content[type],
+			content: $state.snapshot(content[type]),
 			fg: fgColor,
 			bg: bgColor,
 			dot: dotType,
@@ -342,9 +349,11 @@
 			try {
 				localStorage.setItem(sessionKey, encodeSession(snapshot));
 			} catch (err) {
-				/* QuotaExceededError is transient — usually a too-big logo
-				 * combined with sibling-route sessions. The next edit
-				 * retries silently after the user trims something. Any
+				/* QuotaExceededError isn't latched: a session is at most
+				 * ~6 KB (encodeSession applies the share-link length cap,
+				 * logo included), so a quota error means storage is full or
+				 * zero-quota (some private-browsing modes) — conditions
+				 * that can clear, and the next edit retries silently. Any
 				 * other class (encoder bug, SecurityError from blocked
 				 * storage policy) is a real subsystem fault — latch the
 				 * broken flag so we stop retrying on every keystroke and
@@ -397,10 +406,11 @@
 		return () => clearTimeout(renderTimer);
 	});
 
-	/* 4 MB is generous for QR logos (typical brand marks are tens of KB)
-	 * and below the localStorage-quota risk threshold across browsers.
-	 * Anything bigger is almost certainly a mis-drag of a wallpaper or
-	 * full-res photo, and bloats permalinks past the 6 KB share limit. */
+	/* 4 MB is generous for QR logos (typical brand marks are tens of KB);
+	 * anything bigger is almost certainly a mis-drag of a wallpaper or
+	 * full-res photo. The cap bounds read/decode work on the page, not
+	 * storage: a logo reaches the share link and the saved session only
+	 * while its data URL fits the ~6 KB link cap (~4.4 KB of data URL). */
 	const MAX_LOGO_BYTES = 4 * 1024 * 1024;
 
 	function handleLogoUpload(e: Event) {
@@ -408,11 +418,6 @@
 		const file = input.files?.[0];
 		if (!file) return;
 		logoError = null;
-		if (!file.type.startsWith('image/')) {
-			logoError = `${file.name} isn't an image file.`;
-			input.value = '';
-			return;
-		}
 		/* Block SVG uploads. Render-time it's safe (qr-code-styling
 		 * embeds the logo via <svg:image href>, which sandboxes scripts
 		 * the same way <img src> does), but: (a) the SVG download path
@@ -427,6 +432,14 @@
 		 * pre-rasterize. */
 		if (file.type === 'image/svg+xml') {
 			logoError = `${file.name}: SVG logos aren't supported — try PNG or WebP.`;
+			input.value = '';
+			return;
+		}
+		/* Same allowlist the permalink decoder enforces. The `accept`
+		 * attribute is only a picker hint — drag-and-drop and "All files"
+		 * bypass it. */
+		if (!(LOGO_MIME_TYPES as readonly string[]).includes(file.type)) {
+			logoError = `${file.name}: use a PNG, JPG, WebP or GIF image.`;
 			input.value = '';
 			return;
 		}
@@ -604,26 +617,27 @@
 	 * QR centered, stroke a border, then render the label centered
 	 * below in the foreground color. Returns a Blob; caller triggers
 	 * the download. */
-	async function composeFramedPng(qrBlob: Blob, qrSize: number, label: string): Promise<Blob> {
-		const img = await blobToImage(qrBlob);
-		const { padding, borderWidth, half, fontPx, labelY, totalW, totalH } = computeFrameLayout(
-			qrSize,
-			label
-		);
-
-		/* Force the chosen frame-label font to load before canvas
-		 * drawing — Canvas font lookup is synchronous, and if the
-		 * woff2 hasn't been fetched yet the label rasterizes in
-		 * whatever fallback the OS provides. After this await, PNG
-		 * (and the PDF that re-embeds it) match the on-screen
-		 * preview. */
+	/* Load the frame-label font before anything measures or draws with
+	 * it. Canvas font lookup is synchronous: if the woff2 isn't fetched
+	 * yet, the XL fit is measured — and the PNG label drawn — in the
+	 * OS fallback. Every framed export awaits this first. */
+	async function loadFrameFont() {
 		const primaryFamily = FRAME_LABEL_FONT_FAMILY[frameLabelFont].split(',')[0];
 		try {
-			await document.fonts.load(`500 ${fontPx}px ${primaryFamily}`);
+			await document.fonts.load(`500 16px ${primaryFamily}`);
 		} catch {
 			/* document.fonts not present (very old browser) — accept
 			 * fallback rendering rather than aborting the export. */
 		}
+	}
+
+	async function composeFramedPng(qrBlob: Blob, qrSize: number, label: string): Promise<Blob> {
+		const img = await blobToImage(qrBlob);
+		await loadFrameFont();
+		const { padding, borderWidth, half, fontPx, labelY, totalW, totalH } = computeFrameLayout(
+			qrSize,
+			label
+		);
 
 		const canvas = document.createElement('canvas');
 		canvas.width = totalW;
@@ -646,10 +660,18 @@
 		ctx.textBaseline = 'middle';
 		ctx.fillText(label, totalW / 2, labelY);
 
+		/* toBlob yields null past the device's canvas-area limit (iOS
+		 * Safari: 16,777,216 px). A 4K QR sits exactly on it; the frame
+		 * around it is what tips it over. */
 		return new Promise((resolve, reject) => {
 			canvas.toBlob((blob) => {
 				if (blob) resolve(blob);
-				else reject(new Error('canvas.toBlob returned null'));
+				else
+					reject(
+						new QrExportError(
+							'The framed image exceeds the canvas size limit on this device. Try a smaller size, or disable the frame.'
+						)
+					);
 			}, 'image/png');
 		});
 	}
@@ -693,22 +715,19 @@
 		if (!QRCodeStylingClass) return;
 		const exportSize = PNG_SIZE_PX[pngSize];
 		const exporter = new QRCodeStylingClass(buildOpts(exportSize, 'canvas'));
-		if (frameEnabled) {
-			const blob = (await exporter.getRawData('png')) as Blob | null;
-			if (!blob) {
-				/* Most likely cause: iOS Safari caps total canvas area at
-				 * 16,777,216 px; a 4K framed PNG (4096 + label band) is
-				 * just over that. canvas.toBlob returns null silently. */
-				const culprit4K = pngSize === '4K' ? '4K + frame ' : '';
-				throw new QrExportError(
-					`${culprit4K}exceeds the canvas size limit on this device. Try 2K, or disable the frame.`
-				);
-			}
-			const framed = await composeFramedPng(blob, exportSize, frameLabel);
-			triggerDownload(framed, 'kemek-qr.png');
-		} else {
-			await exporter.download({ name: 'kemek-qr', extension: 'png' });
+		/* getRawData, not the library's download(): past the canvas
+		 * limit download() saves an empty `data:,` file without a word,
+		 * while getRawData returns null and the user gets told why. */
+		const blob = (await exporter.getRawData('png')) as Blob | null;
+		if (!blob) {
+			throw new QrExportError(
+				'PNG rasterization exceeded the canvas size limit on this device. Try a smaller size.'
+			);
 		}
+		triggerDownload(
+			frameEnabled ? await composeFramedPng(blob, exportSize, frameLabel) : blob,
+			'kemek-qr.png'
+		);
 	}
 
 	/* Uses DOMParser to inject the qr-code-styling SVG as a nested
@@ -754,6 +773,7 @@
 		const blob = (await exporter.getRawData('svg')) as Blob | null;
 		if (!blob) throw new QrExportError('SVG rasterization returned no data.');
 		const text = await blob.text();
+		if (frameEnabled) await loadFrameFont();
 		const finalText = frameEnabled ? composeFramedSvg(text, exportSize, frameLabel) : text;
 		const finalBlob = new Blob([finalText], { type: 'image/svg+xml' });
 		triggerDownload(finalBlob, 'kemek-qr.svg');
@@ -1383,7 +1403,7 @@
 			<legend><span class="p-num">P-07</span> LOGO</legend>
 			<div class="logo-row">
 				<label class="logo-upload">
-					<input type="file" accept="image/png,image/jpeg,image/webp" onchange={handleLogoUpload} />
+					<input type="file" accept={LOGO_MIME_TYPES.join(',')} onchange={handleLogoUpload} />
 					<span>{logoDataUrl ? 'REPLACE FILE' : 'UPLOAD FILE'}</span>
 				</label>
 				{#if logoDataUrl}
@@ -1835,8 +1855,7 @@
 	/* Below 640 px the 3-cell row gets too tight for "PNG · 1024 PX"
 	 * to sit on one line, so collapse to a 1-column stack. Each cell
 	 * still has its dt/dd column treatment. Must follow the base rules
-	 * above: at equal specificity the later `border-right` won, and the
-	 * stacked S-01/S-02 rows kept a stray right border. */
+	 * above — at equal specificity the later `border-right` wins. */
 	@media (max-width: 640px) {
 		.specimen-meta {
 			grid-template-columns: minmax(0, 1fr);
@@ -2002,10 +2021,9 @@
 	}
 
 	/* Side by side only where the row spans a wide single column
-	 * (760–880 px). Narrower, or in the two-column workshop's left
-	 * column, "DOWNLOAD PNG 1024 PX" beside COPY LINK wrapped both
-	 * labels (measured at 600 px and still at 1440 px), so the buttons
-	 * stack, as they do on phones. */
+	 * (760–880 px). Anywhere narrower — including the two-column
+	 * workshop's left column at every desktop width — "DOWNLOAD PNG
+	 * 1024 PX" beside COPY LINK wraps both labels, so the buttons stack. */
 	.action-row {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr);
@@ -2036,10 +2054,6 @@
 		.download-size {
 			font-size: 0.85em;
 		}
-		.permalink {
-			padding: 1rem 0.85rem;
-			letter-spacing: 0.1em;
-		}
 	}
 
 	.permalink {
@@ -2069,6 +2083,14 @@
 	}
 	.permalink:active {
 		transform: translateY(1px);
+	}
+	/* After the base rule: placed in the 520 px block above, the later
+	 * base `.permalink` won at equal specificity and this never applied. */
+	@media (max-width: 520px) {
+		.permalink {
+			padding: 1rem 0.85rem;
+			letter-spacing: 0.1em;
+		}
 	}
 	/* Keyboard focus rings — same accent-outline language as
 	 * .theme-toggle:focus-visible in the layout, so tabbing through
@@ -2189,8 +2211,7 @@
 	}
 	/* Where the controls column is narrow — phone portrait, and the
 	 * two-column workshop just above its 880 px stack point — "P-08
-	 * ERROR CORRECTION" at 18 px / 0.2em is wider than the fieldset and
-	 * the legend broke into "P- / 08" over "ERROR / CORRECTION". */
+	 * ERROR CORRECTION" at 18 px / 0.2em is wider than the fieldset. */
 	@media (max-width: 480px), (min-width: 881px) and (max-width: 1060px) {
 		.control-block legend {
 			font-size: 16px;
@@ -2361,8 +2382,8 @@
 	.segmented.cols-4 .seg:nth-child(4n) {
 		border-right: none;
 	}
-	/* Four-up rows on a phone leave ~70–80 px per cell; at 15 px / 0.12em
-	 * "ROUNDED" (P-05) ran into both cell borders. */
+	/* Four-up rows on a phone leave ~70–80 px per cell — too narrow for
+	 * "ROUNDED" (P-05) at 15 px / 0.12em. */
 	@media (max-width: 480px) {
 		.segmented.cols-4 .seg {
 			font-size: 13px;

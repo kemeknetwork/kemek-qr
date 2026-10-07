@@ -66,28 +66,35 @@
 		{ hex: '#FFFFFF', name: 'White' }
 	];
 
-	onMount(() => {
-		hasEyeDropper = 'EyeDropper' in window;
+	/* Storage is the source of truth for saved colors: every picker on
+	 * the page shares the list, so each reads it fresh before showing or
+	 * changing it. A copy cached at mount let one picker's save overwrite
+	 * a color another picker had saved since. */
+	function readSaved(): string[] {
 		try {
 			const raw = localStorage.getItem(SAVED_KEY);
-			if (raw) {
-				/* The try/catch only catches parse errors, not type
-				 * mismatches. A tampered storage entry (browser
-				 * extension corruption, dev-tools edit, past-version
-				 * data shape) could slip through as `[1,2,3]` and
-				 * crash every downstream `.toUpperCase()` inside the
-				 * picker's reactive chain. Validate against the same
-				 * 6-digit hex regex the picker uses elsewhere. */
-				const parsed: unknown = JSON.parse(raw);
-				if (Array.isArray(parsed)) {
-					saved = parsed
-						.filter((c): c is string => typeof c === 'string' && /^#[0-9A-F]{6}$/i.test(c))
-						.slice(0, SAVED_MAX);
-				}
-			}
+			if (!raw) return [];
+			/* The try/catch only catches parse errors, not type
+			 * mismatches. A tampered storage entry (browser
+			 * extension corruption, dev-tools edit, past-version
+			 * data shape) could slip through as `[1,2,3]` and
+			 * crash every downstream `.toUpperCase()` inside the
+			 * picker's reactive chain. Validate against the same
+			 * 6-digit hex regex the picker uses elsewhere. */
+			const parsed: unknown = JSON.parse(raw);
+			if (!Array.isArray(parsed)) return [];
+			return parsed
+				.filter((c): c is string => typeof c === 'string' && /^#[0-9A-F]{6}$/i.test(c))
+				.slice(0, SAVED_MAX);
 		} catch {
 			/* saved is a luxury, not load-bearing */
+			return [];
 		}
+	}
+
+	onMount(() => {
+		hasEyeDropper = 'EyeDropper' in window;
+		saved = readSaved();
 	});
 
 	function rgbToHex(r: number, g: number, b: number): string {
@@ -215,6 +222,7 @@
 
 	async function openPicker() {
 		setHslFromHex(value);
+		saved = readSaved();
 		/* Pre-position before showing so the first paint lands at the
 		 * right spot (we don't have panelH yet, so this uses the 460-px
 		 * estimate; recompute below once we can measure). */
@@ -230,7 +238,7 @@
 
 	function saveCurrent() {
 		const v = value.toUpperCase();
-		const next = [value, ...saved.filter((c) => c.toUpperCase() !== v)].slice(0, SAVED_MAX);
+		const next = [value, ...readSaved().filter((c) => c.toUpperCase() !== v)].slice(0, SAVED_MAX);
 		saved = next;
 		try {
 			localStorage.setItem(SAVED_KEY, JSON.stringify(next));

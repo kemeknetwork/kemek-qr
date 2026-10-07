@@ -255,7 +255,7 @@
 		white-space: nowrap;
 	}
 	/* Intermediate widths: 4 cells in a row get cramped below ~1100 px
-	 * (each value wrapped onto two lines at 1024). 2×2 grid with
+	 * (each value wraps to two lines). 2×2 grid with
 	 * minmax(0, 1fr) tracks keeps cells legible AND lets each cell
 	 * shrink with the container — the bare `auto` form would let the
 	 * widest cell push the grid past viewport width. */

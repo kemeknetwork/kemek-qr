@@ -6,6 +6,7 @@ import {
 	encodePermalink,
 	encodeSession,
 	isShareHash,
+	LOGO_MIME_TYPES,
 	type PermalinkState
 } from './permalink';
 
@@ -435,5 +436,40 @@ describe('DEFAULT_STYLING', () => {
 		expect(wire).not.toHaveProperty('fls');
 		expect(wire).not.toHaveProperty('flf');
 		expect(wire).not.toHaveProperty('pnp');
+	});
+
+	/* Literals on purpose: every v1 link that omitted these fields
+	 * restores them from DEFAULT_STYLING, so a changed default silently
+	 * re-styles links already shared. Changing one means a wire-format
+	 * decision (v2 prefix or always-emit), not editing this test. */
+	it('keeps the defaults that v1 links rely on', () => {
+		expect(DEFAULT_STYLING).toMatchObject({
+			frameLabelSize: 'M',
+			frameLabelFont: 'mono',
+			pngSize: '1K',
+			gradientEnabled: false,
+			frameEnabled: false
+		});
+	});
+});
+
+describe('logo allowlist', () => {
+	const withLogo = (logoDataUrl: string): PermalinkState<'url'> => ({
+		...DEFAULT_STYLING,
+		type: 'url',
+		content: { url: 'https://kemek.com' },
+		logoDataUrl
+	});
+	it('round-trips every format the upload accepts', () => {
+		for (const mime of LOGO_MIME_TYPES) {
+			const url = `data:${mime};base64,AAAA`;
+			expect(decodePermalink(encodePermalink(withLogo(url), '').hash)?.logoDataUrl).toBe(url);
+		}
+	});
+	it('drops formats outside it, SVG included', () => {
+		for (const mime of ['image/avif', 'image/bmp', 'image/svg+xml']) {
+			const enc = encodePermalink(withLogo(`data:${mime};base64,AAAA`), '');
+			expect(decodePermalink(enc.hash)?.logoDataUrl).toBeUndefined();
+		}
 	});
 });

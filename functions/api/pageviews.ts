@@ -11,11 +11,12 @@
  *   { count: number }   — KV bound and readable
  *   { count: null }     — binding missing or read failed
  *
- * Cache headers: 60 s public + s-maxage so CF's edge can serve
- * subsequent hits without re-reading KV every time. Visitor's
- * browser also caches for 60 s. Net effect: at most one KV read
- * per minute per PoP, regardless of traffic. Counter is decorative,
- * not real-time — a 60 s lag is invisible to humans. */
+ * Cache headers: 60 s public. The visitor's browser reuses the
+ * answer for a minute; Cloudflare's edge does NOT — a Function's
+ * response isn't stored in the CDN cache by Cache-Control (that would
+ * take the Cache API), so every browser-cache miss is one invocation
+ * and one KV read. Counter is decorative, not real-time — a 60 s lag
+ * is invisible to humans. */
 
 type KVNamespace = {
 	get: (key: string) => Promise<string | null>;

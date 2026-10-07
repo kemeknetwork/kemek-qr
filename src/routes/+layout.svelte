@@ -1057,7 +1057,7 @@
 		border-bottom-color: var(--accent);
 	}
 	/* Each "·"-separated clause wraps as a unit, so a narrow screen
-	 * breaks the line between clauses instead of stranding "MIT". */
+	 * breaks the line between clauses, never inside one. */
 	.rights-item {
 		white-space: nowrap;
 	}
@@ -1171,9 +1171,8 @@
 		}
 		/* The pill never wraps, so its type scales with the viewport
 		 * (~23.5 px of row per px of font-size, plus gutters, padding
-		 * and border) and caps at 15.4 px. A fixed 15.4 px needed a
-		 * ~430 px screen; every phone narrower clipped "NO UPLOAD"
-		 * and the arrow off the right edge. */
+		 * and border) and caps at 15.4 px. A fixed 15.4 px only fits a
+		 * ~430 px screen; narrower phones clip "NO UPLOAD" and the arrow. */
 		.pill {
 			grid-area: pill;
 			justify-self: center;
