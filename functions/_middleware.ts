@@ -32,10 +32,11 @@
  *
  * - **No raw IP at rest.** The IP is read transiently in-memory to
  *   compute the rate-limit fingerprint (SHA-256 of `ip|ua|daySalt`),
- *   then discarded. Only the hash is written to KV, with a 60-second
- *   TTL and a daily-rotating salt so the hash space is
- *   non-correlatable across days. Never logged, never returned, never
- *   leaked downstream.
+ *   then discarded. Only the hash is stored — as the key of a
+ *   60-second entry in Cloudflare's edge cache, local to one data
+ *   centre and never replicated — with a daily-rotating salt so the
+ *   hash space is non-correlatable across days. Never logged, never
+ *   returned, never leaked downstream; KV holds only the total.
  * - **No cookies set or read.** Middleware never touches Set-Cookie
  *   or the Cookie header.
  * - **No unique identifier per visitor.** Country and PoP code are
@@ -52,9 +53,11 @@
  * ## Operational cost
  *
  * Non-page requests pay one path check and a pass-through. A page
- * view adds one structured log line, a SHA-256 of the fingerprint
- * and one awaited KV read (the cooldown check, ADR-0002); the two
- * KV writes run after the response via waitUntil. Analytics Engine
+ * view adds one structured log line; everything else — the hash, the
+ * cooldown check and the KV increment — runs after the response via
+ * waitUntil, so nothing on the HTML's TTFB waits on crypto, cache or
+ * KV (ADR-0009, superseding ADR-0002's awaited cooldown read). A
+ * counted view costs one KV read + one KV write. Analytics Engine
  * (Tier 3) would land the same way — inside the `if (isPageView)`
  * block. */
 
@@ -62,7 +65,7 @@
  * @cloudflare/workers-types as a devDep. Only the methods we use. */
 type KVNamespace = {
 	get: (key: string) => Promise<string | null>;
-	put: (key: string, value: string, options?: { expirationTtl?: number }) => Promise<void>;
+	put: (key: string, value: string) => Promise<void>;
 };
 
 /* Pageview rate-limit cooldown window. A given (ip, ua) tuple
@@ -112,46 +115,41 @@ export async function onRequest(context: EventContext): Promise<Response> {
 			})
 		);
 		const kv = context.env.PV_COUNTER;
-		if (kv) {
-			/* Rate-limit the increment: hash (ip, ua, daySalt) into a
-			 * short-lived KV cooldown key; only the first request per
-			 * (fingerprint, COOLDOWN_SECONDS window) actually bumps the
-			 * counter. The raw IP is read transiently to compute the
-			 * hash and is never persisted; the hash itself expires after
-			 * 60 s and is daily-salted so it can't be replayed across
-			 * days. See the "Privacy invariants" block above.
-			 *
-			 * Wrap the awaited KV read in try/catch: when CF Workers KV
-			 * subrequests fail (e.g. the 2026-05-20 1006 incident), an
-			 * unhandled rejection here surfaces as a 500 to every
-			 * visitor — violating this file's own "non-critical, must
-			 * never block a request" contract. Swallow the failure and
-			 * still fall through to context.next(); the worst case is
-			 * one missed counter bump per affected request. */
-			try {
-				const ip = context.request.headers.get('cf-connecting-ip') ?? '0.0.0.0';
-				const ua = context.request.headers.get('user-agent') ?? '';
-				const daySalt = Math.floor(Date.now() / 86_400_000).toString();
-				const fingerprint = await sha256Hex(`${ip}|${ua}|${daySalt}`);
-				const cooldownKey = `cd:${fingerprint}`;
-				const seen = await kv.get(cooldownKey);
-				if (!seen) {
-					/* One catch for both deferred writes — a rejection here
-					 * can't reach the response, but uncaught it would log as
-					 * an unhandled error in the deployment tail. */
-					context.waitUntil(
-						Promise.all([
-							kv.put(cooldownKey, '1', { expirationTtl: COOLDOWN_SECONDS }),
-							incrementCounter(kv)
-						]).catch(() => {})
-					);
-				}
-			} catch {
-				/* intentional: decorative counter, swallow failures */
-			}
-		}
+		/* Counting never delays or fails the page: it runs after the
+		 * response, and the catch keeps a cache or KV outage (e.g. the
+		 * 2026-05-20 KV 1006 incident) out of the deployment tail as
+		 * well as away from the visitor. Worst case: a missed bump. */
+		if (kv) context.waitUntil(countPageView(context.request, kv).catch(() => {}));
 	}
 	return context.next();
+}
+
+/* Bump the counter at most once per fingerprint per COOLDOWN_SECONDS.
+ * The cooldown marker lives in the Cache API (free, sub-ms, per data
+ * centre) instead of KV, which halves the KV writes per counted view
+ * against the free tier's 1,000/day. Per-data-centre scope only lets a
+ * visitor whose requests land on two data centres within a minute
+ * count twice — KV's ~60 s propagation already allowed the same. The
+ * key sits on the request's own origin so it stays in this zone's
+ * cache; nothing serves that path to the public.
+ *
+ * Mark before incrementing: the second of two concurrent first
+ * requests is likelier to see the marker. Two can still race past
+ * the check together, as with the KV marker before it. */
+async function countPageView(request: Request, kv: KVNamespace): Promise<void> {
+	const ip = request.headers.get('cf-connecting-ip') ?? '0.0.0.0';
+	const ua = request.headers.get('user-agent') ?? '';
+	const daySalt = Math.floor(Date.now() / 86_400_000).toString();
+	const fingerprint = await sha256Hex(`${ip}|${ua}|${daySalt}`);
+	const cooldownKey = new Request(new URL(`/__pv-cooldown/${fingerprint}`, request.url));
+	/* Workers' CacheStorage has a `default` cache the DOM type lacks. */
+	const cache = (caches as unknown as { default: Cache }).default;
+	if (await cache.match(cooldownKey)) return;
+	await cache.put(
+		cooldownKey,
+		new Response('1', { headers: { 'cache-control': `max-age=${COOLDOWN_SECONDS}` } })
+	);
+	await incrementCounter(kv);
 }
 
 /* SHA-256 → lowercase hex. Used by the pageview rate-limit

@@ -150,7 +150,9 @@ The middleware in step 9 also increments a running page-view counter in KV (Clou
 
 **KV free-tier ceiling:**
 
-The CF free tier allows 1,000 writes/day across all KV namespaces. Every page-view is one write. For a quiet utility this is plenty; at >1K visitors/day the counter starts silently dropping increments. If kemek-qr ever hits that scale, upgrade paths:
+The CF free tier allows 1,000 writes/day across all KV namespaces.
+Every *counted* page-view is one write: a visitor counts at most once per 60 s, and that cooldown marker lives in the Cache API, not KV (`functions/_middleware.ts` → `countPageView`).
+For a quiet utility this is plenty; past ~1K counted views/day the counter starts silently dropping increments. If kemek-qr ever hits that scale, upgrade paths:
 
 - **Workers Paid plan** ($5/mo) — lifts the KV write ceiling to 1 M/day.
 - **CF Analytics Engine** — purpose-built for high-cardinality edge metrics, included in Workers Paid; replace the KV increment in `_middleware.ts` with `env.ANALYTICS.writeDataPoint(...)`.
