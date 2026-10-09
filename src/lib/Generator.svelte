@@ -14,8 +14,10 @@
 		FRAME_LABEL_FONTS,
 		FRAME_LABEL_SIZES,
 		isShareHash,
+		isStorableLogo,
 		LOGO_MIME_TYPES,
 		MAX_FRAME_LABEL_LEN,
+		MAX_STORED_LOGO_LEN,
 		PNG_SIZE_PX,
 		PNG_SIZES,
 		type DecodedPermalink,
@@ -213,6 +215,14 @@
 	}
 
 	const sessionKey = $derived(`kemek-qr:session:${type}`);
+	/* The logo lives in its own slot beside the session (which never
+	 * carries it — see encodeSession), one per plate like the session. */
+	const logoKey = $derived(`kemek-qr:logo:${type}`);
+	/* Whether the current logo will come back after a reload. Not an
+	 * error — this visit and every export still use it — so the panel
+	 * shows a quiet note instead of losing it without a word. */
+	let logoPersistence = $state<'kept' | 'too-large' | 'refused'>('kept');
+	const STORED_LOGO_KB = Math.floor((MAX_STORED_LOGO_LEN * 3) / 4 / 10_000) * 10;
 
 	/* When adding a styling/content field, update this snapshot — both
 	 * autosave and permalink-copy go through here. `$state.snapshot`
@@ -320,6 +330,11 @@
 			try {
 				const raw = localStorage.getItem(sessionKey);
 				if (raw) applyDecoded(decodeSession(raw));
+				const storedLogo = localStorage.getItem(logoKey);
+				if (storedLogo && isStorableLogo(storedLogo)) {
+					logoDataUrl = storedLogo;
+					logoName = 'saved logo';
+				}
 			} catch {
 				/* localStorage can throw in private mode or with
 				 * quota exhaustion — silent fallback to defaults. */
@@ -370,6 +385,35 @@
 		return () => clearTimeout(saveTimer);
 	});
 
+	/* Keep the logo slot in step with the current logo: written on
+	 * upload, removed on clear, and removed when the logo can't be kept
+	 * (so an older, smaller logo can't reappear on the next reload).
+	 * Not debounced — the logo changes only on upload/clear/restore. */
+	$effect(() => {
+		const logo = logoDataUrl;
+		const key = logoKey;
+		if (!restored) return;
+		try {
+			if (logo !== null && isStorableLogo(logo)) {
+				localStorage.setItem(key, logo);
+				logoPersistence = 'kept';
+			} else {
+				localStorage.removeItem(key);
+				logoPersistence = logo === null ? 'kept' : 'too-large';
+			}
+		} catch {
+			/* Quota exceeded or storage blocked (private mode, policy).
+			 * Drop any older logo still in the slot — removal needs no
+			 * quota — so a reload can't bring back the wrong one. */
+			try {
+				localStorage.removeItem(key);
+			} catch {
+				/* storage fully blocked — nothing stored to go stale */
+			}
+			logoPersistence = 'refused';
+		}
+	});
+
 	/* Debounce QR re-renders so a typing burst coalesces into one update.
 	 * 80ms is long enough to swallow back-to-back keystrokes (~16 cps
 	 * average) and short enough that the preview still feels live.
@@ -409,8 +453,8 @@
 	/* 4 MB is generous for QR logos (typical brand marks are tens of KB);
 	 * anything bigger is almost certainly a mis-drag of a wallpaper or
 	 * full-res photo. The cap bounds read/decode work on the page, not
-	 * storage: a logo reaches the share link and the saved session only
-	 * while its data URL fits the ~6 KB link cap (~4.4 KB of data URL). */
+	 * storage: a logo is kept for reload up to MAX_STORED_LOGO_LEN, and
+	 * rides a share link only while it fits the ~6 KB link cap. */
 	const MAX_LOGO_BYTES = 4 * 1024 * 1024;
 
 	function handleLogoUpload(e: Event) {
@@ -1412,6 +1456,14 @@
 			</div>
 			{#if logoError}
 				<p class="logo-error" role="alert">{logoError}</p>
+			{/if}
+			{#if logoDataUrl && logoPersistence !== 'kept'}
+				<p class="logo-note" aria-live="polite">
+					{logoPersistence === 'too-large'
+						? `Logos over ${STORED_LOGO_KB} KB aren't saved, so this one won't be here after a reload.`
+						: `This browser didn't allow saving the logo, so it won't be here after a reload.`}
+					It's still in every download.
+				</p>
 			{/if}
 			<label class="slider-field">
 				<span class="field-label">SIZE <em>{(logoSize * 100).toFixed(0)}%</em></span>
@@ -2571,6 +2623,15 @@
 	}
 	.engine-error.decode-error .engine-error-eyebrow {
 		color: var(--ink-soft);
+	}
+	/* Same voice as .ecc-hint: informational, not an error. */
+	.logo-note {
+		font-family: var(--font-mono);
+		font-size: var(--fs-help);
+		color: var(--ghost);
+		line-height: 1.4;
+		letter-spacing: 0.02em;
+		margin: 0.6rem 0 0;
 	}
 	.logo-error {
 		font-family: var(--font-mono);

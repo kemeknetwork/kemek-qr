@@ -6,7 +6,9 @@ import {
 	encodePermalink,
 	encodeSession,
 	isShareHash,
+	isStorableLogo,
 	LOGO_MIME_TYPES,
+	MAX_STORED_LOGO_LEN,
 	type PermalinkState
 } from './permalink';
 
@@ -471,5 +473,27 @@ describe('logo allowlist', () => {
 			const enc = encodePermalink(withLogo(`data:${mime};base64,AAAA`), '');
 			expect(decodePermalink(enc.hash)?.logoDataUrl).toBeUndefined();
 		}
+	});
+});
+
+describe('logo storage', () => {
+	const png = (len: number) => {
+		const prefix = 'data:image/png;base64,';
+		return prefix + 'A'.repeat(len - prefix.length);
+	};
+	it('the session never carries the logo, however small', () => {
+		const state: PermalinkState<'url'> = {
+			...DEFAULT_STYLING,
+			type: 'url',
+			content: { url: 'https://kemek.com' },
+			logoDataUrl: png(200)
+		};
+		expect(decodeSession(encodeSession(state))?.logoDataUrl).toBeUndefined();
+	});
+	it('the logo slot takes an allowed format up to the cap, and nothing past it', () => {
+		expect(isStorableLogo(png(MAX_STORED_LOGO_LEN))).toBe(true);
+		expect(isStorableLogo(png(MAX_STORED_LOGO_LEN + 1))).toBe(false);
+		expect(isStorableLogo('data:image/svg+xml;base64,AAAA')).toBe(false);
+		expect(isStorableLogo('data:image/avif;base64,AAAA')).toBe(false);
 	});
 });

@@ -88,3 +88,69 @@ describe('Generator logo upload', () => {
 		unmount(app);
 	});
 });
+
+/* A logo is kept for reload in its own storage slot (the session never
+ * carries it). jsdom decodes no images, so the upload's decode probe is
+ * stubbed to succeed; FileReader is jsdom's real one. */
+describe('Generator logo persistence', () => {
+	let target: HTMLElement;
+
+	class DecodingImage {
+		onload: (() => void) | null = null;
+		onerror: (() => void) | null = null;
+		set src(_: string) {
+			queueMicrotask(() => this.onload?.());
+		}
+	}
+
+	beforeEach(() => {
+		localStorage.clear();
+		vi.stubGlobal('Image', DecodingImage);
+		target = document.createElement('div');
+		document.body.appendChild(target);
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+		target.remove();
+	});
+
+	function upload(bytes: number) {
+		const input = target.querySelector<HTMLInputElement>('input[type=file]')!;
+		const file = new File([new Uint8Array(bytes)], 'logo.png', { type: 'image/png' });
+		Object.defineProperty(input, 'files', { value: [file], configurable: true });
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+	}
+
+	it('keeps an uploaded logo across a reload, and CLEAR forgets it', async () => {
+		let app = mount(Generator, { target, props: { type: 'url' } });
+		flushSync();
+		upload(2_000);
+		await vi.waitFor(() =>
+			expect(localStorage.getItem('kemek-qr:logo:url')).toMatch(/^data:image\/png;base64,/)
+		);
+		unmount(app);
+
+		app = mount(Generator, { target, props: { type: 'url' } });
+		flushSync();
+		expect(target.querySelector('.logo-clear')).not.toBeNull();
+		expect(target.querySelector('.logo-note')).toBeNull();
+
+		target.querySelector<HTMLButtonElement>('.logo-clear')!.click();
+		flushSync();
+		expect(localStorage.getItem('kemek-qr:logo:url')).toBeNull();
+		unmount(app);
+	});
+
+	it('says so when a logo is too big to keep, and keeps no stale copy', async () => {
+		localStorage.setItem('kemek-qr:logo:url', 'data:image/png;base64,AAAA');
+		const app = mount(Generator, { target, props: { type: 'url' } });
+		flushSync();
+		upload(300_000);
+		await vi.waitFor(() =>
+			expect(target.querySelector('.logo-note')?.textContent).toContain('over 190 KB')
+		);
+		expect(localStorage.getItem('kemek-qr:logo:url')).toBeNull();
+		unmount(app);
+	});
+});

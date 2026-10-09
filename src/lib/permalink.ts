@@ -470,15 +470,31 @@ export function decodePermalink(hash: string): DecodedPermalink | null {
  * WITHOUT the `s=` URL-fragment prefix so the stored string and the
  * URL hash representation can diverge if we ever change either. Owning
  * both the encode + decode sides here keeps Generator.svelte from
- * knowing the wire-format key. The encode side applies the share-link
- * logo-drop rule, so a session never holds a logo whose data URL is
- * over ~4.4 KB: a larger logo is not restored on reload, and unlike
- * COPY LINK nothing tells the user. */
+ * knowing the wire-format key. The session never carries the logo: a
+ * logo inside it would be capped at the share link's ~4.4 KB, and real
+ * logos are bigger — the generator keeps it in its own slot (see
+ * isStorableLogo). decodeSession still accepts the small logos older
+ * sessions embedded. */
 export function encodeSession<T extends ContentType>(state: PermalinkState<T>): string {
-	const { hash } = encodePermalink(state, '');
+	const { hash } = encodePermalink({ ...state, logoDataUrl: null }, '');
 	return hash.slice(2); /* strip the 's=' prefix */
 }
 
 export function decodeSession(raw: string): DecodedPermalink | null {
 	return decodePermalink(`s=${raw}`);
+}
+
+/* Size cap for a logo kept for reload in its own localStorage slot, as
+ * data-URL characters (~190 KB of image). Eight plates' slots then fit
+ * well inside the smallest browser quota (Safari: 5 MB of UTF-16, i.e.
+ * ~2.5 M characters), so stored logos can never crowd out the small
+ * session payloads. */
+export const MAX_STORED_LOGO_LEN = 262_144;
+
+/* Whether a logo data URL may be written to — or restored from — the
+ * logo slot: the same ADR-0004 allowlist as the permalink lane, plus
+ * the size cap. Restored values are checked too: storage can be edited
+ * or left over from an older version. */
+export function isStorableLogo(dataUrl: string): boolean {
+	return dataUrl.length <= MAX_STORED_LOGO_LEN && LOGO_DATA_URL_RE.test(dataUrl);
 }
