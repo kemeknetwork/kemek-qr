@@ -361,7 +361,7 @@
 				</div>
 				<div class="cl-headline">
 					<h2 class="cl-title">About the specification</h2>
-					<p class="cl-sub">Privacy · Method · License · Error correction · Brand</p>
+					<p class="cl-sub">Privacy · Method · License · Error&nbsp;correction · Brand</p>
 				</div>
 				<div class="cl-cta">
 					<span class="cl-cta-rubric">On file</span>

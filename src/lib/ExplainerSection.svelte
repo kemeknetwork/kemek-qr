@@ -53,8 +53,21 @@
 	}
 	.section-rule {
 		display: block;
-		border-bottom: 1px dashed var(--rule);
 		align-self: center;
 		margin-top: -2px;
+		container-type: inline-size;
+	}
+	.section-rule::before {
+		content: '';
+		display: block;
+		border-bottom: 1px dashed var(--rule);
+	}
+	/* A title that nearly fills the line squeezes the leader to a
+	 * 10–20 px dash that reads as a stray mark, not a rule. Below 2rem
+	 * of room, draw nothing. */
+	@container (max-width: 2rem) {
+		.section-rule::before {
+			display: none;
+		}
 	}
 </style>

@@ -1592,6 +1592,13 @@
 		}
 		.specimen {
 			order: 1;
+			/* Tablet portrait: a full-column preview grows to ~690 px at
+			 * 768 and pushes the first control a screen and a half below
+			 * the code it changes. Hold it at the size a large phone
+			 * reaches, centred; phones never hit the cap. */
+			width: 100%;
+			max-width: 28rem;
+			align-self: center;
 		}
 		.controls {
 			order: 2;
@@ -2213,6 +2220,9 @@
 	}
 	.contrast-label {
 		color: var(--ghost);
+		/* "DARK ON LIGHT" is one reading; on a 320 px phone it split
+		 * after "ON". Wrap before the label, never inside it. */
+		white-space: nowrap;
 	}
 	.contrast-readout[data-state='low'] .contrast-value,
 	.contrast-readout[data-state='low'] .contrast-label {
@@ -2451,6 +2461,21 @@
 			padding-inline: 0.2rem;
 		}
 	}
+	/* Under 375 px (iPhone SE 1st gen, any iPhone under Display Zoom,
+	 * small Androids) the 3-, 4- and 5-up cells shrink below their
+	 * longest labels — "ROUNDED", "CLASSY+", "AUTO" ran into the
+	 * neighbouring cell. One more step down keeps every label inside. */
+	@media (max-width: 374px) {
+		.seg {
+			font-size: 13px;
+			letter-spacing: 0.06em;
+		}
+		.segmented.cols-4 .seg {
+			font-size: 12px;
+			letter-spacing: 0.04em;
+			padding-inline: 0.1rem;
+		}
+	}
 	/* Sub-360 px phones (iPhone SE 1st gen): one more step down. */
 	@media (max-width: 359px) {
 		.control-block legend {
@@ -2575,7 +2600,9 @@
 		border-radius: 50%;
 		cursor: pointer;
 	}
-	@media (max-width: 720px) {
+	/* Touch size follows the pointer, not the width: a tablet held
+	 * portrait is past 720 px and was getting the 14 px mouse thumb. */
+	@media (max-width: 720px), (pointer: coarse) {
 		.slider-field input[type='range'] {
 			height: 4px;
 		}

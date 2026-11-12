@@ -26,7 +26,7 @@
 		tr={{ rubric: 'SCALE', value: 'N · T · S' }}
 		bl={{ rubric: 'EDITION', value: `v${__APP_VERSION__}` }}
 		br={{ rubric: 'FILE', value: fileTag }}
-		rubric="ERRATUM · UNFILED REFERENCE"
+		rubric={'ERRATUM · UNFILED REFERENCE'}
 		title={`${message}.`}
 		sub="The URL you followed doesn’t match any plate in the index — likely a typo, an old link, or a path that never existed. The full drafting set is below; pick one up."
 	>

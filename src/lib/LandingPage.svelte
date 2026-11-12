@@ -63,7 +63,7 @@
 		tr={{ rubric: 'SCALE', value: '1 : 1' }}
 		bl={{ rubric: 'EDITION', value: `v${__APP_VERSION__}` }}
 		br={{ rubric: 'FILE', value: `KMK·QR·${plate}` }}
-		rubric={`FIGURE A · ${TYPE_LABELS[type]} ENCODE`}
+		rubric={`FIGURE A · ${TYPE_LABELS[type]} ENCODE`}
 		title={copy.h1}
 		sub={copy.sub}
 	>
