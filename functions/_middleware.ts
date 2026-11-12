@@ -5,9 +5,9 @@
  * excludes them, so a page load costs 2 Function invocations instead
  * of ~24 against the free tier's daily cap. A new top-level file in
  * `static/` needs an exclude entry there, or it costs an invocation
- * (behaviour is unaffected — `isPageView` still passes it through).
- * Emits one structured
- * JSON log line per page-view via `console.log`; the line lands in
+ * (behaviour is unaffected — `isPageView` still passes it through);
+ * `src/static-routes.test.ts` fails until the entry exists.
+ * Emits one structured JSON log line per page-view via `console.log`; the line lands in
  * the CF Pages deployment tail (free, 7-day retention) and can be
  * streamed live with:
  *

@@ -119,8 +119,9 @@
 		<p>
 			<span class="dropmark" aria-hidden="true">02</span>
 			If you upload a logo to embed in the QR, the file is read with the browser’s built-in
-			<code>FileReader</code>, kept in memory, and composited into the output. It is never uploaded
-			anywhere.
+			<code>FileReader</code> and composited into the output. It is never uploaded anywhere. So it
+			is still there after a reload, this browser keeps a copy in <code>localStorage</code> (logos up
+			to about 190 KB) until you press CLEAR or clear site data.
 		</p>
 		<p>
 			<span class="dropmark" aria-hidden="true">03</span>
@@ -166,8 +167,8 @@
 			The
 			<strong>AUTO</strong> setting in the generator picks
 			<strong>M</strong> as the everyday-default baseline and
-			<strong>H</strong> when a logo is embedded. For short payloads — most URLs, contact rows, brief text
-			— AUTO quietly takes the stronger
+			<strong>H</strong> when a logo is embedded. For short payloads — most URLs, contact rows,
+			brief text — AUTO quietly takes the stronger
 			<strong>Q</strong>
 			or <strong>H</strong> level when it fits in the same minimum version M would land on, free recovery
 			margin at no module-count cost. The logo case stays at H because the logo physically obscures part

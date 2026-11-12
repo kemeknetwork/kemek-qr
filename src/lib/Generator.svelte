@@ -296,6 +296,14 @@
 
 	let restored = false;
 
+	/* A share-link visit shows the sender's design "for that visit" (about
+	 * §03) — it must not overwrite the session or logo this browser saved.
+	 * Each hold records what the link showed; its autosave stays off while
+	 * the page still matches it and lets go at the visitor's first change.
+	 * null = not holding. */
+	let heldSession: string | null = null;
+	let heldLogo: { logo: string | null } | null = null;
+
 	/* User-facing fault text: `<what failed>: <why>` when the thrown
 	 * value carries a message, `<what failed>.` when it doesn't. */
 	const errorText = (what: string, err: unknown) =>
@@ -326,6 +334,8 @@
 				decodeError = "This share link couldn't be decoded — showing defaults instead.";
 				setTimeout(() => (decodeError = null), 8000);
 			}
+			heldSession = encodeSession(currentSnapshot());
+			heldLogo = { logo: logoDataUrl };
 		} else {
 			try {
 				const raw = localStorage.getItem(sessionKey);
@@ -359,6 +369,10 @@
 	$effect(() => {
 		const snapshot = currentSnapshot();
 		if (!restored) return;
+		if (heldSession !== null) {
+			if (encodeSession(snapshot) === heldSession) return;
+			heldSession = null;
+		}
 		const saveTimer = setTimeout(() => {
 			if (sessionSaveBroken) return;
 			try {
@@ -393,6 +407,10 @@
 		const logo = logoDataUrl;
 		const key = logoKey;
 		if (!restored) return;
+		if (heldLogo) {
+			if (logo === heldLogo.logo) return;
+			heldLogo = null;
+		}
 		try {
 			if (logo !== null && isStorableLogo(logo)) {
 				localStorage.setItem(key, logo);
