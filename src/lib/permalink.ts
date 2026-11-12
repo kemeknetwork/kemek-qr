@@ -238,7 +238,7 @@ function isOneOf<T extends string>(v: unknown, set: ReadonlySet<T>): v is T {
 	 * without per-site `as` casts. */
 	return typeof v === 'string' && (set as ReadonlySet<string>).has(v);
 }
-function isHexColor(v: unknown): v is string {
+export function isHexColor(v: unknown): v is string {
 	return typeof v === 'string' && HEX_RE.test(v);
 }
 function isNumberInRange(v: unknown, min: number, max: number): v is number {
@@ -331,6 +331,11 @@ function buildWire<T extends ContentType>(state: PermalinkState<T>, includeLogo:
 	return w;
 }
 
+/* `s=v1.<base64url JSON>` — the share-link fragment, without the `#`. */
+function wireHash<T extends ContentType>(state: PermalinkState<T>, includeLogo: boolean): string {
+	return `${SHARE_PREFIX}${toBase64Url(JSON.stringify(buildWire(state, includeLogo)))}`;
+}
+
 export type EncodeResult = {
 	hash: string;
 	url: string;
@@ -343,7 +348,7 @@ export function encodePermalink<T extends ContentType>(
 ): EncodeResult {
 	const stripped = baseUrl.split('#')[0];
 	const build = (includeLogo: boolean) => {
-		const hash = `${SHARE_PREFIX}${toBase64Url(JSON.stringify(buildWire(state, includeLogo)))}`;
+		const hash = wireHash(state, includeLogo);
 		return { hash, url: `${stripped}#${hash}` };
 	};
 	const withoutLogo = () => ({ ...build(false), logoDropped: !!state.logoDataUrl });
@@ -476,8 +481,7 @@ export function decodePermalink(hash: string): DecodedPermalink | null {
  * isStorableLogo). decodeSession still accepts the small logos older
  * sessions embedded. */
 export function encodeSession<T extends ContentType>(state: PermalinkState<T>): string {
-	const { hash } = encodePermalink({ ...state, logoDataUrl: null }, '');
-	return hash.slice(2); /* strip the 's=' prefix */
+	return wireHash(state, false).slice(2); /* strip the 's=' prefix */
 }
 
 export function decodeSession(raw: string): DecodedPermalink | null {

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { parseHex } from '$lib/contrast';
+	import { isHexColor } from '$lib/permalink';
 
 	type Props = {
 		value: string;
@@ -79,13 +80,11 @@
 			 * extension corruption, dev-tools edit, past-version
 			 * data shape) could slip through as `[1,2,3]` and
 			 * crash every downstream `.toUpperCase()` inside the
-			 * picker's reactive chain. Validate against the same
-			 * 6-digit hex regex the picker uses elsewhere. */
+			 * picker's reactive chain. Validate with the permalink
+			 * decoder's hex check. */
 			const parsed: unknown = JSON.parse(raw);
 			if (!Array.isArray(parsed)) return [];
-			return parsed
-				.filter((c): c is string => typeof c === 'string' && /^#[0-9A-F]{6}$/i.test(c))
-				.slice(0, SAVED_MAX);
+			return parsed.filter(isHexColor).slice(0, SAVED_MAX);
 		} catch {
 			/* saved is a luxury, not load-bearing */
 			return [];
@@ -94,7 +93,6 @@
 
 	onMount(() => {
 		hasEyeDropper = 'EyeDropper' in window;
-		saved = readSaved();
 	});
 
 	function rgbToHex(r: number, g: number, b: number): string {

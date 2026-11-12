@@ -80,7 +80,7 @@
 	/* Latches once the autosave write hits a non-quota exception so we
 	 * don't smash localStorage on every subsequent keystroke after the
 	 * subsystem proves degraded. Quota errors don't latch — those are
-	 * transient (trimming the logo lets the next write through). */
+	 * transient (storage can free up, and the next edit retries). */
 	let sessionSaveBroken = false;
 	let logoError = $state<string | null>(null);
 	let copyState = $state<'idle' | 'copied' | 'dropped' | 'manual'>('idle');
@@ -364,9 +364,9 @@
 			try {
 				localStorage.setItem(sessionKey, encodeSession(snapshot));
 			} catch (err) {
-				/* QuotaExceededError isn't latched: a session is at most
-				 * ~6 KB (encodeSession applies the share-link length cap,
-				 * logo included), so a quota error means storage is full or
+				/* QuotaExceededError isn't latched: a session is small (it
+				 * never carries the logo, which has its own slot), so a
+				 * quota error means storage is full or
 				 * zero-quota (some private-browsing modes) — conditions
 				 * that can clear, and the next edit retries silently. Any
 				 * other class (encoder bug, SecurityError from blocked
@@ -462,6 +462,12 @@
 		const file = input.files?.[0];
 		if (!file) return;
 		logoError = null;
+		/* Show why, and clear the input so picking the same file again
+		 * still fires a change event. */
+		const reject = (message: string) => {
+			logoError = message;
+			input.value = '';
+		};
 		/* Block SVG uploads. Render-time it's safe (qr-code-styling
 		 * embeds the logo via <svg:image href>, which sandboxes scripts
 		 * the same way <img src> does), but: (a) the SVG download path
@@ -475,22 +481,16 @@
 		 * lib/permalink.ts). Designers who need vector logos should
 		 * pre-rasterize. */
 		if (file.type === 'image/svg+xml') {
-			logoError = `${file.name}: SVG logos aren't supported — try PNG or WebP.`;
-			input.value = '';
-			return;
+			return reject(`${file.name}: SVG logos aren't supported — try PNG or WebP.`);
 		}
 		/* Same allowlist the permalink decoder enforces. The `accept`
 		 * attribute is only a picker hint — drag-and-drop and "All files"
 		 * bypass it. */
 		if (!(LOGO_MIME_TYPES as readonly string[]).includes(file.type)) {
-			logoError = `${file.name}: use a PNG, JPG, WebP or GIF image.`;
-			input.value = '';
-			return;
+			return reject(`${file.name}: use a PNG, JPG, WebP or GIF image.`);
 		}
 		if (file.size > MAX_LOGO_BYTES) {
-			logoError = `${file.name} is over 4 MB — pick a smaller image.`;
-			input.value = '';
-			return;
+			return reject(`${file.name} is over 4 MB — pick a smaller image.`);
 		}
 		const reader = new FileReader();
 		reader.onload = () => {
@@ -504,16 +504,10 @@
 				logoDataUrl = dataUrl;
 				logoName = file.name;
 			};
-			probe.onerror = () => {
-				logoError = `${file.name} couldn't be decoded as an image.`;
-				input.value = '';
-			};
+			probe.onerror = () => reject(`${file.name} couldn't be decoded as an image.`);
 			probe.src = dataUrl;
 		};
-		reader.onerror = reader.onabort = () => {
-			logoError = `Couldn't read ${file.name}.`;
-			input.value = '';
-		};
+		reader.onerror = reader.onabort = () => reject(`Couldn't read ${file.name}.`);
 		reader.readAsDataURL(file);
 	}
 
@@ -631,9 +625,25 @@
 		return { fontPx, labelBand: Math.round(fontPx * 2.38) };
 	}
 
+	/* Load the frame-label font before anything measures or draws with
+	 * it. Canvas font lookup is synchronous: if the woff2 isn't fetched
+	 * yet, the XL fit is measured — and the PNG label drawn — in the
+	 * OS fallback. computeFrameLayout awaits this, so every framed
+	 * export has the font before its first measurement. */
+	async function loadFrameFont() {
+		const primaryFamily = FRAME_LABEL_FONT_FAMILY[frameLabelFont].split(',')[0];
+		try {
+			await document.fonts.load(`500 16px ${primaryFamily}`);
+		} catch {
+			/* document.fonts not present (very old browser) — accept
+			 * fallback rendering rather than aborting the export. */
+		}
+	}
+
 	/* Single source for frame geometry — PNG (canvas), SVG (string), and
 	 * PDF (re-embeds the PNG) must agree pixel-for-pixel. */
-	function computeFrameLayout(qrSize: number, label: string) {
+	async function computeFrameLayout(qrSize: number, label: string) {
+		await loadFrameFont();
 		const padding = Math.round(qrSize * 0.05);
 		const borderWidth = Math.max(2, Math.round(qrSize * 0.008));
 		const totalW = qrSize + padding * 2;
@@ -661,24 +671,9 @@
 	 * QR centered, stroke a border, then render the label centered
 	 * below in the foreground color. Returns a Blob; caller triggers
 	 * the download. */
-	/* Load the frame-label font before anything measures or draws with
-	 * it. Canvas font lookup is synchronous: if the woff2 isn't fetched
-	 * yet, the XL fit is measured — and the PNG label drawn — in the
-	 * OS fallback. Every framed export awaits this first. */
-	async function loadFrameFont() {
-		const primaryFamily = FRAME_LABEL_FONT_FAMILY[frameLabelFont].split(',')[0];
-		try {
-			await document.fonts.load(`500 16px ${primaryFamily}`);
-		} catch {
-			/* document.fonts not present (very old browser) — accept
-			 * fallback rendering rather than aborting the export. */
-		}
-	}
-
 	async function composeFramedPng(qrBlob: Blob, qrSize: number, label: string): Promise<Blob> {
 		const img = await blobToImage(qrBlob);
-		await loadFrameFont();
-		const { padding, borderWidth, half, fontPx, labelY, totalW, totalH } = computeFrameLayout(
+		const { padding, borderWidth, half, fontPx, labelY, totalW, totalH } = await computeFrameLayout(
 			qrSize,
 			label
 		);
@@ -755,19 +750,31 @@
 	 * "Download failed:" branch. */
 	class QrExportError extends Error {}
 
+	/* Render the current QR at an export size: canvas → PNG, svg → SVG.
+	 * getRawData, not the library's download(): past the canvas limit
+	 * download() saves an empty `data:,` file without a word, while
+	 * getRawData returns null and the user gets told why. */
+	async function rasterize(
+		Exporter: typeof QRCodeStyling,
+		size: number,
+		kind: 'svg' | 'canvas',
+		failMessage: string
+	): Promise<Blob> {
+		const exporter = new Exporter(buildOpts(size, kind));
+		const blob = (await exporter.getRawData(kind === 'svg' ? 'svg' : 'png')) as Blob | null;
+		if (!blob) throw new QrExportError(failMessage);
+		return blob;
+	}
+
 	async function downloadPNG() {
 		if (!QRCodeStylingClass) return;
 		const exportSize = PNG_SIZE_PX[pngSize];
-		const exporter = new QRCodeStylingClass(buildOpts(exportSize, 'canvas'));
-		/* getRawData, not the library's download(): past the canvas
-		 * limit download() saves an empty `data:,` file without a word,
-		 * while getRawData returns null and the user gets told why. */
-		const blob = (await exporter.getRawData('png')) as Blob | null;
-		if (!blob) {
-			throw new QrExportError(
-				'PNG rasterization exceeded the canvas size limit on this device. Try a smaller size.'
-			);
-		}
+		const blob = await rasterize(
+			QRCodeStylingClass,
+			exportSize,
+			'canvas',
+			'PNG rasterization exceeded the canvas size limit on this device. Try a smaller size.'
+		);
 		triggerDownload(
 			frameEnabled ? await composeFramedPng(blob, exportSize, frameLabel) : blob,
 			'kemek-qr.png'
@@ -777,8 +784,8 @@
 	/* Uses DOMParser to inject the qr-code-styling SVG as a nested
 	 * <svg> element inside the outer frame — browsers and most SVG
 	 * viewers render nested <svg> correctly. */
-	function composeFramedSvg(qrSvgText: string, qrSize: number, label: string): string {
-		const { padding, borderWidth, half, fontPx, labelY, totalW, totalH } = computeFrameLayout(
+	async function composeFramedSvg(qrSvgText: string, qrSize: number, label: string) {
+		const { padding, borderWidth, half, fontPx, labelY, totalW, totalH } = await computeFrameLayout(
 			qrSize,
 			label
 		);
@@ -813,12 +820,14 @@
 	async function downloadSVG() {
 		if (!QRCodeStylingClass) return;
 		const exportSize = 1024;
-		const exporter = new QRCodeStylingClass(buildOpts(exportSize, 'svg'));
-		const blob = (await exporter.getRawData('svg')) as Blob | null;
-		if (!blob) throw new QrExportError('SVG rasterization returned no data.');
+		const blob = await rasterize(
+			QRCodeStylingClass,
+			exportSize,
+			'svg',
+			'SVG rasterization returned no data.'
+		);
 		const text = await blob.text();
-		if (frameEnabled) await loadFrameFont();
-		const finalText = frameEnabled ? composeFramedSvg(text, exportSize, frameLabel) : text;
+		const finalText = frameEnabled ? await composeFramedSvg(text, exportSize, frameLabel) : text;
 		const finalBlob = new Blob([finalText], { type: 'image/svg+xml' });
 		triggerDownload(finalBlob, 'kemek-qr.svg');
 	}
@@ -842,13 +851,12 @@
 		const pdfDocument = import('pdf-lib').then(({ PDFDocument }) => PDFDocument);
 		pdfDocument.catch(() => {});
 		const exportSize = 2048;
-		const exporter = new QRCodeStylingClass(buildOpts(exportSize, 'canvas'));
-		const qrBlob = (await exporter.getRawData('png')) as Blob | null;
-		if (!qrBlob) {
-			throw new QrExportError(
-				'PDF QR rasterization exceeded the canvas size limit on this device. Try a different format.'
-			);
-		}
+		const qrBlob = await rasterize(
+			QRCodeStylingClass,
+			exportSize,
+			'canvas',
+			'PDF QR rasterization exceeded the canvas size limit on this device. Try a different format.'
+		);
 		const png = frameEnabled ? await composeFramedPng(qrBlob, exportSize, frameLabel) : qrBlob;
 
 		const PDFDocument = await pdfDocument;

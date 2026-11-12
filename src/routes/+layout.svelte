@@ -113,10 +113,9 @@
 	/* The plate the current route draws, or null off the generator
 	 * (/about, the 404) — the nav must not mark URL as the current page
 	 * on a page that isn't one. */
-	const activeType = $derived.by(() => {
-		const path = page.url.pathname.replace(/(.)\/$/, '$1');
-		return CONTENT_TYPES.find((t) => ROUTE_FOR_TYPE[t] === path) ?? null;
-	});
+	const activeType = $derived(
+		CONTENT_TYPES.find((t) => ROUTE_FOR_TYPE[t] === page.route.id) ?? null
+	);
 
 	/* The colophon-link sits at the bottom of every page; SvelteKit's
 	 * default scroll-restoration sometimes lands /about at a stale
