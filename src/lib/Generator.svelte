@@ -2197,8 +2197,11 @@
 	}
 	.contrast-readout {
 		display: flex;
+		/* Wraps between parts, so the nowrap label drops to its own line
+		 * on a narrow phone instead of widening the column. */
+		flex-wrap: wrap;
 		align-items: baseline;
-		gap: 0.45rem;
+		gap: 0.15rem 0.45rem;
 		font-family: var(--font-mono);
 		font-size: var(--fs-help);
 		letter-spacing: 0.05em;
@@ -2221,7 +2224,7 @@
 	.contrast-label {
 		color: var(--ghost);
 		/* "DARK ON LIGHT" is one reading; on a 320 px phone it split
-		 * after "ON". Wrap before the label, never inside it. */
+		 * after "ON". The readout wraps before the label, never inside. */
 		white-space: nowrap;
 	}
 	.contrast-readout[data-state='low'] .contrast-value,
