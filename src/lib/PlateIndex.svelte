@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { LANDING_COPY } from './landing-copy';
+	import { PLATE_TITLES } from './landing-copy';
 	import { CONTENT_TYPES, PLATE, ROUTE_FOR_TYPE, TYPE_LABELS, type ContentType } from './types';
 
 	type Props = {
@@ -26,7 +26,7 @@
 
 <ol class="plate-index" class:compact>
 	{#each CONTENT_TYPES as t}
-		{@const o = LANDING_COPY[t]}
+		{@const o = PLATE_TITLES[t]}
 		{@const isCurrent = t === current}
 		<li class:is-current={isCurrent}>
 			<a href={ROUTE_FOR_TYPE[t]} aria-current={isCurrent ? 'page' : undefined}>

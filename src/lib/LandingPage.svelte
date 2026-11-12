@@ -4,11 +4,12 @@
 	import PlateIndex from './PlateIndex.svelte';
 	import QRAnatomy from './QRAnatomy.svelte';
 	import TitleBlock from './TitleBlock.svelte';
-	import { LANDING_COPY } from './landing-copy';
-	import { PLATE, ROUTE_FOR_TYPE, TYPE_LABELS, type ContentType } from './types';
+	import { PLATE_TITLES, type LandingCopy } from './landing-copy';
+	import { PLATE, ROUTE_FOR_TYPE, TYPE_LABELS } from './types';
 
-	let { type }: { type: ContentType } = $props();
-	const copy = $derived(LANDING_COPY[type]);
+	let { copy }: { copy: LandingCopy } = $props();
+	const type = $derived(copy.type);
+	const h1 = $derived(PLATE_TITLES[type].h1);
 	const plate = $derived(PLATE[type]);
 
 	const SITE = 'https://qr.kemek.com';
@@ -17,7 +18,7 @@
 	const jsonLd = $derived({
 		'@context': 'https://schema.org',
 		'@type': 'WebApplication',
-		name: copy.h1,
+		name: h1,
 		description: copy.metaDesc,
 		url: canonicalUrl,
 		applicationCategory: 'UtilitiesApplication',
@@ -64,7 +65,7 @@
 		bl={{ rubric: 'EDITION', value: `v${__APP_VERSION__}` }}
 		br={{ rubric: 'FILE', value: `KMK·QR·${plate}` }}
 		rubric={`FIGURE A · ${TYPE_LABELS[type]} ENCODE`}
-		title={copy.h1}
+		title={h1}
 		sub={copy.sub}
 	>
 		<div class="hero-cta-wrap">

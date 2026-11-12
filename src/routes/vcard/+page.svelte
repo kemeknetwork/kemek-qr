@@ -1,5 +1,6 @@
 <script lang="ts">
 	import LandingPage from '$lib/LandingPage.svelte';
+	import copy from '$lib/copy/vcard';
 </script>
 
-<LandingPage type="vcard" />
+<LandingPage {copy} />
