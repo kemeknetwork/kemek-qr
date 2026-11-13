@@ -1,7 +1,7 @@
 {
 	"name": "kemek-qr",
 	"private": true,
-	"version": "0.34.41",
+	"version": "0.34.42",
 	"license": "MIT",
 	"type": "module",
 	"scripts": {

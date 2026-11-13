@@ -432,6 +432,32 @@
 		}
 	});
 
+	/* qr-code-styling waits on the logo's `onload` and has no error path,
+	 * so a logo that won't decode leaves the preview blank and every
+	 * export pending until the logo changes. Uploads are probed before
+	 * they land, but a saved slot or a share link can carry any
+	 * well-formed data URL — so every logo is probed here, and one that
+	 * fails is removed, which lets the engine redraw without it. */
+	$effect(() => {
+		const src = logoDataUrl;
+		if (src === null) return;
+		let current = true;
+		const probe = new Image();
+		probe.onerror = () => {
+			if (!current) return;
+			/* A share link's broken logo must not release the hold on the
+			 * visitor's own saved one. */
+			if (heldLogo?.logo === src) heldLogo = { logo: null };
+			logoDataUrl = null;
+			logoName = null;
+			logoError = "The logo couldn't be decoded as an image, so it was removed.";
+		};
+		probe.src = src;
+		return () => {
+			current = false;
+		};
+	});
+
 	/* Debounce QR re-renders so a typing burst coalesces into one update.
 	 * 80ms is long enough to swallow back-to-back keystrokes (~16 cps
 	 * average) and short enough that the preview still feels live.

@@ -276,3 +276,68 @@ describe('Generator share-link visit', () => {
 		flushSync();
 	}
 });
+
+/* qr-code-styling has no error path for a logo that won't decode — the
+ * preview stays blank and exports never settle. A saved slot or a share
+ * link can carry any well-formed data URL, so a logo must decode before
+ * it is kept. */
+describe('Generator undecodable logo', () => {
+	let target: HTMLElement;
+	const BROKEN = 'data:image/png;base64,AAAA';
+	const GOOD = 'data:image/png;base64,iVBORw0KGgo=';
+
+	class ProbeImage {
+		onload: (() => void) | null = null;
+		onerror: (() => void) | null = null;
+		set src(value: string) {
+			queueMicrotask(() => (value === BROKEN ? this.onerror?.() : this.onload?.()));
+		}
+	}
+
+	beforeEach(() => {
+		localStorage.clear();
+		vi.stubGlobal('Image', ProbeImage);
+		target = document.createElement('div');
+		document.body.appendChild(target);
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+		history.replaceState(null, '', '/');
+		target.remove();
+	});
+
+	it('drops a saved logo that will not decode, and forgets it', async () => {
+		localStorage.setItem('kemek-qr:logo:url', BROKEN);
+		const app = mount(Generator, { target, props: { type: 'url' } });
+		flushSync();
+		await vi.waitFor(() =>
+			expect(target.querySelector('.logo-error')?.textContent).toContain("couldn't be decoded")
+		);
+		expect(target.querySelector('.logo-clear')).toBeNull();
+		expect(localStorage.getItem('kemek-qr:logo:url')).toBeNull();
+		unmount(app);
+	});
+
+	it("drops a share link's broken logo but keeps the visitor's saved one", async () => {
+		localStorage.setItem('kemek-qr:logo:url', GOOD);
+		const link = encodePermalink(
+			{
+				...DEFAULT_STYLING,
+				type: 'url',
+				content: { url: 'https://x.example/' },
+				logoDataUrl: BROKEN
+			},
+			'https://qr.kemek.com/'
+		);
+		expect(link.logoDropped).toBe(false);
+		history.replaceState(null, '', `/#${link.hash}`);
+		const app = mount(Generator, { target, props: { type: 'url' } });
+		flushSync();
+		await vi.waitFor(() =>
+			expect(target.querySelector('.logo-error')?.textContent).toContain("couldn't be decoded")
+		);
+		expect(localStorage.getItem('kemek-qr:logo:url')).toBe(GOOD);
+		unmount(app);
+	});
+});
