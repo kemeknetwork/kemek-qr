@@ -563,8 +563,8 @@
 
 	/* Copy a string to the clipboard with a layered fallback chain.
 	 * navigator.clipboard requires a secure context (HTTPS or
-	 * localhost) and a fresh user gesture. On insecure origins (LAN
-	 * IP via tailscale, file://, older iOS Safari) it throws or is
+	 * localhost) and a fresh user gesture. On insecure origins (a
+	 * LAN IP over plain HTTP, file://, older iOS Safari) it throws or is
 	 * undefined — fall back to the legacy execCommand path via a
 	 * temporary textarea. Returns true if either path succeeded. */
 	async function clipboardCopy(text: string): Promise<boolean> {
