@@ -31,6 +31,7 @@
 	} from '$lib/permalink';
 	import { encode } from '$lib/encoders';
 	import { capacityVersionFor, type EccLevel } from '$lib/qr-capacity';
+	import { toQrByteString } from '$lib/qr-bytes';
 	import ColorPicker from '$lib/ColorPicker.svelte';
 	import { contrastBand, contrastRatio, effectiveFg, isInverted } from '$lib/contrast';
 	import { DEFAULT_CONTENT, TYPE_LABELS, type ContentMap, type ContentType } from '$lib/types';
@@ -191,7 +192,7 @@
 			width: size,
 			height: size,
 			type: kind,
-			data: qrData,
+			data: toQrByteString(qrData),
 			image: logoDataUrl ?? undefined,
 			margin: qrMargin(size),
 			qrOptions: { errorCorrectionLevel: resolvedECC },
