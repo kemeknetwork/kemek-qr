@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import QRCodeStyling from 'qr-code-styling';
 import { toQrByteString } from './qr-bytes';
 
 const codes = (s: string) => [...s].map((c) => c.charCodeAt(0));
@@ -30,5 +31,25 @@ describe('toQrByteString', () => {
 			expect(out.length).toBe(new TextEncoder().encode(s).length);
 			expect(new TextDecoder().decode(Uint8Array.from(codes(out)))).toBe(s);
 		}
+	});
+});
+
+/* toQrByteString is only correct while the library truncates each code
+ * unit to its low byte. If an upgrade made it encode UTF-8 itself, every
+ * non-ASCII code would be encoded twice (`é` → C3 A9 → C3 83 C2 A9) with
+ * the tests above still green. */
+describe('qr-code-styling byte conversion', () => {
+	const matrix = (data: string) => {
+		const qr = new QRCodeStyling({ type: 'svg', data })._qr!;
+		const n = qr.getModuleCount();
+		return Array.from({ length: n }, (_, r) =>
+			Array.from({ length: n }, (_, c) => qr.isDark(r, c))
+		);
+	};
+
+	it('keeps only the low byte of each code unit', () => {
+		const checkMark = '✓'; // U+2713
+		expect(matrix(checkMark)).toEqual(matrix(String.fromCharCode(0x13)));
+		expect(matrix(checkMark)).not.toEqual(matrix(String.fromCharCode(0x14)));
 	});
 });
