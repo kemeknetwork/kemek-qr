@@ -150,9 +150,10 @@ async function rasterize(svg, size, dest) {
 		.toFile(dest);
 }
 
-/* OG card stays at native dimensions (1200×630). Density 144 gives
- * sharp enough sub-pixel detail for the outlined Fraunces glyphs +
- * downscaled QR PNG to rasterize cleanly. We pass the file path
+/* OG card is laid out at 1200×630; density 144 (2× sharp's 72 DPI
+ * default) rasterizes it at 2400×1260, which keeps the outlined
+ * Fraunces glyphs + downscaled QR PNG clean. og:image:width/height
+ * in +layout.svelte declare the 2× size. We pass the file path
  * (not an in-memory buffer) so librsvg resolves the relative
  * `<image href="brand/qr.png">` against static/'s directory. */
 await sharp('static/og.svg', { density: 144 }).png().toFile('static/og.png');

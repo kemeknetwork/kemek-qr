@@ -145,15 +145,15 @@
 
 	<!-- Identity / publisher. kVadrum is the creative author
 	     (rel="author", rel="me", DC.creator); KeMeK Network is the
-	     publisher / legal entity carrying the copyright + the
-	     wordmark + logo trademarks (rel="publisher", DC.publisher,
+	     publisher / legal entity holding the copyright + all
+	     rights in the wordmark + logo (rel="publisher", DC.publisher,
 	     DC.rights). The Schema.org Organization JSON-LD at the
 	     bottom of this head spells out the same relationship in
 	     a machine-graph-friendly form. -->
 	<meta name="application-name" content="kemek/qr" />
 	<meta name="author" content="kVadrum" />
 	<meta name="publisher" content="KeMeK Network" />
-	<meta name="copyright" content="© 2026 KeMeK Network" />
+	<meta name="copyright" content="KeMeK Network © 2026" />
 	<meta name="generator" content="SvelteKit" />
 	<link rel="author" href="https://kvadrum.com" />
 	<link rel="publisher" href="https://kemek.com" />
@@ -168,7 +168,7 @@
 	<meta name="DC.title" content="kemek/qr" />
 	<meta name="DC.creator" content="kVadrum" />
 	<meta name="DC.publisher" content="KeMeK Network" />
-	<meta name="DC.rights" content="© 2026 KeMeK Network" />
+	<meta name="DC.rights" content="KeMeK Network © 2026" />
 	<meta name="DC.identifier" content="https://qr.kemek.com" />
 	<meta name="DC.language" content="en" />
 	<meta name="DC.type" content="InteractiveResource" />
@@ -210,15 +210,17 @@
 	<meta name="apple-mobile-web-app-title" content="kemek/qr" />
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-	<!-- OG image (1200×630). Per-page og:title / og:description /
-	     og:url / og:type live in the page's own svelte:head. -->
+	<!-- OG image: a 1200×630 card rendered at 2× (2400×1260).
+	     og:site_name lives here only. Per-page og:title /
+	     og:description / og:url / og:type live in the page's own
+	     svelte:head. -->
 	<meta property="og:site_name" content="kemek/qr" />
 	<meta property="og:locale" content="en_US" />
 	<meta property="og:image" content="https://qr.kemek.com/og.png" />
 	<meta property="og:image:secure_url" content="https://qr.kemek.com/og.png" />
 	<meta property="og:image:type" content="image/png" />
-	<meta property="og:image:width" content="1200" />
-	<meta property="og:image:height" content="630" />
+	<meta property="og:image:width" content="2400" />
+	<meta property="og:image:height" content="1260" />
 	<meta
 		property="og:image:alt"
 		content="kemek/qr — a free, browser-only QR code generator from KeMeK Network. Drafting-spec card with corner crop marks and dimensional metadata."

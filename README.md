@@ -113,25 +113,25 @@ Hash-only (never query string — the hash isn't sent over the network even in C
 - **Zero outbound network requests during QR generation.** Open DevTools → Network panel → generate a QR → see nothing.
 - **Logo files read locally.** `FileReader` + Canvas. Never uploaded.
 - **No client-side analytics.** No Google Analytics, no Plausible, no Umami — nothing that injects a script tag and pings a server while you generate.
-- **No cookies, no third-party scripts.** First-party page-view counter (KV-backed, server-side only) tracks aggregate visits to the marketing pages. Generator pages stay clean.
+- **No cookies, no third-party scripts.** A first-party pageview counter runs server-side only (Cloudflare KV): the edge counts page requests in aggregate, and your browser only reads the total for the footer.
 - **Repo is open-source MIT.** [View the source](https://github.com/kemeknetwork/kemek-QR) and verify the claims.
 
 ---
 
 ## Performance
 
-Lighthouse mobile audit on the live deployment (last run May 2026 at v0.34.25):
+Lighthouse 13.6 on the live deployment (November 2026, v0.34.42):
 
-| Category       | Score   |
-| -------------- | ------- |
-| Performance    | **88**  |
-| Accessibility  | **100** |
-| Best Practices | **100** |
-| SEO            | **100** |
+| Category       | Mobile  | Desktop |
+| -------------- | ------- | ------- |
+| Performance    | **100** | **100** |
+| Accessibility  | **100** | **100** |
+| Best Practices | **100** | **100** |
+| SEO            | **100** | **100** |
 
-LCP 3.4s · FCP 2.5s · CLS 0 · TBT 10ms. Desktop audit on the same revision lands at Perf 99 · A11y 100 · BP 100 · SEO 100 (LCP 0.9s · FCP 0.8s · CLS 0 · TBT 0ms). Dark mode tested separately and lands at the same scores with zero color-contrast audits firing.
+Mobile: LCP 1.2s · FCP 1.2s · CLS 0 · TBT 0–10ms. Desktop: LCP 0.3s · FCP 0.3s · CLS 0 · TBT 0ms. Lighthouse 13.6 simulates mobile LCP well below 13.5 on the same build, so compare these only with other 13.6 runs.
 
-Production bundle is ~80 KB of JS gzipped + WOFF2 font subsets preloaded for LCP. `qr-code-styling` runs on the main thread (small enough; the QR render is < 16 ms even on mid-range mobile).
+First load is ~60 KB of JS gzipped + WOFF2 font subsets preloaded for LCP. `qr-code-styling` loads on demand and runs on the main thread (small enough; the QR render is < 16 ms even on mid-range mobile).
 
 ---
 
@@ -155,7 +155,7 @@ The CSS is part of the product feel; a free utility doesn't need a framework's o
 
 ## Develop
 
-Requires Node 20+. No global tooling needed.
+Requires Node 20.19+ or 22.12+ (Vite 8). No global tooling needed.
 
 ```sh
 git clone https://github.com/kemeknetwork/kemek-QR.git
@@ -171,7 +171,7 @@ npm run preview      # local preview of production build
 npm run build:images # regenerate static/*.png from SVG masters
 ```
 
-Tests cover the encoders (URL / text / WiFi / vCard / email / SMS / phone / geo), the permalink wire-format round-trip, and the WCAG contrast math. UI is not unit-tested (Svelte components verified visually).
+Tests cover the encoders (URL / text / WiFi / vCard / email / SMS / phone / geo), the permalink wire-format round-trip, QR capacity, the WCAG contrast math, the Pages Functions route exclusions, and two component behaviours (shared saved colors, session autosave). Rendering is verified in a browser, not unit-tested.
 
 ---
 
@@ -253,13 +253,11 @@ What's permanently out: dynamic QRs, scan analytics, accounts, API tier, paid fe
 
 ## Brand
 
-The brand kit lives in [`static/brand/`](static/brand) and is shared under
-the same MIT license as the code, with one carve-out:
-
-> **The "KeMeK Network" name and the brand mark are trademarks.**
-> The code is MIT — fork freely. The brand is not — your fork is your
-> brand, not ours. See [`static/brand/USAGE.md`](static/brand/USAGE.md)
-> for the trademark + attribution guidance.
+The brand kit lives in [`static/brand/`](static/brand). The code is
+MIT — fork freely. The names and the mark are not (see
+[Names and logos](#names-and-logos)): your fork is your brand, not
+ours. [`static/brand/USAGE.md`](static/brand/USAGE.md) covers
+attribution.
 
 The mark is the three QR-style finder eyes plus a quincunx of data
 cells in the bottom-right quadrant. The wordmark is `kemek/qr` set in
@@ -269,10 +267,14 @@ JetBrains Mono.
 
 ## License
 
-`Copyright © 2026 KeMeK Network — MIT License`
+[MIT](LICENSE) — fork, modify, ship, sell. KeMeK Network © 2026.
 
-Code under [MIT](LICENSE) — fork, modify, ship, sell. Brand and
-trademark carve-out under [`static/brand/USAGE.md`](static/brand/USAGE.md).
+### Names and logos
+
+The "KeMeK Network" and "kemek-qr" names and the kemek-qr mark
+(`static/brand/`) are not covered by this repository's licenses.
+KeMeK Network reserves all rights in them. Independent forks must
+replace the name and logo with their own.
 
 ---
 

@@ -36,7 +36,6 @@
 	<meta property="og:title" content={title} />
 	<meta property="og:description" content={description} />
 	<meta property="og:url" content={canonicalUrl} />
-	<meta property="og:site_name" content="KeMeK QR" />
 	<meta name="twitter:title" content={title} />
 	<meta name="twitter:description" content={description} />
 	{@html `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`}

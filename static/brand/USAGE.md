@@ -1,9 +1,10 @@
 # kemek-qr — brand usage
 
 The `kemek-qr` code is MIT-licensed — fork, modify, ship, sell. The
-**brand is not**: the name "KeMeK Network" and the brand mark
-(three QR-style finder eyes + a quincunx of data cells in the BR
-quadrant) are trademarks of KeMeK Network.
+**brand is not**: the "KeMeK Network" and "kemek-qr" names and the
+kemek-qr mark (three QR-style finder eyes + a quincunx of data cells
+in the BR quadrant) are not covered by this repository's licenses.
+KeMeK Network reserves all rights in them.
 
 You can use the brand assets in this folder for two purposes only:
 
@@ -19,8 +20,6 @@ You cannot:
 - Modify the mark and present it as the kemek-qr mark.
 - Use the assets in a way that implies endorsement of your product
   by KeMeK Network.
-- Apply for trademark registration on the mark or the name in any
-  jurisdiction.
 
 When in doubt: your fork is your brand, not ours. Rename, redesign,
 ship.
@@ -211,13 +210,13 @@ Or short form:
 
 > QR by [kemek-qr](https://qr.kemek.com).
 
-The trademark notice that should accompany any commercial use of
-the brand assets:
+The notice that should accompany any commercial use of the brand
+assets:
 
-> "KeMeK Network" and the kemek-qr mark are trademarks of
+> The "KeMeK Network" name and the kemek-qr mark belong to
 > KeMeK Network. Used with permission.
 
 ---
 
-`Copyright © 2026 KeMeK Network. Brand assets distributed under
-trademark carve-out (above); code under [MIT](../../LICENSE).`
+`KeMeK Network © 2026. Names and mark: all rights reserved (see
+above); code under [MIT](../../LICENSE).`

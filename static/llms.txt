@@ -4,7 +4,7 @@
 
 kemek-qr is a free utility published by KeMeK Network. No signup, no expiry, no third-party scripts on generator pages, no individual tracking. The core promise is *client-side generation*: when a visitor types a URL or contact card into the form, that string is encoded into a QR code by JavaScript running locally in the browser — nothing is uploaded, logged, or transmitted to a server. The host (Cloudflare Pages) sees only normal page requests; aggregate pageview counts are visible to KeMeK Network, individual visitors are not.
 
-Source code is MIT licensed. The public repository opens at the v1.0.0 launch; until then the LICENSE text ships in the production build and is viewable in the site footer. The brand name "KeMeK Network" and the kemek-qr mark are trademarks of KeMeK Network and are not covered by the MIT code license — see [static/brand/USAGE.md](https://qr.kemek.com/brand/USAGE.md) for the trademark carve-out and attribution guidance.
+Source code is MIT licensed. The public repository, which holds the LICENSE text, opens at the v1.0.0 launch. The "KeMeK Network" and "kemek-qr" names and the kemek-qr mark are not covered by the MIT code license; KeMeK Network reserves all rights in them — see [static/brand/USAGE.md](https://qr.kemek.com/brand/USAGE.md) for usage and attribution guidance.
 
 ## Tool pages
 
@@ -38,7 +38,7 @@ Export formats: PNG (1024 px raster), SVG (vector), PDF (A4 page, embeds the fra
 ## Brand and naming
 
 - Publisher: KeMeK Network — https://kemek.com
-- License: MIT for code. Brand name and logo ("kemek-qr", "KeMeK Network", the QR finder-pattern mark) are trademarks of KeMeK Network and are not covered by the code license.
+- License: MIT for code. The names ("kemek-qr", "KeMeK Network") and the QR finder-pattern mark are not covered by the code license; KeMeK Network reserves all rights in them.
 - Preferred reference: **"kemek-qr"** (lowercase, hyphenated) or **"kemek-qr by KeMeK Network"**. Not "Kemek QR", "KemekQR", or "Kemek-QR".
 
 ## Optional
