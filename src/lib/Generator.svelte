@@ -306,9 +306,19 @@
 	let heldLogo: { logo: string | null } | null = null;
 
 	/* User-facing fault text: `<what failed>: <why>` when the thrown
-	 * value carries a message, `<what failed>.` when it doesn't. */
-	const errorText = (what: string, err: unknown) =>
-		err instanceof Error ? `${what}: ${err.message}` : `${what}.`;
+	 * value carries a message, `<what failed>.` when it doesn't.
+	 * qr-code-styling throws bare strings, not Errors, so a string is a
+	 * message too. Its capacity overflow is the one fault a visitor
+	 * causes and can fix, so it reads as what to do rather than the
+	 * library's bit counts; if the library rewords it, the raw text
+	 * still shows. */
+	const errorText = (what: string, err: unknown) => {
+		if (err instanceof Error) return `${what}: ${err.message}`;
+		if (typeof err === 'string' && err.startsWith('code length overflow'))
+			return `${what}: too much content for one QR code. Shorten it to draw one.`;
+		if (typeof err === 'string' && err) return `${what}: ${err}`;
+		return `${what}.`;
+	};
 
 	onMount(async () => {
 		/* Share-shaped hash takes priority over session storage so a
@@ -356,10 +366,22 @@
 		try {
 			const m = await import('qr-code-styling');
 			QRCodeStylingClass = m.default;
-			qrInstance = new QRCodeStylingClass(buildOpts());
+			/* Built without data, because the constructor draws and drawing
+			 * throws on text past a QR code's capacity, which a share link or
+			 * saved session can hold. That throw would leave qrInstance null,
+			 * and the render effect's guard would then turn away every later
+			 * edit. The first draw goes through update() below instead, which
+			 * can fail without losing the instance. */
+			qrInstance = new QRCodeStylingClass({ ...buildOpts(), data: undefined });
 			qrInstance.append(qrContainer);
 		} catch (err) {
 			engineError = errorText('QR engine failed to load', err);
+			return;
+		}
+		try {
+			qrInstance.update(buildOpts());
+		} catch (err) {
+			engineError = errorText('QR render failed', err);
 		}
 	});
 
@@ -1063,7 +1085,7 @@
 				<span class="crop crop-tr" aria-hidden="true"></span>
 				<span class="crop crop-bl" aria-hidden="true"></span>
 				<span class="crop crop-br" aria-hidden="true"></span>
-				<div class="specimen-stage">
+				<div class="specimen-stage" class:faulted={engineError}>
 					<div
 						class="qr-frame"
 						class:qr-frame-on={frameEnabled}
@@ -1866,6 +1888,14 @@
 		display: grid;
 		place-items: center;
 		min-width: 0;
+	}
+	/* The error overlay fills the stage, which takes its height from the
+	 * drawn QR. A draw that failed leaves the mount empty (the library
+	 * clears it before it throws), so hold the QR's square while the
+	 * error shows; the frame's overflow: hidden would otherwise clip the
+	 * message to nothing. Load and the drawn layout are untouched. */
+	.specimen-stage.faulted .qr-mount:empty {
+		aspect-ratio: 1;
 	}
 	/* qr-code-styling generates an <svg> with intrinsic width/height
 	 * attributes (width: 480 in our buildOpts). Without min-width:0 on

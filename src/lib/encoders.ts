@@ -145,9 +145,9 @@ const ENCODERS: EncoderTable = {
  * (`\ud800`) that no keyboard or TextDecoder produces. encodeURIComponent
  * throws URIError on one, so every string field is made well-formed here,
  * once, before any encoder sees it, not at each percent-encoding site.
- * The UTF-8 round trip swaps a stray half for U+FFFD, which is the byte
- * sequence TextEncoder writes into the QR for it anyway, and leaves
- * well-formed text alone. `ignoreBOM` is what keeps that true of a field
+ * The UTF-8 round trip swaps a stray half for U+FFFD, the same
+ * replacement TextEncoder makes when the QR's bytes are written, and
+ * leaves well-formed text alone. `ignoreBOM` is what keeps that true of a field
  * starting with U+FEFF: by default decode() strips it, which would
  * silently change the SSID or password a WiFi code carries. */
 const utf8Encoder = new TextEncoder();

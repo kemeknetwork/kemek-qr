@@ -148,7 +148,9 @@ const MAX_PAYLOAD_LEN = 8192;
  * cleanly and then crashes the QR encoder downstream. 4 KB is room
  * for every realistic content type (URLs ~ 2 KB practical, vCard
  * fields << 256, SMS body 1 KB) and an order of magnitude under the
- * MAX_PAYLOAD_LEN total. */
+ * MAX_PAYLOAD_LEN total. The cap bounds work, not QR capacity: a value
+ * under it can still be too long for any QR code, which the Generator
+ * reports as a render error and recovers from on the next edit. */
 const MAX_CONTENT_FIELD_LEN = 4096;
 
 /* Logo data-URL allowlist. The receiver embeds whatever data URL

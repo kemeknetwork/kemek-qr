@@ -32,9 +32,11 @@ describe('Generator QR payload', () => {
 		field.dispatchEvent(new Event('input', { bubbles: true }));
 		flushSync();
 
-		await vi.waitFor(() => expect(update.mock.calls.at(-1)?.[0]?.data).toBeDefined());
-		const sent = update.mock.calls.at(-1)![0]!.data!;
-		expect([...sent].map((c) => c.charCodeAt(0))).toEqual([...new TextEncoder().encode(text)]);
+		/* The mount draws the placeholder first, so wait for the edit's
+		 * draw rather than any draw that carries data. */
+		const units = () =>
+			[...(update.mock.calls.at(-1)?.[0]?.data ?? '')].map((c) => c.charCodeAt(0));
+		await vi.waitFor(() => expect(units()).toEqual([...new TextEncoder().encode(text)]));
 		unmount(app);
 	});
 });
