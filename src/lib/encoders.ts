@@ -1,10 +1,12 @@
 /* Pure encoders: ContentType payload → QR data string.
  *
- * Through `encode`, every encoder is total: empty/missing fields produce
- * a syntactically valid (if semantically empty) QR payload — never
- * throws. The caller decides whether the output is meaningful. Called
- * directly, an encoder that percent-encodes still throws on a lone
- * surrogate; `encode` is where those are made well-formed.
+ * Through `encode`, every encoder is total over a complete content
+ * object: empty fields produce a syntactically valid (if semantically
+ * empty) QR payload — never throws. A missing field does throw; the
+ * Generator always merges content over its defaults. The caller decides
+ * whether the output is meaningful. Called directly, an encoder that
+ * percent-encodes still throws on a lone surrogate; `encode` is where
+ * those are made well-formed.
  *
  * Format references:
  *   WiFi:  WIFI:T:<auth>;S:<ssid>;P:<pwd>;H:<true|>;;
@@ -144,9 +146,12 @@ const ENCODERS: EncoderTable = {
  * throws URIError on one, so every string field is made well-formed here,
  * once, before any encoder sees it, not at each percent-encoding site.
  * The UTF-8 round trip swaps a stray half for U+FFFD, which is the byte
- * sequence TextEncoder writes into the QR for it anyway. */
+ * sequence TextEncoder writes into the QR for it anyway, and leaves
+ * well-formed text alone. `ignoreBOM` is what keeps that true of a field
+ * starting with U+FEFF: by default decode() strips it, which would
+ * silently change the SSID or password a WiFi code carries. */
 const utf8Encoder = new TextEncoder();
-const utf8Decoder = new TextDecoder();
+const utf8Decoder = new TextDecoder('utf-8', { ignoreBOM: true });
 
 function wellFormed<C extends object>(content: C): C {
 	const out: Record<string, unknown> = {};

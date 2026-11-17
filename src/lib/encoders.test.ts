@@ -168,32 +168,56 @@ describe('encode dispatcher', () => {
 	 * runtime so no editor or transport can normalise it away. */
 	const half = String.fromCharCode(0xd800) + 'x' + String.fromCharCode(0xdc00);
 	const replaced = '�x�';
-	const isWellFormed = (s: string) => new TextDecoder().decode(new TextEncoder().encode(s)) === s;
-	const everyFieldBroken: { [T in ContentType]: ContentMap[T] } = {
-		url: { url: half },
-		text: { text: half },
-		wifi: { ssid: half, password: half, auth: 'WPA', hidden: true },
+	const everyField = (s: string): { [T in ContentType]: ContentMap[T] } => ({
+		url: { url: s },
+		text: { text: s },
+		wifi: { ssid: s, password: s, auth: 'WPA', hidden: true },
 		vcard: {
-			firstName: half,
-			lastName: half,
-			org: half,
-			title: half,
-			phone: half,
-			email: half,
-			url: half,
-			address: half
+			firstName: s,
+			lastName: s,
+			org: s,
+			title: s,
+			phone: s,
+			email: s,
+			url: s,
+			address: s
 		},
-		email: { to: half, subject: half, body: half },
-		sms: { number: half, body: half },
-		phone: { number: half },
-		geo: { lat: half, lon: half, query: half }
-	};
+		email: { to: s, subject: s, body: s },
+		sms: { number: s, body: s },
+		phone: { number: s },
+		geo: { lat: s, lon: s, query: s }
+	});
+	const types = Object.keys(everyField('')) as ContentType[];
 
-	it.each(Object.keys(everyFieldBroken) as ContentType[])(
-		'never throws on a lone surrogate, and emits well-formed text (%s)',
+	it.each(types)('never throws on a lone surrogate, and emits well-formed text (%s)', (type) => {
+		/* The built-in check, not a UTF-8 round trip: that is what encode
+		 * itself uses, so it would share any blind spot of the fix. */
+		expect(encode(type, everyField(half)[type]).isWellFormed()).toBe(true);
+	});
+
+	/* Well-formed text must come out exactly as the encoder alone would
+	 * write it. A leading U+FEFF is in the sample because a default
+	 * TextDecoder strips one, which would silently change a WiFi SSID. */
+	const direct: { [T in ContentType]: (c: ContentMap[T]) => string } = {
+		url: encodeUrl,
+		text: encodeText,
+		wifi: encodeWifi,
+		vcard: encodeVCard,
+		email: encodeEmail,
+		sms: encodeSms,
+		phone: encodePhone,
+		geo: encodeGeo
+	};
+	const sample = everyField(String.fromCharCode(0xfeff) + 'Zoë’s café — ✓ 😀 中文');
+	function viaBoth<T extends ContentType>(type: T): [string, string] {
+		return [encode(type, sample[type]), direct[type](sample[type])];
+	}
+
+	it.each(types)(
+		'passes well-formed text through unchanged, a leading U+FEFF included (%s)',
 		(type) => {
-			const out = encode(type, everyFieldBroken[type]);
-			expect(isWellFormed(out)).toBe(true);
+			const [dispatched, alone] = viaBoth(type);
+			expect(dispatched).toBe(alone);
 		}
 	);
 
@@ -201,12 +225,6 @@ describe('encode dispatcher', () => {
 		expect(encode('text', { text: half })).toBe(replaced);
 		expect(encode('email', { to: half, subject: '', body: '' })).toBe(
 			`mailto:${encodeURIComponent(replaced)}`
-		);
-	});
-
-	it('leaves a complete surrogate pair alone', () => {
-		expect(encode('geo', { lat: '1', lon: '2', query: '😀' })).toBe(
-			`geo:1,2?q=${encodeURIComponent('😀')}`
 		);
 	});
 
