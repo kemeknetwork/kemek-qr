@@ -10,6 +10,7 @@ import {
 	encodeVCard,
 	encodeWifi
 } from './encoders';
+import type { ContentMap, ContentType } from './types';
 
 describe('encodeUrl', () => {
 	it('returns the trimmed URL string', () => {
@@ -161,5 +162,57 @@ describe('encode dispatcher', () => {
 		expect(encode('url', { url: 'https://x' })).toBe('https://x');
 		expect(encode('phone', { number: '+1' })).toBe('tel:+1');
 		expect(encode('text', { text: 'plain' })).toBe('plain');
+	});
+
+	/* A share link's JSON can carry half a surrogate pair. Built at
+	 * runtime so no editor or transport can normalise it away. */
+	const half = String.fromCharCode(0xd800) + 'x' + String.fromCharCode(0xdc00);
+	const replaced = '�x�';
+	const isWellFormed = (s: string) => new TextDecoder().decode(new TextEncoder().encode(s)) === s;
+	const everyFieldBroken: { [T in ContentType]: ContentMap[T] } = {
+		url: { url: half },
+		text: { text: half },
+		wifi: { ssid: half, password: half, auth: 'WPA', hidden: true },
+		vcard: {
+			firstName: half,
+			lastName: half,
+			org: half,
+			title: half,
+			phone: half,
+			email: half,
+			url: half,
+			address: half
+		},
+		email: { to: half, subject: half, body: half },
+		sms: { number: half, body: half },
+		phone: { number: half },
+		geo: { lat: half, lon: half, query: half }
+	};
+
+	it.each(Object.keys(everyFieldBroken) as ContentType[])(
+		'never throws on a lone surrogate, and emits well-formed text (%s)',
+		(type) => {
+			const out = encode(type, everyFieldBroken[type]);
+			expect(isWellFormed(out)).toBe(true);
+		}
+	);
+
+	it('replaces a stray half with U+FFFD, as TextEncoder would', () => {
+		expect(encode('text', { text: half })).toBe(replaced);
+		expect(encode('email', { to: half, subject: '', body: '' })).toBe(
+			`mailto:${encodeURIComponent(replaced)}`
+		);
+	});
+
+	it('leaves a complete surrogate pair alone', () => {
+		expect(encode('geo', { lat: '1', lon: '2', query: '😀' })).toBe(
+			`geo:1,2?q=${encodeURIComponent('😀')}`
+		);
+	});
+
+	it('does not mutate the content it was given', () => {
+		const content = { text: half };
+		encode('text', content);
+		expect(content.text).toBe(half);
 	});
 });

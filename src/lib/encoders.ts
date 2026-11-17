@@ -1,8 +1,10 @@
 /* Pure encoders: ContentType payload → QR data string.
  *
- * Each function is total: empty/missing fields produce a syntactically
- * valid (if semantically empty) QR payload — never throws. The caller
- * decides whether the output is meaningful.
+ * Through `encode`, every encoder is total: empty/missing fields produce
+ * a syntactically valid (if semantically empty) QR payload — never
+ * throws. The caller decides whether the output is meaningful. Called
+ * directly, an encoder that percent-encodes still throws on a lone
+ * surrogate; `encode` is where those are made well-formed.
  *
  * Format references:
  *   WiFi:  WIFI:T:<auth>;S:<ssid>;P:<pwd>;H:<true|>;;
@@ -137,6 +139,23 @@ const ENCODERS: EncoderTable = {
 	geo: encodeGeo
 };
 
+/* A share link is JSON, and JSON can spell half of a surrogate pair
+ * (`\ud800`) that no keyboard or TextDecoder produces. encodeURIComponent
+ * throws URIError on one, so every string field is made well-formed here,
+ * once, before any encoder sees it, not at each percent-encoding site.
+ * The UTF-8 round trip swaps a stray half for U+FFFD, which is the byte
+ * sequence TextEncoder writes into the QR for it anyway. */
+const utf8Encoder = new TextEncoder();
+const utf8Decoder = new TextDecoder();
+
+function wellFormed<C extends object>(content: C): C {
+	const out: Record<string, unknown> = {};
+	for (const [key, value] of Object.entries(content)) {
+		out[key] = typeof value === 'string' ? utf8Decoder.decode(utf8Encoder.encode(value)) : value;
+	}
+	return out as C;
+}
+
 export function encode<T extends ContentType>(type: T, content: ContentMap[T]): string {
-	return ENCODERS[type](content);
+	return ENCODERS[type](wellFormed(content));
 }
