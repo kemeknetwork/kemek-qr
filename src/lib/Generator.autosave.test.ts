@@ -60,6 +60,7 @@ describe('Generator session autosave', () => {
 		const raw = localStorage.getItem('kemek-qr:session:url');
 		expect(raw).not.toBeNull();
 		expect(decodeSession(raw!)?.content).toEqual({ url: 'https://example.com/typed' });
+		expect(target.querySelector('.save-note')).toBeNull();
 		unmount(app);
 	});
 

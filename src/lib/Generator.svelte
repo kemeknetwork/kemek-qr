@@ -82,11 +82,14 @@
 	 * false-positive. Auto-clears so a transient mis-share doesn't
 	 * haunt the page after the user has moved on. */
 	let decodeError = $state<string | null>(null);
-	/* Latches once the autosave write hits a non-quota exception so we
-	 * don't smash localStorage on every subsequent keystroke after the
-	 * subsystem proves degraded. Quota errors don't latch — those are
-	 * transient (storage can free up, and the next edit retries). */
-	let sessionSaveBroken = false;
+	/* Latches once the autosave write hits a non-quota exception, so
+	 * localStorage isn't retried on every keystroke once it has refused,
+	 * and drives the note under the action row for the rest of the visit.
+	 * Quota errors don't latch: storage can free up, and the next edit
+	 * retries. Not engineError: the page works without storage (it only
+	 * loses this design on reload), so it is a note, not a fault
+	 * (base.md § Signal design), and every draw clears engineError. */
+	let sessionSaveBroken = $state(false);
 	let logoError = $state<string | null>(null);
 	let copyState = $state<'idle' | 'copied' | 'dropped' | 'manual'>('idle');
 	let copyTimer: ReturnType<typeof setTimeout> | null = null;
@@ -415,17 +418,13 @@
 				 * quota error means storage is full or
 				 * zero-quota (some private-browsing modes) — conditions
 				 * that can clear, and the next edit retries silently. Any
-				 * other class (encoder bug, SecurityError from blocked
-				 * storage policy) is a real subsystem fault — latch the
-				 * broken flag so we stop retrying on every keystroke and
-				 * surface it once via engineError. */
+				 * other class (in practice a SecurityError, or a TypeError
+				 * from a null localStorage, when the browser blocks site
+				 * storage) won't clear this visit, so it latches. */
 				const isQuota =
 					err instanceof DOMException &&
 					(err.name === 'QuotaExceededError' || err.name === 'NS_ERROR_DOM_QUOTA_REACHED');
-				if (!isQuota) {
-					sessionSaveBroken = true;
-					engineError = errorText('Session autosave broken', err);
-				}
+				if (!isQuota) sessionSaveBroken = true;
 			}
 		}, SAVE_DEBOUNCE_MS);
 		return () => clearTimeout(saveTimer);
@@ -1251,6 +1250,18 @@
 					address bar — select it and copy by hand.
 				</p>
 			{/if}
+			<!-- Always mounted, like the stage status: a polite live region
+			     is announced when its contents change, and often not when it
+			     arrives already filled. Last in the column, so its arrival
+			     a second after load moves nothing on the page. -->
+			<div class="save-status" class:filled={sessionSaveBroken} role="status">
+				{#if sessionSaveBroken}
+					<p class="save-note">
+						This browser didn't allow saving this design, so it won't be here after a reload. Copy
+						the link to come back to it.
+					</p>
+				{/if}
+			</div>
 		</div>
 	</div>
 
@@ -2825,13 +2836,26 @@
 		border-color: color-mix(in srgb, var(--frame-fg), transparent 50%);
 	}
 	/* Same voice as .ecc-hint: informational, not an error. */
-	.logo-note {
+	.logo-note,
+	.save-note {
 		font-family: var(--font-mono);
 		font-size: var(--fs-help);
 		color: var(--ghost);
 		line-height: 1.4;
 		letter-spacing: 0.02em;
 		margin: 0.6rem 0 0;
+	}
+	/* The column's gap already spaces it. pretty keeps a last word from
+	 * standing alone at phone width; an enhancement, above the floor. */
+	.save-note {
+		margin: 0;
+		text-wrap: pretty;
+	}
+	/* Empty, the region stays in the accessibility tree, so the note is
+	 * announced when it arrives, but out of the column's flow, so it
+	 * adds no gap below the buttons. */
+	.save-status:not(.filled) {
+		position: absolute;
 	}
 	.logo-error {
 		font-family: var(--font-mono);
