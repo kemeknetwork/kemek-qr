@@ -198,8 +198,10 @@ describe('encode dispatcher', () => {
 	);
 
 	/* Well-formed text must come out exactly as the encoder alone would
-	 * write it. A leading U+FEFF is in the sample because a default
-	 * TextDecoder strips one, which would silently change a WiFi SSID. */
+	 * write it. A leading U+FEFF is in the sample because the first fix
+	 * here, a UTF-8 round trip, dropped one (a default TextDecoder strips
+	 * it), which silently changed a WiFi SSID; this keeps any such
+	 * reimplementation honest. */
 	const direct: { [T in ContentType]: (c: ContentMap[T]) => string } = {
 		url: encodeUrl,
 		text: encodeText,
