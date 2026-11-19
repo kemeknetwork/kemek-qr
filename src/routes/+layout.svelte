@@ -436,9 +436,15 @@
 		min-height: 100vh;
 		display: grid;
 		grid-template-rows: auto 1fr auto;
-		/* Defense-in-depth: prevent any descendant from forcing the layout
-		 * box wider than the viewport. min-width:0 keeps the implicit grid
-		 * track from picking up content's min-content as a floor. */
+		/* No descendant may make the page wider than the viewport. The
+		 * frame's own min/max-width bound only its box: an implicit
+		 * column is `auto`, which grows to the widest row's min-content
+		 * and overflows the frame (html clips it). The plate index's
+		 * 4 × 2 grid did that at a 320 px window with a classic
+		 * scrollbar: a 319 px column in a 305 px frame laid the masthead
+		 * and the generator out 14 px too wide, their right edge clipped.
+		 * minmax(0, 1fr) caps the column at the frame. */
+		grid-template-columns: minmax(0, 1fr);
 		max-width: 100%;
 		min-width: 0;
 	}
