@@ -40,14 +40,20 @@ describe('Generator restoring text too long for any QR code', () => {
 		target.remove();
 	});
 
+	/* Too much text is the visitor's to fix, not a fault: it reads as a
+	 * status note, never the PROTOCOL ERROR alert, and download is off
+	 * until the code can be drawn. */
+	const note = () => target.querySelector('[role=status]')?.textContent ?? '';
+	const download = () => target.querySelector<HTMLButtonElement>('button.download')!;
+
 	it.each(Object.keys(restoreFrom))('draws again once the text fits, after %s', async (source) => {
 		restoreFrom[source as keyof typeof restoreFrom]();
 		const update = vi.spyOn(QRCodeStyling.prototype, 'update');
 		const app = mount(Generator, { target, props: { type: 'text' } });
 		flushSync();
-		await vi.waitFor(() =>
-			expect(target.textContent).toContain('too much content for one QR code')
-		);
+		await vi.waitFor(() => expect(note()).toContain('Too much content for one QR'));
+		expect(target.querySelector('[role=alert]')).toBeNull();
+		expect(download().disabled).toBe(true);
 
 		const field = target.querySelector<HTMLTextAreaElement>('textarea')!;
 		field.value = 'hi';
@@ -55,9 +61,8 @@ describe('Generator restoring text too long for any QR code', () => {
 		flushSync();
 
 		await vi.waitFor(() => expect(update.mock.calls.at(-1)?.[0]?.data).toBe('hi'));
-		await vi.waitFor(() =>
-			expect(target.textContent).not.toContain('too much content for one QR code')
-		);
+		await vi.waitFor(() => expect(note()).not.toContain('Too much content'));
+		expect(download().disabled).toBe(false);
 		unmount(app);
 	});
 });

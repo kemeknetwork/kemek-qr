@@ -70,6 +70,10 @@
 	let exportFormat = $state<'png' | 'svg' | 'pdf'>('png');
 	let exporting = $state(false);
 	let engineError = $state<string | null>(null);
+	/* Text past a QR code's capacity is the one draw failure a visitor
+	 * causes and can fix by editing, so it is guidance on the empty
+	 * plate, not an engine fault (base.md § Signal design). */
+	let overCapacity = $state(false);
 	/* Soft-warn surface for "the URL had a share-shaped hash
 	 * (`#s=v1.…`) but the decoder rejected it" — distinct from
 	 * engineError (runtime fault) because this is a structural input
@@ -311,17 +315,16 @@
 	/* User-facing fault text: `<what failed>: <why>` when the thrown
 	 * value carries a message, `<what failed>.` when it doesn't.
 	 * qr-code-styling throws bare strings, not Errors, so a string is a
-	 * message too. Its capacity overflow is the one fault a visitor
-	 * causes and can fix, so it reads as what to do rather than the
-	 * library's bit counts; if the library rewords it, the raw text
-	 * still shows. */
+	 * message too. */
 	const errorText = (what: string, err: unknown) => {
 		if (err instanceof Error) return `${what}: ${err.message}`;
-		if (typeof err === 'string' && err.startsWith('code length overflow'))
-			return `${what}: too much content for one QR code. Shorten it to draw one.`;
 		if (typeof err === 'string' && err) return `${what}: ${err}`;
 		return `${what}.`;
 	};
+	/* The library's capacity throw, in its own words. If it rewords it,
+	 * the text falls through to the fault channel raw, not lost. */
+	const isOverCapacity = (err: unknown) =>
+		typeof err === 'string' && err.startsWith('code length overflow');
 
 	onMount(async () => {
 		/* Share-shaped hash takes priority over session storage so a
@@ -506,6 +509,7 @@
 			 * fault leaves the PROTOCOL ERROR overlay latched even
 			 * after the user's next edit lands a valid render. */
 			engineError = null;
+			overCapacity = false;
 			qrInstance?.update(opts);
 		} catch (err) {
 			/* qr-code-styling throws synchronously on text past a QR
@@ -514,7 +518,8 @@
 			 * corrupted permalink). Uncaught, the throw lands in the
 			 * timer callback, vanishes to window.onerror, and the
 			 * preview blanks silently. */
-			engineError = errorText('QR render failed', err);
+			if (isOverCapacity(err)) overCapacity = true;
+			else engineError = errorText('QR render failed', err);
 		}
 	}
 
@@ -976,6 +981,10 @@
 			 * prefix it so it's distinguishable in DevTools. */
 			if (err instanceof QrExportError) {
 				engineError = err.message;
+			} else if (isOverCapacity(err)) {
+				/* Only reachable inside the render debounce: once the
+				 * preview has drawn the overflow, the button is off. */
+				overCapacity = true;
 			} else {
 				engineError = errorText('Download failed', err);
 			}
@@ -1086,12 +1095,17 @@
 				<span class="crop crop-tr" aria-hidden="true"></span>
 				<span class="crop crop-bl" aria-hidden="true"></span>
 				<span class="crop crop-br" aria-hidden="true"></span>
-				<div class="specimen-stage" class:faulted={engineError}>
+				<div
+					class="specimen-stage"
+					class:overlaid={engineError || overCapacity}
+					class:over-capacity={overCapacity && !engineError}
+					class:framed={frameEnabled}
+					style:--frame-fg={fgColor}
+					style:--frame-bg={bgColor}
+				>
 					<div
 						class="qr-frame"
 						class:qr-frame-on={frameEnabled}
-						style:--frame-fg={fgColor}
-						style:--frame-bg={bgColor}
 						style:--label-ratio-s={FRAME_LABEL_RATIOS.S}
 						style:--label-ratio-m={FRAME_LABEL_RATIOS.M}
 						style:--label-ratio-l={FRAME_LABEL_RATIOS.L}
@@ -1115,6 +1129,11 @@
 						<div class="engine-error" role="alert">
 							<span class="engine-error-eyebrow">PROTOCOL ERROR</span>
 							<p>{engineError}</p>
+						</div>
+					{:else if overCapacity}
+						<div class="engine-error capacity-note" role="status">
+							<span class="engine-error-eyebrow">OVER CAPACITY</span>
+							<p>Too much content for one QR&nbsp;code. Shorten it to draw one.</p>
 						</div>
 					{/if}
 					{#if decodeError}
@@ -1184,7 +1203,7 @@
 					class="download"
 					type="button"
 					onclick={downloadActive}
-					disabled={exporting}
+					disabled={exporting || overCapacity}
 					aria-busy={exporting}
 				>
 					<span class="download-label">
@@ -1890,13 +1909,26 @@
 		place-items: center;
 		min-width: 0;
 	}
-	/* The error overlay fills the stage, which takes its height from the
-	 * drawn QR. A draw that failed leaves the mount empty (the library
-	 * clears it before it throws), so hold the QR's square while the
-	 * error shows; the frame's overflow: hidden would otherwise clip the
+	/* The overlay fills the stage, which takes its height from the drawn
+	 * QR. A draw that failed leaves the mount empty (the library clears
+	 * it before it throws), so hold the QR's square while the overlay
+	 * shows; the frame's overflow: hidden would otherwise clip the
 	 * message to nothing. Load and the drawn layout are untouched. */
-	.specimen-stage.faulted .qr-mount:empty {
+	.specimen-stage.overlaid .qr-mount:empty {
 		aspect-ratio: 1;
+	}
+	/* Over capacity, the empty plate keeps the code's print area,
+	 * dashed like the quiet-zone line in the anatomy figure and inset
+	 * by the same 5 % margin a drawn code sits in: the code goes here
+	 * once it fits. (A pseudo-element leaves the mount :empty.) */
+	.specimen-stage.over-capacity .qr-mount:empty {
+		position: relative;
+	}
+	.specimen-stage.over-capacity .qr-mount:empty::before {
+		content: '';
+		position: absolute;
+		inset: 5%;
+		border: 1px dashed var(--rule-strong);
 	}
 	/* qr-code-styling generates an <svg> with intrinsic width/height
 	 * attributes (width: 480 in our buildOpts). Without min-width:0 on
@@ -2180,6 +2212,10 @@
 	.download:disabled {
 		opacity: 0.55;
 		cursor: progress;
+	}
+	/* Off because nothing can be drawn (over capacity), not busy. */
+	.download:disabled:not([aria-busy='true']) {
+		cursor: not-allowed;
 	}
 	@media (max-width: 520px) {
 		.download {
@@ -2705,6 +2741,10 @@
 		inset: 0;
 		display: grid;
 		place-items: center;
+		/* Eyebrow and message as one block: without it the two rows
+		 * split the stage, and on desktop the eyebrow floated ~200 px
+		 * above the sentence it labels. */
+		align-content: center;
 		gap: 0.4rem;
 		padding: 1.5rem;
 		text-align: center;
@@ -2727,6 +2767,7 @@
 		margin: 0;
 		line-height: 1.5;
 		max-width: 32ch;
+		text-wrap: balance;
 	}
 	/* Soft-warn variant. Lower visual weight than the runtime-fault
 	 * .engine-error (uses --ghost color instead of --accent-deep) so
@@ -2737,6 +2778,28 @@
 	}
 	.engine-error.decode-error .engine-error-eyebrow {
 		color: var(--ink-soft);
+	}
+	/* Over capacity: an instruction on the empty plate, not a fault.
+	 * No veil (there is no code under it to dim, and the dashed print
+	 * area should show), ink for the sentence the visitor acts on. */
+	.engine-error.capacity-note {
+		background: none;
+		color: var(--ink);
+	}
+	.engine-error.capacity-note .engine-error-eyebrow {
+		color: var(--ghost);
+	}
+	/* A frame paints the plate in the code's own colours, light even in
+	 * dark mode, so on a framed plate the note and the print area take
+	 * the code's ink, not the theme's. (Weights match --ghost / --rule-strong.) */
+	.specimen-stage.framed .capacity-note {
+		color: var(--frame-fg);
+	}
+	.specimen-stage.framed .capacity-note .engine-error-eyebrow {
+		color: color-mix(in srgb, var(--frame-fg), transparent 22%);
+	}
+	.specimen-stage.over-capacity.framed .qr-mount:empty::before {
+		border-color: color-mix(in srgb, var(--frame-fg), transparent 50%);
 	}
 	/* Same voice as .ecc-hint: informational, not an error. */
 	.logo-note {
