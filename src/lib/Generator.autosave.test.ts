@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 import { flushSync, mount, unmount } from 'svelte';
+import QRCodeStyling from 'qr-code-styling';
 import Generator from './Generator.svelte';
 import { DEFAULT_STYLING, decodeSession, encodePermalink, encodeSession } from './permalink';
 
@@ -74,6 +75,54 @@ describe('Generator session autosave', () => {
 
 		const raw = localStorage.getItem('kemek-qr:session:wifi');
 		expect(decodeSession(raw!)?.content).toMatchObject({ ssid: 'CafeNet' });
+		unmount(app);
+	});
+});
+
+/* Blocked site storage is a note, not a fault, and the note must outlive
+ * every redraw (the slow-library first draw is in
+ * Generator.blocked-storage.test.ts, which has to hold the import). */
+describe('Generator with site storage blocked', () => {
+	let target: HTMLElement;
+	let setItem: MockInstance;
+	let update: MockInstance;
+
+	/* The constructor calls update() with no data; a draw is a call with some. */
+	const draws = () => update.mock.calls.filter((call) => call[0]?.data).length;
+	const note = () => target.querySelector('.save-status[role=status]')?.textContent ?? '';
+
+	beforeEach(() => {
+		setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+			throw new DOMException('The operation is insecure.', 'SecurityError');
+		});
+		update = vi.spyOn(QRCodeStyling.prototype, 'update');
+		vi.useFakeTimers();
+		target = document.createElement('div');
+		document.body.appendChild(target);
+	});
+
+	afterEach(() => {
+		setItem.mockRestore();
+		update.mockRestore();
+		vi.useRealTimers();
+		target.remove();
+	});
+
+	it('keeps the note through later edits, and stops trying to save', async () => {
+		const app = mount(Generator, { target, props: { type: 'url' } });
+		flushSync();
+		await vi.waitFor(() => expect(draws()).toBeGreaterThan(0), { timeout: 5000 });
+		await vi.advanceTimersByTimeAsync(1500);
+		expect(note()).toContain("This browser didn't allow saving this design");
+		const saves = setItem.mock.calls.length;
+		const before = draws();
+
+		type(target.querySelector<HTMLInputElement>('input[type=url]')!, 'https://example.com/edited');
+		await vi.advanceTimersByTimeAsync(1500);
+
+		expect(draws()).toBeGreaterThan(before);
+		expect(note()).toContain("This browser didn't allow saving this design");
+		expect(setItem.mock.calls.length).toBe(saves);
 		unmount(app);
 	});
 });
