@@ -190,8 +190,9 @@ describe('encode dispatcher', () => {
 	it.each(CONTENT_TYPES)(
 		'never throws on a lone surrogate, and emits well-formed text (%s)',
 		(type) => {
-			/* The built-in check, not a UTF-8 round trip: that is what encode
-			 * itself uses, so it would share any blind spot of the fix. */
+			/* isWellFormed is toWellFormed's own twin, so this only shows
+			 * every field of every type is reached; the exact replacement
+			 * is pinned against literal text further down. */
 			expect(encode(type, everyField(half)[type]).isWellFormed()).toBe(true);
 		}
 	);

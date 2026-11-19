@@ -145,18 +145,15 @@ const ENCODERS: EncoderTable = {
  * (`\ud800`) that no keyboard or TextDecoder produces. encodeURIComponent
  * throws URIError on one, so every string field is made well-formed here,
  * once, before any encoder sees it, not at each percent-encoding site.
- * The UTF-8 round trip swaps a stray half for U+FFFD, the same
- * replacement TextEncoder makes when the QR's bytes are written, and
- * leaves well-formed text alone. `ignoreBOM` is what keeps that true of a field
- * starting with U+FEFF: by default decode() strips it, which would
- * silently change the SSID or password a WiFi code carries. */
-const utf8Encoder = new TextEncoder();
-const utf8Decoder = new TextDecoder('utf-8', { ignoreBOM: true });
-
+ * toWellFormed swaps a stray half for U+FFFD, the same replacement
+ * TextEncoder makes when the QR's bytes are written, and leaves
+ * well-formed text alone, a leading U+FEFF included. It is the newest
+ * API here, so it sets the JavaScript side of the browser floor in
+ * vite.config.ts; below that floor this would throw on every call. */
 function wellFormed<C extends object>(content: C): C {
 	const out: Record<string, unknown> = {};
 	for (const [key, value] of Object.entries(content)) {
-		out[key] = typeof value === 'string' ? utf8Decoder.decode(utf8Encoder.encode(value)) : value;
+		out[key] = typeof value === 'string' ? value.toWellFormed() : value;
 	}
 	return out as C;
 }
