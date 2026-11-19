@@ -30,7 +30,7 @@
 		type PngSize
 	} from '$lib/permalink';
 	import { encode } from '$lib/encoders';
-	import { capacityVersionFor, type EccLevel } from '$lib/qr-capacity';
+	import { capacityVersionFor, overCapacityAdvice, type EccLevel } from '$lib/qr-capacity';
 	import { toQrByteString } from '$lib/qr-bytes';
 	import ColorPicker from '$lib/ColorPicker.svelte';
 	import { contrastBand, contrastRatio, effectiveFg, isInverted } from '$lib/contrast';
@@ -190,6 +190,13 @@
 	let qrBytes = $derived(toQrByteString(qrData));
 	let encodedBytes = $derived(qrBytes.length);
 	let resolvedECC = $derived(resolveEcc(errorCorrection, logoDataUrl !== null, encodedBytes));
+	let capacityAdvice = $derived(
+		overCapacityAdvice(
+			encodedBytes,
+			resolvedECC,
+			logoDataUrl !== null && errorCorrection === 'auto'
+		)
+	);
 
 	/* The preview renders 480 px SVG; each export passes its own size and
 	 * renderer, and the quiet-zone margin scales with the size. */
@@ -1130,18 +1137,24 @@
 							<span class="engine-error-eyebrow">PROTOCOL ERROR</span>
 							<p>{engineError}</p>
 						</div>
-					{:else if overCapacity}
-						<div class="engine-error capacity-note" role="status">
-							<span class="engine-error-eyebrow">OVER CAPACITY</span>
-							<p>Too much content for one QR&nbsp;code. Shorten it to draw one.</p>
-						</div>
 					{/if}
-					{#if decodeError}
-						<div class="engine-error decode-error" role="status">
-							<span class="engine-error-eyebrow">LINK NOT ON FILE</span>
-							<p>{decodeError}</p>
-						</div>
-					{/if}
+					<!-- Always mounted: a polite live region is announced when
+					     its contents change, and often not when it arrives
+					     already filled. -->
+					<div class="stage-status" role="status">
+						{#if overCapacity && !engineError}
+							<div class="engine-error capacity-note">
+								<span class="engine-error-eyebrow">OVER CAPACITY</span>
+								<p>Too much content for one QR&nbsp;code. {capacityAdvice}</p>
+							</div>
+						{/if}
+						{#if decodeError}
+							<div class="engine-error decode-error">
+								<span class="engine-error-eyebrow">LINK NOT ON FILE</span>
+								<p>{decodeError}</p>
+							</div>
+						{/if}
+					</div>
 				</div>
 			</div>
 		</div>
@@ -2109,11 +2122,11 @@
 			border-color var(--duration-fast) var(--ease);
 		box-shadow: 0 12px 24px -16px rgba(0, 0, 0, 0.5);
 	}
-	.download:hover {
+	.download:not(:disabled):hover {
 		background: var(--accent);
 		border-color: var(--accent);
 	}
-	.download:active {
+	.download:not(:disabled):active {
 		transform: translateY(1px);
 	}
 	.download-size {
@@ -2133,7 +2146,7 @@
 		line-height: 1;
 		transition: transform var(--duration-base) var(--ease);
 	}
-	.download:hover .download-arrow {
+	.download:not(:disabled):hover .download-arrow {
 		transform: translateY(2px);
 	}
 
@@ -2736,6 +2749,16 @@
 	}
 
 	/* ─── Error states ───────────────────────────────────── */
+	/* Fills the stage so its notes cover it as the alert does; empty,
+	 * it must not swallow clicks. */
+	.stage-status {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+	}
+	.stage-status > * {
+		pointer-events: auto;
+	}
 	.engine-error {
 		position: absolute;
 		inset: 0;

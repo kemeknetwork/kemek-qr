@@ -69,3 +69,16 @@ export function capacityVersionFor(bytes: number, ecc: EccLevel): number | null 
 	}
 	return null;
 }
+
+/* The fix to offer someone whose text overflowed one QR code at `ecc`.
+ * A second lever is named only when this table, the worst case, proves
+ * the text fits once it is pulled, so the advice is never wrong; when
+ * none does, shortening is the only fix. `logoForcesH` is AUTO with a
+ * logo, where removing the logo drops the level to M on its own. */
+export function overCapacityAdvice(bytes: number, ecc: EccLevel, logoForcesH: boolean): string {
+	if (logoForcesH && capacityVersionFor(bytes, 'M') !== null)
+		return 'Shorten it, or remove the logo to draw one.';
+	if (ecc !== 'L' && capacityVersionFor(bytes, 'L') !== null)
+		return 'Shorten it, or lower the error correction to draw one.';
+	return 'Shorten it to draw one.';
+}

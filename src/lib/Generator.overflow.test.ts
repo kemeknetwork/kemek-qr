@@ -42,8 +42,11 @@ describe('Generator restoring text too long for any QR code', () => {
 
 	/* Too much text is the visitor's to fix, not a fault: it reads as a
 	 * status note, never the PROTOCOL ERROR alert, and download is off
-	 * until the code can be drawn. */
-	const note = () => target.querySelector('[role=status]')?.textContent ?? '';
+	 * until the code can be drawn. The status region is in place, empty,
+	 * before the note fills it: a polite live region that arrives already
+	 * filled is often not announced. */
+	const region = () => target.querySelector('[role=status]');
+	const note = () => region()?.textContent ?? '';
 	const download = () => target.querySelector<HTMLButtonElement>('button.download')!;
 
 	it.each(Object.keys(restoreFrom))('draws again once the text fits, after %s', async (source) => {
@@ -51,7 +54,13 @@ describe('Generator restoring text too long for any QR code', () => {
 		const update = vi.spyOn(QRCodeStyling.prototype, 'update');
 		const app = mount(Generator, { target, props: { type: 'text' } });
 		flushSync();
+		const live = region();
+		expect(live?.textContent?.trim()).toBe('');
 		await vi.waitFor(() => expect(note()).toContain('Too much content for one QR'));
+		expect(region()).toBe(live);
+		/* 3000 bytes is past L, so no setting fits it: shortening is the
+		 * only fix worth naming. */
+		expect(note()).toContain('Shorten it to draw one.');
 		expect(target.querySelector('[role=alert]')).toBeNull();
 		expect(download().disabled).toBe(true);
 
@@ -63,6 +72,19 @@ describe('Generator restoring text too long for any QR code', () => {
 		await vi.waitFor(() => expect(update.mock.calls.at(-1)?.[0]?.data).toBe('hi'));
 		await vi.waitFor(() => expect(note()).not.toContain('Too much content'));
 		expect(download().disabled).toBe(false);
+		unmount(app);
+	});
+
+	/* 2000 bytes overflows H (1273 at version 40) but fits L, so the
+	 * note names the second fix, not only shortening. */
+	it('names lowering the error correction when that alone would fit it', async () => {
+		const atH = { ...tooLong, ecc: 'H' as const, content: { text: 'a'.repeat(2000) } };
+		window.location.hash = encodePermalink(atH, 'http://localhost/text').hash;
+		const app = mount(Generator, { target, props: { type: 'text' } });
+		flushSync();
+		await vi.waitFor(() =>
+			expect(note()).toContain('Shorten it, or lower the error correction to draw one.')
+		);
 		unmount(app);
 	});
 });
