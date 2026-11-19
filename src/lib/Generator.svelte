@@ -181,7 +181,10 @@
 	 * so blank input renders the brand URL as a placeholder; ECC is sized
 	 * on these bytes so AUTO's free upgrade matches what is drawn. */
 	let qrData = $derived(encoded.trim() || 'https://kemek.com');
-	let encodedBytes = $derived(new TextEncoder().encode(qrData).length);
+	/* One byte per char (see qr-bytes.ts), so its length is the byte
+	 * count ECC sizes on and the string is exactly what gets drawn. */
+	let qrBytes = $derived(toQrByteString(qrData));
+	let encodedBytes = $derived(qrBytes.length);
 	let resolvedECC = $derived(resolveEcc(errorCorrection, logoDataUrl !== null, encodedBytes));
 
 	/* The preview renders 480 px SVG; each export passes its own size and
@@ -192,7 +195,7 @@
 			width: size,
 			height: size,
 			type: kind,
-			data: toQrByteString(qrData),
+			data: qrBytes,
 			image: logoDataUrl ?? undefined,
 			margin: qrMargin(size),
 			qrOptions: { errorCorrectionLevel: resolvedECC },
@@ -370,7 +373,7 @@
 			 * throws on text past a QR code's capacity, which a share link or
 			 * saved session can hold. That throw would leave qrInstance null,
 			 * and the render effect's guard would then turn away every later
-			 * edit. The first draw goes through update() below instead, which
+			 * edit. The first draw goes through draw() below instead, which
 			 * can fail without losing the instance. */
 			qrInstance = new QRCodeStylingClass({ ...buildOpts(), data: undefined });
 			qrInstance.append(qrContainer);
@@ -378,11 +381,7 @@
 			engineError = errorText('QR engine failed to load', err);
 			return;
 		}
-		try {
-			qrInstance.update(buildOpts());
-		} catch (err) {
-			engineError = errorText('QR render failed', err);
-		}
+		draw(buildOpts());
 	});
 
 	/* Auto-save current state to localStorage 1s after the user stops
@@ -495,27 +494,29 @@
 	$effect(() => {
 		const opts = buildOpts();
 		if (!qrInstance) return;
-		const renderTimer = setTimeout(() => {
-			try {
-				/* Clear a prior transient error before re-attempting —
-				 * without this, a NaN-angle slider drag or corrupt-permalink
-				 * fault leaves the PROTOCOL ERROR overlay latched even
-				 * after the user's next edit lands a valid render. */
-				engineError = null;
-				qrInstance?.update(opts);
-			} catch (err) {
-				/* qr-code-styling throws synchronously on certain bad
-				 * option combinations (malformed logo data URL, NaN
-				 * gradient angle from a corrupted permalink). Without
-				 * this catch the throw lands in the timer callback,
-				 * vanishes to window.onerror, and the preview blanks
-				 * silently. Surface via the same engineError channel
-				 * the onMount path uses. */
-				engineError = errorText('QR render failed', err);
-			}
-		}, RENDER_DEBOUNCE_MS);
+		const renderTimer = setTimeout(() => draw(opts), RENDER_DEBOUNCE_MS);
 		return () => clearTimeout(renderTimer);
 	});
+
+	/* The first draw (onMount) and every debounced redraw. */
+	function draw(opts: ReturnType<typeof buildOpts>) {
+		try {
+			/* Clear a prior transient error before re-attempting —
+			 * without this, a NaN-angle slider drag or corrupt-permalink
+			 * fault leaves the PROTOCOL ERROR overlay latched even
+			 * after the user's next edit lands a valid render. */
+			engineError = null;
+			qrInstance?.update(opts);
+		} catch (err) {
+			/* qr-code-styling throws synchronously on text past a QR
+			 * code's capacity and on certain bad option combinations
+			 * (malformed logo data URL, NaN gradient angle from a
+			 * corrupted permalink). Uncaught, the throw lands in the
+			 * timer callback, vanishes to window.onerror, and the
+			 * preview blanks silently. */
+			engineError = errorText('QR render failed', err);
+		}
+	}
 
 	/* 4 MB is generous for QR logos (typical brand marks are tens of KB);
 	 * anything bigger is almost certainly a mis-drag of a wallpaper or

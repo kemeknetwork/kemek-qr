@@ -10,7 +10,7 @@ import {
 	encodeVCard,
 	encodeWifi
 } from './encoders';
-import type { ContentMap, ContentType } from './types';
+import { CONTENT_TYPES, type ContentMap, type ContentType } from './types';
 
 describe('encodeUrl', () => {
 	it('returns the trimmed URL string', () => {
@@ -187,13 +187,14 @@ describe('encode dispatcher', () => {
 		phone: { number: s },
 		geo: { lat: s, lon: s, query: s }
 	});
-	const types = Object.keys(everyField('')) as ContentType[];
-
-	it.each(types)('never throws on a lone surrogate, and emits well-formed text (%s)', (type) => {
-		/* The built-in check, not a UTF-8 round trip: that is what encode
-		 * itself uses, so it would share any blind spot of the fix. */
-		expect(encode(type, everyField(half)[type]).isWellFormed()).toBe(true);
-	});
+	it.each(CONTENT_TYPES)(
+		'never throws on a lone surrogate, and emits well-formed text (%s)',
+		(type) => {
+			/* The built-in check, not a UTF-8 round trip: that is what encode
+			 * itself uses, so it would share any blind spot of the fix. */
+			expect(encode(type, everyField(half)[type]).isWellFormed()).toBe(true);
+		}
+	);
 
 	/* Well-formed text must come out exactly as the encoder alone would
 	 * write it. A leading U+FEFF is in the sample because a default
@@ -213,7 +214,7 @@ describe('encode dispatcher', () => {
 		return [encode(type, sample[type]), direct[type](sample[type])];
 	}
 
-	it.each(types)(
+	it.each(CONTENT_TYPES)(
 		'passes well-formed text through unchanged, a leading U+FEFF included (%s)',
 		(type) => {
 			const [dispatched, alone] = viaBoth(type);
