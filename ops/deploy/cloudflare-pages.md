@@ -20,9 +20,9 @@ end-state but not now.
 ### 2. Connect the repo to Pages
 
 - Dashboard → **Workers & Pages** → Create → Pages → **Connect to Git**
-- Authorize the `KeMeK-Network` GitHub org (or just the
-  `kemek-QR` repo if scoping access narrowly).
-- Pick `KeMeK-Network/kemek-QR`. Production branch: **`main`**.
+- Authorize the `kemeknetwork` GitHub org (or just the
+  `kemek-qr` repo if scoping access narrowly).
+- Pick `kemeknetwork/kemek-qr`. Production branch: **`main`**.
 - Framework preset: **SvelteKit**.
 - Build command: `npm run build`
 - Build output directory: `build`

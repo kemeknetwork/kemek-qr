@@ -92,7 +92,7 @@
 				<dd>
 					<a
 						class="title-meta-link"
-						href="https://github.com/kemeknetwork/kemek-QR/blob/main/LICENSE"
+						href="https://github.com/kemeknetwork/kemek-qr/blob/main/LICENSE"
 						target="_blank"
 						rel="license noopener">MIT</a
 					>

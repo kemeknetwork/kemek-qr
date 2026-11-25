@@ -413,7 +413,7 @@
 				·
 				<span class="rights-item"
 					>License: <a
-						href="https://github.com/kemeknetwork/kemek-QR/blob/main/LICENSE"
+						href="https://github.com/kemeknetwork/kemek-qr/blob/main/LICENSE"
 						target="_blank"
 						rel="license noopener">MIT</a
 					></span

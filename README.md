@@ -114,7 +114,7 @@ Hash-only (never query string — the hash isn't sent over the network even in C
 - **Logo files read locally.** `FileReader` + Canvas. Never uploaded.
 - **No client-side analytics.** No Google Analytics, no Plausible, no Umami — nothing that injects a script tag and pings a server while you generate.
 - **No cookies, no third-party scripts.** A first-party pageview counter runs server-side only (Cloudflare KV): the edge counts page requests in aggregate, and your browser only reads the total for the footer.
-- **Repo is open-source MIT.** [View the source](https://github.com/kemeknetwork/kemek-QR) and verify the claims.
+- **Repo is open-source MIT.** [View the source](https://github.com/kemeknetwork/kemek-qr) and verify the claims.
 
 ---
 
@@ -158,8 +158,8 @@ The CSS is part of the product feel; a free utility doesn't need a framework's o
 Requires Node 20.19+ or 22.12+ (Vite 8). No global tooling needed.
 
 ```sh
-git clone https://github.com/kemeknetwork/kemek-QR.git
-cd kemek-QR
+git clone https://github.com/kemeknetwork/kemek-qr.git
+cd kemek-qr
 npm install
 
 npm run dev          # http://localhost:5184
