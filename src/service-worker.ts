@@ -43,17 +43,20 @@ sw.addEventListener('fetch', (event) => {
 	if (url.origin !== sw.location.origin) return;
 
 	const strategy = strategyFor(url.pathname, request.mode, KEPT_SET);
-	if (strategy === 'page') event.respondWith(page(event, url.pathname));
+	if (strategy === 'page') event.respondWith(page(event, url));
 	else if (strategy === 'cached') event.respondWith(cached(request));
 });
 
-async function page(event: FetchEvent, pathname: string): Promise<Response> {
+async function page(event: FetchEvent, url: URL): Promise<Response> {
 	try {
 		const preloaded: Response | undefined = await event.preloadResponse;
 		return preloaded ?? (await fetch(event.request));
 	} catch {
-		const kept = await caches.match(keptPagePath(pathname), { cacheName: CACHE });
-		return kept ?? Response.error();
+		/* Pages loads its scripts by relative path, so /about/ must not
+		 * be answered in place: like Pages online, send it to /about. */
+		const path = keptPagePath(url.pathname);
+		if (path !== url.pathname) return Response.redirect(path + url.search, 308);
+		return (await caches.match(path, { cacheName: CACHE })) ?? Response.error();
 	}
 }
 

@@ -43,7 +43,9 @@ export function strategyFor(
 
 /* The kept page for an offline navigation. Pages serves about.html at
  * /about and the prerendered list names it that way, so map the other
- * spellings of the same page onto it. */
+ * spellings of the same page onto it; the worker redirects to that
+ * path rather than answer in place, since the pages load their scripts
+ * by relative path. */
 export function keptPagePath(pathname: string): string {
 	const path = pathname.replace(/(^|\/)index\.html$/, '$1').replace(/\.html$/, '');
 	return path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : path || '/';
