@@ -74,6 +74,20 @@
 	 * pre-binding builds see no broken UI. */
 	let pageviews = $state<number | null>(null);
 
+	/* Page-view counter — first-party fetch to our own Pages
+	 * Function. Same-origin, no third-party. Silent fail; the
+	 * footer cell is decorative, never a load-bearing UI bit. */
+	function refreshPageviews() {
+		fetch('/api/pageviews')
+			.then((r) => (r.ok ? r.json() : null))
+			.then((data) => {
+				if (data && typeof data.count === 'number') pageviews = data.count;
+			})
+			.catch(() => {
+				/* swallow — decorative, never block */
+			});
+	}
+
 	onMount(() => {
 		/* If hydration finished on a different mode than the inline
 		 * FOUC script applied (rare — only when matchMedia disagrees
@@ -95,19 +109,26 @@
 		};
 		mq.addEventListener('change', onSystemChange);
 
-		/* Page-view counter — first-party fetch to our own Pages
-		 * Function. Same-origin, no third-party. Silent fail; the
-		 * footer cell is decorative, never a load-bearing UI bit. */
-		fetch('/api/pageviews')
-			.then((r) => (r.ok ? r.json() : null))
-			.then((data) => {
-				if (data && typeof data.count === 'number') pageviews = data.count;
-			})
-			.catch(() => {
-				/* swallow — decorative, never block */
-			});
+		/* Read once per page load, a tab left open or restored from the
+		 * back-forward cache (a phone switching back from the camera) would
+		 * keep a stale count, so read again whenever the page is shown.
+		 * No throttle: the endpoint's max-age=60 lets the browser answer a
+		 * repeat within the minute from its own cache. */
+		refreshPageviews();
+		const onVisible = () => {
+			if (document.visibilityState === 'visible') refreshPageviews();
+		};
+		const onPageShow = (e: PageTransitionEvent) => {
+			if (e.persisted) refreshPageviews();
+		};
+		document.addEventListener('visibilitychange', onVisible);
+		window.addEventListener('pageshow', onPageShow);
 
-		return () => mq.removeEventListener('change', onSystemChange);
+		return () => {
+			mq.removeEventListener('change', onSystemChange);
+			document.removeEventListener('visibilitychange', onVisible);
+			window.removeEventListener('pageshow', onPageShow);
+		};
 	});
 
 	/* The plate the current route draws, or null off the generator
