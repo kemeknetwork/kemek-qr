@@ -30,7 +30,12 @@
 		type PngSize
 	} from '$lib/permalink';
 	import { encode } from '$lib/encoders';
-	import { capacityVersionFor, overCapacityAdvice, type EccLevel } from '$lib/qr-capacity';
+	import {
+		capacityVersionFor,
+		overCapacityAdvice,
+		qrModeOf,
+		type EccLevel
+	} from '$lib/qr-capacity';
 	import { toQrByteString } from '$lib/qr-bytes';
 	import ColorPicker from '$lib/ColorPicker.svelte';
 	import { contrastBand, contrastRatio, effectiveFg, isInverted } from '$lib/contrast';
@@ -170,13 +175,13 @@
 	 * module count, more recovery margin). Manual L/M/Q/H pass through
 	 * verbatim. One source of truth for both buildOpts and the
 	 * resolvedECC display $derived below. */
-	function resolveEcc(level: ECC, hasLogo: boolean, encodedBytes: number): EccLevel {
+	function resolveEcc(level: ECC, hasLogo: boolean, data: string): EccLevel {
 		if (level !== 'auto') return level;
 		if (hasLogo) return 'H';
-		const versionAtM = capacityVersionFor(encodedBytes, 'M');
+		const versionAtM = capacityVersionFor(data, 'M');
 		if (versionAtM === null) return 'M';
-		if (capacityVersionFor(encodedBytes, 'H') === versionAtM) return 'H';
-		if (capacityVersionFor(encodedBytes, 'Q') === versionAtM) return 'Q';
+		if (capacityVersionFor(data, 'H') === versionAtM) return 'H';
+		if (capacityVersionFor(data, 'Q') === versionAtM) return 'Q';
 		return 'M';
 	}
 
@@ -186,16 +191,16 @@
 	let encoded = $derived(encode(type, content[type]));
 	/* What the QR actually holds. qr-code-styling throws on empty `data`,
 	 * so blank input renders the brand URL as a placeholder; ECC is sized
-	 * on these bytes so AUTO's free upgrade matches what is drawn. */
+	 * on this payload so AUTO's free upgrade matches what is drawn. */
 	let qrData = $derived(encoded.trim() || 'https://kemek.com');
-	/* One byte per char (see qr-bytes.ts), so its length is the byte
-	 * count ECC sizes on and the string is exactly what gets drawn. */
+	/* One byte per char (see qr-bytes.ts): the string exactly as drawn,
+	 * which ECC sizing and the encoding mode are both read from. */
 	let qrBytes = $derived(toQrByteString(qrData));
-	let encodedBytes = $derived(qrBytes.length);
-	let resolvedECC = $derived(resolveEcc(errorCorrection, logoDataUrl !== null, encodedBytes));
+	let qrMode = $derived(qrModeOf(qrBytes));
+	let resolvedECC = $derived(resolveEcc(errorCorrection, logoDataUrl !== null, qrBytes));
 	let capacityAdvice = $derived(
 		overCapacityAdvice(
-			encodedBytes,
+			qrBytes,
 			resolvedECC,
 			logoDataUrl !== null && errorCorrection === 'auto'
 		)
@@ -212,7 +217,8 @@
 			data: qrBytes,
 			image: logoDataUrl ?? undefined,
 			margin: qrMargin(size),
-			qrOptions: { errorCorrectionLevel: resolvedECC },
+			/* The mode the sizing assumed, so the library can't pick another. */
+			qrOptions: { errorCorrectionLevel: resolvedECC, mode: qrMode },
 			dotsOptions: { color: fgColor, type: dotType, gradient },
 			backgroundOptions: { color: bgColor },
 			cornersSquareOptions: { color: fgColor, type: eyeFrame, gradient },

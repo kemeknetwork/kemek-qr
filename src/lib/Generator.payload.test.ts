@@ -39,4 +39,26 @@ describe('Generator QR payload', () => {
 		await vi.waitFor(() => expect(units()).toEqual([...new TextEncoder().encode(text)]));
 		unmount(app);
 	});
+
+	/* 28 digits fit version 1 at M but need version 2 at Q, so AUTO must
+	 * stay at M; sized as bytes (v3 at both) it took Q and drew v2. */
+	it('sizes AUTO error correction in the mode the library draws', async () => {
+		const update = vi.spyOn(QRCodeStyling.prototype, 'update');
+		const app = mount(Generator, { target, props: { type: 'text' } });
+		flushSync();
+		await vi.waitFor(() => expect(update).toHaveBeenCalled());
+
+		const field = target.querySelector<HTMLTextAreaElement>('textarea')!;
+		field.value = '7'.repeat(28);
+		field.dispatchEvent(new Event('input', { bubbles: true }));
+		flushSync();
+
+		await vi.waitFor(() =>
+			expect(update.mock.calls.at(-1)?.[0]?.qrOptions).toEqual({
+				errorCorrectionLevel: 'M',
+				mode: 'Numeric'
+			})
+		);
+		unmount(app);
+	});
 });
