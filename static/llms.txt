@@ -1,6 +1,6 @@
 # kemek-qr
 
-> A free, privacy-first QR code generator. Encoding happens entirely in the visitor's browser — content never touches a server. Eight content types, full visual styling (color, shape, logo, frame), PNG / SVG / PDF export, permalink-encoded settings.
+> A free, privacy-first QR code generator. Encoding happens entirely in the visitor's browser — content never touches a server. Eight content types, full visual styling (color, shape, logo, frame), PNG / SVG / PDF export, permalink-encoded settings, and offline use after the first visit.
 
 kemek-qr is a free utility published by KeMeK Network. No signup, no expiry, no third-party scripts on generator pages, no individual tracking. The core promise is *client-side generation*: when a visitor types a URL or contact card into the form, that string is encoded into a QR code by JavaScript running locally in the browser — nothing is uploaded, logged, or transmitted to a server. The host (Cloudflare Pages) sees only normal page requests; aggregate pageview counts are visible to KeMeK Network, individual visitors are not.
 

@@ -35,6 +35,12 @@ describe('static/_routes.json', () => {
 		expect(excluded('/_app/immutable/chunks/x.js')).toBe(true);
 	});
 
+	/* Built from src/service-worker.ts, not copied from static/, so the
+	 * scan above can't see it; browsers re-fetch it on navigations. */
+	it('excludes the service worker script', () => {
+		expect(excluded('/service-worker.js')).toBe(true);
+	});
+
 	it('stays within the 100-rule limit Pages enforces at deploy', () => {
 		expect(routes.include.length + routes.exclude.length).toBeLessThanOrEqual(100);
 	});

@@ -129,6 +129,12 @@
 			site data clears the saved session. Loading a permalink (a URL with a <code>#s=…</code> hash) overrides
 			the saved session for that visit.
 		</p>
+		<p>
+			<span class="dropmark" aria-hidden="true">04</span>
+			So the generator also works without a connection, this browser keeps a copy of the site’s own pages,
+			scripts and fonts in its cache after your first visit. Nothing you type goes into it; a new version
+			of the site replaces it, and clearing site data removes it.
+		</p>
 	</div>
 
 	<ExplainerSection marker="§04" title="License & source" />

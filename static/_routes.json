@@ -3,6 +3,7 @@
 	"include": ["/*"],
 	"exclude": [
 		"/_app/*",
+		"/service-worker.js",
 		"/brand/*",
 		"/apple-touch-icon.png",
 		"/favicon.ico",

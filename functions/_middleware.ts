@@ -46,7 +46,8 @@
  * - **No client-side code.** Middleware runs server-side; the
  *   visitor's browser sees an identical static response.
  * - **Asset fetches are filtered out.** Only HTML page-view requests
- *   (path with no extension or ending in `.html`) are logged. JS,
+ *   (path with no extension or ending in `.html`, and a navigation
+ *   when the browser says what kind of fetch it is) are logged. JS,
  *   CSS, fonts, favicons, sitemap, robots, llms.txt etc. are
  *   excluded so the log is a clean page-view stream.
  *
@@ -97,7 +98,7 @@ type CfProperties = {
 
 export async function onRequest(context: EventContext): Promise<Response> {
 	const url = new URL(context.request.url);
-	if (isPageView(url.pathname)) {
+	if (isPageView(url.pathname, context.request.headers)) {
 		const cf = (context.request as Request & { cf?: CfProperties }).cf;
 		console.log(
 			JSON.stringify({
@@ -186,9 +187,16 @@ async function incrementCounter(kv: KVNamespace): Promise<void> {
  * on every page mount — would otherwise self-loop and inflate the
  * counter ~1 per unique visitor per minute). The 404 SPA fallback
  * at `/404.html` IS a page-view (path ends in .html) so we'll see
- * mis-typed URLs in the log too, which is useful diagnostic data. */
-function isPageView(pathname: string): boolean {
+ * mis-typed URLs in the log too, which is useful diagnostic data.
+ *
+ * A browser names the kind of fetch in Sec-Fetch-Mode, and a page view
+ * is a navigation. The offline service worker fetches every page in
+ * the background (mode `cors`) to keep a copy; those are not views.
+ * Requests without the header (curl, most crawlers) count as before. */
+export function isPageView(pathname: string, headers: Headers): boolean {
 	if (pathname.startsWith('/api/')) return false;
+	const mode = headers.get('sec-fetch-mode');
+	if (mode !== null && mode !== 'navigate') return false;
 	const last = pathname.split('/').pop() ?? '';
 	return !last.includes('.') || last.endsWith('.html');
 }

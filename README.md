@@ -112,6 +112,7 @@ Hash-only (never query string — the hash isn't sent over the network even in C
 
 - **Zero outbound network requests during QR generation.** Open DevTools → Network panel → generate a QR → see nothing.
 - **Logo files read locally.** `FileReader` + Canvas. Never uploaded.
+- **Works offline after the first visit.** A service worker keeps the site's own pages, scripts and fonts in the browser cache, so the generator runs without a connection. Nothing you type goes into it; pages still come from the network first whenever you're online.
 - **No client-side analytics.** No Google Analytics, no Plausible, no Umami — nothing that injects a script tag and pings a server while you generate.
 - **No cookies, no third-party scripts.** A first-party pageview counter runs server-side only (Cloudflare KV): the edge counts page requests in aggregate, and your browser only reads the total for the footer.
 - **Repo is open-source MIT.** [View the source](https://github.com/kemeknetwork/kemek-qr) and verify the claims.
@@ -216,7 +217,9 @@ src/
 │   ├── encoders.ts            pure functions, type → string
 │   ├── permalink.ts           v1 hash wire format + decoder
 │   ├── contrast.ts            WCAG luminance + ratio math
+│   ├── offline.ts             what the service worker keeps + how it answers
 │   └── types.ts               canonical content-type set + defaults
+├── service-worker.ts          offline copy: network-first pages, cached app files
 └── app.css                    design tokens (light + dark)
 
 functions/                     Cloudflare Pages Functions
@@ -234,7 +237,7 @@ Phase 1 (v1) is **shipped and live at [qr.kemek.com](https://qr.kemek.com)**.
 
 Post-v1 polish (no fixed date):
 
-- **Service worker** — offline generation + install-to-home-screen.
+- **Install nudge** — a first-visit hint for adding it to the home screen on iOS (offline generation shipped in v1.1.0).
 - **Templates** — save / load named styling configurations.
 - **Calendar event** — VEVENT content type for event invitations.
 - **Color extraction from logo** — auto-suggest brand-matched fg/bg.
