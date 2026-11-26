@@ -3,7 +3,10 @@
  * Runs at the Cloudflare edge before the response for every page and
  * `/api/*` request. Static assets never reach it: `static/_routes.json`
  * excludes them, so a page load costs 2 Function invocations instead
- * of ~24 against the free tier's daily cap. A new top-level file in
+ * of ~24 against the free tier's daily cap. The offline service worker
+ * adds 9 when it installs (one per kept page: first visit, then once
+ * per deploy per returning browser); those fetches are not counted as
+ * views (`isPageView`). A new top-level file in
  * `static/` needs an exclude entry there, or it costs an invocation
  * (behaviour is unaffected — `isPageView` still passes it through);
  * `src/static-routes.test.ts` fails until the entry exists.

@@ -112,7 +112,9 @@ Hash-only (never query string — the hash isn't sent over the network even in C
 
 - **Zero outbound network requests during QR generation.** Open DevTools → Network panel → generate a QR → see nothing.
 - **Logo files read locally.** `FileReader` + Canvas. Never uploaded.
-- **Works offline after the first visit.** A service worker keeps the site's own pages, scripts and fonts in the browser cache, so the generator runs without a connection. Nothing you type goes into it; pages still come from the network first whenever you're online.
+- **Works offline after the first visit.**
+  A service worker keeps the site's own pages, scripts and fonts in the browser cache, so the generator runs without a connection.
+  Nothing you type goes into it; pages still come from the network first whenever you're online.
 - **No client-side analytics.** No Google Analytics, no Plausible, no Umami — nothing that injects a script tag and pings a server while you generate.
 - **No cookies, no third-party scripts.** A first-party pageview counter runs server-side only (Cloudflare KV): the edge counts page requests in aggregate, and your browser only reads the total for the footer.
 - **Repo is open-source MIT.** [View the source](https://github.com/kemeknetwork/kemek-qr) and verify the claims.
@@ -172,7 +174,8 @@ npm run preview      # local preview of production build
 npm run build:images # regenerate static/*.png from SVG masters
 ```
 
-Tests cover the encoders (URL / text / WiFi / vCard / email / SMS / phone / geo), the permalink wire-format round-trip, QR capacity, the WCAG contrast math, the Pages Functions route exclusions, and two component behaviours (shared saved colors, session autosave). Rendering is verified in a browser, not unit-tested.
+Tests cover the encoders (URL / text / WiFi / vCard / email / SMS / phone / geo), the permalink wire-format round-trip, the UTF-8 payload bytes, QR capacity per encoding mode (checked against the library's own encoder), the WCAG contrast math, the Pages Functions route exclusions and page-view rule, what the offline service worker keeps, and the generator component's behaviour (payload and error correction handed to the library, too-long text, malformed share links, blocked storage, session autosave, shared saved colors).
+Rendering is verified in a browser, not unit-tested.
 
 ---
 

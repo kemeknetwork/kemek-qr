@@ -7,9 +7,11 @@
  * what is kept and how each request is answered is in $lib/offline.
  *
  * A new build is a new `version`, so the new worker installs into its
- * own cache and waits: no skipWaiting, so an open tab keeps the worker
- * and cache its HTML was built against. Once every tab has closed it
- * activates and deletes the older caches. */
+ * own cache and waits (no skipWaiting) until no tab uses the old one,
+ * then activates and deletes the older caches. Meanwhile the old worker
+ * keeps the old cache for offline loads, while online loads still come
+ * from the network, so a page opened during the wait is already the new
+ * build and fetches anything new from the network. */
 import { build, files, prerendered, version } from '$service-worker';
 import { keptPagePath, precacheList, strategyFor } from '$lib/offline';
 
@@ -32,6 +34,11 @@ sw.addEventListener('activate', (event) => {
 			/* The browser starts the page's own request while the worker
 			 * boots, so network-first costs a visit no extra wait. */
 			await sw.registration.navigationPreload?.enable();
+			/* Take the tab that installed the first worker, so it works
+			 * offline without a reload (its PDF library is fetched only on
+			 * first export). An update activates only once no tab uses the
+			 * old worker, so this never swaps a tab's worker mid-session. */
+			await sw.clients.claim();
 		})()
 	);
 });
