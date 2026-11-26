@@ -199,11 +199,7 @@
 	let qrMode = $derived(qrModeOf(qrBytes));
 	let resolvedECC = $derived(resolveEcc(errorCorrection, logoDataUrl !== null, qrBytes));
 	let capacityAdvice = $derived(
-		overCapacityAdvice(
-			qrBytes,
-			resolvedECC,
-			logoDataUrl !== null && errorCorrection === 'auto'
-		)
+		overCapacityAdvice(qrBytes, resolvedECC, logoDataUrl !== null && errorCorrection === 'auto')
 	);
 
 	/* The preview renders 480 px SVG; each export passes its own size and

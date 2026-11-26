@@ -44,11 +44,7 @@ describe('capacityVersionFor against qr-code-styling', () => {
 	afterAll(() => vi.restoreAllMocks());
 
 	it('the three sample payloads land in the three modes', () => {
-		expect(MODES.map(([, make]) => qrModeOf(make(5)))).toEqual([
-			'Numeric',
-			'Alphanumeric',
-			'Byte'
-		]);
+		expect(MODES.map(([, make]) => qrModeOf(make(5)))).toEqual(['Numeric', 'Alphanumeric', 'Byte']);
 	});
 
 	for (const [name, make] of MODES) {
