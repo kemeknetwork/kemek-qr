@@ -100,6 +100,13 @@ describe('strategyFor', () => {
 		expect(strategyFor('/favicon.svg', 'no-cors', kept)).toBe('cached');
 		expect(strategyFor('/og.png', 'no-cors', kept)).toBe('network');
 	});
+
+	/* During an update the page is the new build while the old worker
+	 * runs; the new chunks are in the waiting worker's cache, not this
+	 * worker's list, so a hashed name alone must send them to the cache. */
+	it('sends a hashed file from another build to the caches too', () => {
+		expect(strategyFor('/_app/immutable/chunks/pdf-lib.NEWHASH.js', 'cors', kept)).toBe('cached');
+	});
 });
 
 describe('keptPagePath', () => {

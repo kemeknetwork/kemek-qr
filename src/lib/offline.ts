@@ -25,8 +25,11 @@ export function precacheList(
  * reaches the server — fresh after a deploy, and seen by the page-view
  * middleware exactly as without a worker — and the kept copy answers
  * only when the network fails.
- * `cached`: a kept file. Its name is hashed or its contents fixed for
- * the build, so the kept copy is the file.
+ * `cached`: a kept file, or any hashed build file. Kept files are fixed
+ * for the build; a hashed name is its content, so a copy from ANY
+ * build's cache is the file. That matters during an update: the page
+ * is already the new build (network-first) while the old worker still
+ * runs, and the new build's chunks sit in the waiting worker's cache.
  * `network`: anything else, untouched — /api/ included, so the footer's
  * pageview count simply fails offline, as it is built to. */
 export type Strategy = 'page' | 'cached' | 'network';
@@ -38,7 +41,8 @@ export function strategyFor(
 ): Strategy {
 	if (pathname.startsWith('/api/')) return 'network';
 	if (mode === 'navigate') return 'page';
-	return kept.has(pathname) ? 'cached' : 'network';
+	if (kept.has(pathname) || pathname.startsWith('/_app/immutable/')) return 'cached';
+	return 'network';
 }
 
 /* The kept page for an offline navigation. Pages serves about.html at

@@ -67,6 +67,7 @@ async function page(event: FetchEvent, url: URL): Promise<Response> {
 	}
 }
 
+/* Every cache, not just this build's: see `cached` in $lib/offline. */
 async function cached(request: Request): Promise<Response> {
-	return (await caches.match(request, { cacheName: CACHE })) ?? fetch(request);
+	return (await caches.match(request)) ?? fetch(request);
 }
